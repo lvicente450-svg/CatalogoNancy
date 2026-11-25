@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catálogo & Ventas WhatsApp</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- QRCode.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+    }
+    .drag-over {
+      border-color: #db2777 !important;
+      background-color: #fdf2f8 !important;
+      box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.2);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-toast {
+      animation: slideUp 0.22s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased pb-28 overflow-x-hidden">
+
+  <!-- ==================== BARRA SUPERIOR ==================== -->
+  <header class="sticky top-0 z-30 bg-gradient-to-r from-pink-600 via-fuchsia-600 to-purple-600 text-white shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <!-- Identidad de la tienda -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl shadow-inner shrink-0">
+          🛍️
+        </div>
+        <div class="min-w-0">
+          <h1 class="font-extrabold text-lg sm:text-xl leading-tight tracking-tight truncate">
+            Catálogo & Ventas WhatsApp
+          </h1>
+          <p id="headerSubtitle" class="text-xs text-pink-100 font-medium truncate">
+            29 artículos · Inventario listo
+          </p>
+        </div>
+      </div>
+
+      <!-- Selector de pestañas -->
+      <nav class="flex bg-black/20 p-1 rounded-2xl text-xs sm:text-sm font-bold w-full sm:w-auto">
+        <button
+          id="tabAdmin"
+          type="button"
+          onclick="switchTab('admin')"
+          class="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-white text-pink-600 shadow-sm transition text-center"
+        >
+          📋 Control Inventario
+        </button>
+        <button
+          id="tabClient"
+          type="button"
+          onclick="switchTab('client')"
+          class="flex-1 sm:flex-initial px-4 py-2 rounded-xl text-white/95 hover:bg-white/10 transition text-center"
+        >
+          📱 Vista Cliente (WA)
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Contenedor de notificaciones Toast -->
+  <div id="toastContainer" class="fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-xs w-full"></div>
+
+  <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+  <main class="max-w-6xl mx-auto px-4 pt-5">
+
+    <!-- ==================== PESTAÑA 1: CONTROL INVENTARIO (ADMIN) ==================== -->
+    <section id="viewAdmin" class="space-y-5">
+
+      <!-- 3 Tarjetas de Resumen -->
+      <div class="grid grid-cols-3 gap-2.5 sm:gap-4">
+        <button
+          type="button"
+          onclick="quickFilterStock('IN')"
+          class="text-left bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-emerald-100 hover:border-emerald-300 transition"
+        >
+          <span class="block text-[11px] sm:text-xs font-semibold text-emerald-700">Disponibles</span>
+          <span id="statAvailable" class="block text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-0.5">29</span>
+          <span class="block text-[10px] sm:text-xs text-slate-400">con existencia</span>
+        </button>
+
+        <button
+          type="button"
+          onclick="quickFilterStock('LOW')"
+          class="text-left bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-amber-100 hover:border-amber-300 transition"
+        >
+          <span class="block text-[11px] sm:text-xs font-semibold text-amber-700">Pocas piezas</span>
+          <span id="statLow" class="block text-2xl sm:text-3xl font-extrabold text-amber-500 mt-0.5">0</span>
+          <span class="block text-[10px] sm:text-xs text-slate-400">1 o 2 unidades</span>
+        </button>
+
+        <button
+          type="button"
+          onclick="quickFilterStock('OUT')"
+          class="text-left bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-rose-100 hover:border-rose-300 transition"
+        >
+          <span class="block text-[11px] sm:text-xs font-semibold text-rose-700">Agotados</span>
+          <span id="statOut" class="block text-2xl sm:text-3xl font-extrabold text-rose-600 mt-0.5">0</span>
+          <span class="block text-[10px] sm:text-xs text-slate-400">0 unidades</span>
+        </button>
+      </div>
+
+      <!-- Barra de Acciones -->
+      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200/70 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onclick="openBulkModal()"
+            class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-3.5 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5"
+          >
+            📸 Cargar Varias Fotos
+          </button>
+          <button
+            type="button"
+            onclick="openNewModal()"
+            class="bg-pink-600 hover:bg-pink-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5"
+          >
+            ➕ Nuevo Artículo
+          </button>
+          <button
+            type="button"
+            onclick="openWaModal()"
+            class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5"
+          >
+            💬 Número WhatsApp
+          </button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onclick="exportBackup()"
+            class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-2.5 rounded-xl text-xs transition"
+          >
+            ⬇️ Guardar Respaldo
+          </button>
+          <label class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-2.5 rounded-xl text-xs cursor-pointer transition inline-flex items-center">
+            ⬆️ Cargar Respaldo
+            <input type="file" accept=".json" onchange="importBackup(event)" class="hidden" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Buscador y Filtros -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="md:col-span-6">
+          <input
+            type="text"
+            id="adminSearch"
+            oninput="renderAdmin()"
+            placeholder="🔍 Buscar por código (#01) o nombre..."
+            class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition"
+          />
+        </div>
+        <div class="md:col-span-3">
+          <select
+            id="adminCategory"
+            onchange="renderAdmin()"
+            class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-500 transition"
+          >
+            <option value="ALL">Todas las categorías</option>
+            <option value="Belleza y Skincare">💄 Belleza y Skincare</option>
+            <option value="Hogar y Cocina">🏠 Hogar y Cocina</option>
+            <option value="Gadgets y Novedades">⚡ Gadgets y Novedades</option>
+            <option value="Ropa y Accesorios">👜 Ropa y Accesorios</option>
+            <option value="Juguetes y Fiestas">🧸 Juguetes y Fiestas</option>
+          </select>
+        </div>
+        <div class="md:col-span-3">
+          <select
+            id="adminStockFilter"
+            onchange="renderAdmin()"
+            class="w-full bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-500 transition"
+          >
+            <option value="ALL">Todo el stock</option>
+            <option value="IN">✅ Disponibles</option>
+            <option value="LOW">⚠️ Pocas piezas (1-2)</option>
+            <option value="OUT">🚫 Agotados (0)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Grid de Productos (Admin) -->
+      <div id="adminGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- ==================== PESTAÑA 2: VISTA CLIENTE (WA) ==================== -->
+    <section id="viewClient" class="hidden space-y-5">
+
+      <!-- Banner Superior Cliente -->
+      <div class="bg-gradient-to-r from-pink-50 via-fuchsia-50 to-purple-50 border border-pink-200/70 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-pink-600 bg-white px-2.5 py-0.5 rounded-full border border-pink-100 mb-1.5">
+            ✨ Disponible hoy
+          </span>
+          <h2 class="font-extrabold text-slate-900 text-lg sm:text-xl">Catálogo para Pedidos por WhatsApp</h2>
+          <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
+            Elige lo que te guste y envía tu lista armada directo por WhatsApp con un toque.
+          </p>
+        </div>
+        <button
+          type="button"
+          onclick="openQrModal()"
+          class="self-start sm:self-center bg-white hover:bg-pink-50 text-pink-600 border border-pink-200 font-bold px-4 py-2.5 rounded-2xl text-xs sm:text-sm shadow-sm transition shrink-0"
+        >
+          📲 Ver Código QR
+        </button>
+      </div>
+
+      <!-- Píldoras Horizontales de Categorías -->
+      <div id="clientCategoryPills" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar"></div>
+
+      <!-- Grid de Productos Disponibles (Cliente) -->
+      <div id="clientGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"></div>
+    </section>
+
+  </main>
+
+  <!-- ==================== BARRA FLOTANTE VERDE DE PEDIDO (CLIENTE) ==================== -->
+  <div
+    id="waCartBar"
+    class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto bg-emerald-600 text-white p-3.5 sm:p-4 rounded-2xl shadow-2xl border border-emerald-500/40 flex items-center justify-between gap-3 z-40 hidden"
+  >
+    <div class="min-w-0">
+      <div id="cartCountText" class="text-xs text-emerald-100 font-medium truncate">0 artículos seleccionados</div>
+      <div id="cartTotalText" class="font-extrabold text-base sm:text-lg leading-tight">Total estimado: $0</div>
+    </div>
+    <button
+      type="button"
+      onclick="sendWhatsAppOrder()"
+      class="bg-white hover:bg-emerald-50 text-emerald-700 font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition shrink-0 flex items-center gap-1.5"
+    >
+      💬 Pedir por WhatsApp
+    </button>
+  </div>
+
+  <!-- ==================== MODAL: NUEVO ARTÍCULO ==================== -->
+  <div id="newModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-extrabold text-lg text-slate-900">➕ Nuevo Artículo</h3>
+        <button type="button" onclick="closeModal('newModal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">&times;</button>
+      </div>
+      <form id="newProductForm" onsubmit="saveNewProduct(event)" class="space-y-3.5 text-sm">
+        <div class="grid grid-cols-3 gap-2.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Código</label>
+            <input type="text" id="newCode" required class="w-full border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="#30" />
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Categoría</label>
+            <select id="newCat" class="w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500">
+              <option value="Belleza y Skincare">Belleza y Skincare</option>
+              <option value="Hogar y Cocina">Hogar y Cocina</option>
+              <option value="Gadgets y Novedades">Gadgets y Novedades</option>
+              <option value="Ropa y Accesorios">Ropa y Accesorios</option>
+              <option value="Juguetes y Fiestas">Juguetes y Fiestas</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">Nombre del artículo</label>
+          <input type="text" id="newName" required class="w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Ej. Labial mágico con glitter" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Precio ($)</label>
+            <input type="number" id="newPrice" min="0" step="any" required value="50" class="w-full border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:ring-2 focus:ring-pink-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Existencia (Stock)</label>
+            <input type="number" id="newStock" min="0" step="1" required value="5" class="w-full border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:ring-2 focus:ring-pink-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">Foto (Opcional)</label>
+          <input type="file" id="newPhoto" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100" />
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('newModal')" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm bg-pink-600 hover:bg-pink-700 text-white font-bold shadow-sm">Guardar Artículo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CARGA MASIVA DE FOTOS ==================== -->
+  <div id="bulkModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-100 max-h-[88vh] flex flex-col">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-extrabold text-lg text-slate-900">📸 Cargar Varias Fotos</h3>
+        <button type="button" onclick="closeModal('bulkModal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">&times;</button>
+      </div>
+      <p class="text-xs text-slate-500 mb-3">
+        Selecciona varias fotos a la vez. Se comprimen automáticamente en JPEG ligero y puedes elegir a qué código (#01–#29) asignar cada una.
+      </p>
+
+      <label class="border-2 border-dashed border-pink-300 hover:border-pink-500 bg-pink-50/50 rounded-2xl p-4 text-center cursor-pointer transition mb-3 block">
+        <span class="block text-sm font-bold text-pink-700">Toca aquí para elegir tus fotos</span>
+        <span class="block text-[11px] text-slate-500 mt-0.5">Puedes seleccionar todas juntas desde tu galería o carpeta</span>
+        <input type="file" id="bulkInput" multiple accept="image/*" onchange="previewBulkPhotos(event)" class="hidden" />
+      </label>
+
+      <div id="bulkPreviewList" class="overflow-y-auto flex-1 space-y-2.5 pr-1 min-h-[80px]"></div>
+
+      <div class="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-slate-100">
+        <span id="bulkCounter" class="text-xs font-semibold text-slate-500">0 fotos cargadas</span>
+        <div class="flex gap-2">
+          <button type="button" onclick="closeModal('bulkModal')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
+          <button type="button" id="bulkApplyBtn" onclick="applyBulkPhotos()" disabled class="px-4 py-2 rounded-xl text-xs sm:text-sm bg-pink-600 disabled:bg-slate-300 hover:bg-pink-700 text-white font-bold shadow-sm transition">
+            Aplicar Fotos
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: NÚMERO DE WHATSAPP ==================== -->
+  <div id="waModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-extrabold text-lg text-slate-900">💬 Número de WhatsApp</h3>
+        <button type="button" onclick="closeModal('waModal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">&times;</button>
+      </div>
+      <p class="text-xs text-slate-500 mb-3">
+        Ingresa el teléfono con clave de país (ejemplo: <b>525512345678</b>) donde recibirán los pedidos de sus clientes.
+      </p>
+      <input
+        type="tel"
+        id="waNumberInput"
+        placeholder="Ej. 525512345678"
+        class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold mb-4 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+      />
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="closeModal('waModal')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
+        <button type="button" onclick="saveWaNumber()" class="px-4 py-2 rounded-xl text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-sm">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CÓDIGO QR DEL CATÁLOGO ==================== -->
+  <div id="qrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-2xl border border-slate-100 text-center">
+      <h3 class="font-extrabold text-lg text-slate-900 mb-1">📲 Comparte el Catálogo</h3>
+      <p class="text-xs text-slate-500 mb-4">Escanea este código QR o copia el enlace para compartirlo en tus estados de WhatsApp.</p>
+      <div id="qrcodeBox" class="flex justify-center p-3 bg-slate-50 rounded-2xl border border-slate-100 mb-4"></div>
+      <button type="button" onclick="copyCatalogLink()" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm shadow-sm mb-2 transition">
+        🔗 Copiar Enlace del Catálogo
+      </button>
+      <button type="button" onclick="closeModal('qrModal')" class="w-full text-slate-500 hover:text-slate-700 text-xs font-semibold py-2">
+        Cerrar
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CONFIRMAR ELIMINACIÓN ==================== -->
+  <div id="deleteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-slate-100 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mx-auto mb-3">
+        🗑️
+      </div>
+      <h3 class="font-extrabold text-base text-slate-900 mb-1">¿Eliminar este artículo?</h3>
+      <p id="deleteProductLabel" class="text-xs text-slate-500 mb-5"></p>
+      <div class="flex gap-2 justify-center">
+        <button type="button" onclick="closeModal('deleteModal')" class="flex-1 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">
+          Cancelar
+        </button>
+        <button type="button" onclick="confirmDeleteProduct()" class="flex-1 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-sm">
+          Sí, eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== LÓGICA JAVASCRIPT ==================== -->
+  <script>
+    // Claves de persistencia en localStorage
+    const STORAGE_PRODUCTS_KEY = 'wa_catalogo_productos_v1';
+    const STORAGE_PHONE_KEY = 'wa_catalogo_telefono_v1';
+
+    // 29 artículos iniciales precargados
+    const INITIAL_PRODUCTS = [
+      { id: 1,  code: '#01', name: 'Pegamento Fuerte Calzado 100ml',     category: 'Gadgets y Novedades', price: 45,  stock: 5,  icon: '👟',  photo: '' },
+      { id: 2,  code: '#02', name: 'Body Mist Perfume Bosuya',           category: 'Belleza y Skincare',  price: 65,  stock: 8,  icon: '🌸',  photo: '' },
+      { id: 3,  code: '#03', name: 'Caja Desodorante Refrigerador',      category: 'Hogar y Cocina',      price: 50,  stock: 4,  icon: '❄️',  photo: '' },
+      { id: 4,  code: '#04', name: 'Gorro Bucket Hat Peluche',           category: 'Ropa y Accesorios',   price: 110, stock: 6,  icon: '🧢',  photo: '' },
+      { id: 5,  code: '#05', name: 'Set 5 Cremas Manos Personajes',      category: 'Belleza y Skincare',  price: 85,  stock: 5,  icon: '🧴',  photo: '' },
+      { id: 6,  code: '#06', name: 'Termómetro Digital con Alarma',      category: 'Hogar y Cocina',      price: 55,  stock: 4,  icon: '🌡️',  photo: '' },
+      { id: 7,  code: '#07', name: 'Serie Luces LED Cálidas',            category: 'Hogar y Cocina',      price: 95,  stock: 5,  icon: '✨',  photo: '' },
+      { id: 8,  code: '#08', name: 'Hervidor Eléctrico Plegable',        category: 'Hogar y Cocina',      price: 180, stock: 3,  icon: '🫖',  photo: '' },
+      { id: 9,  code: '#09', name: 'Crema Exfoliante Pies Aguacate',     category: 'Belleza y Skincare',  price: 70,  stock: 6,  icon: '🥑',  photo: '' },
+      { id: 10, code: '#10', name: 'Pantuflas Afelpadas Suaves',         category: 'Ropa y Accesorios',   price: 140, stock: 4,  icon: '🩴',  photo: '' },
+      { id: 11, code: '#11', name: 'Set Profesional 10 Peines',          category: 'Belleza y Skincare',  price: 60,  stock: 5,  icon: '💇‍♀️', photo: '' },
+      { id: 12, code: '#12', name: 'Mascarilla Hidrogel para Labios',    category: 'Belleza y Skincare',  price: 75,  stock: 6,  icon: '💋',  photo: '' },
+      { id: 13, code: '#13', name: 'Exfoliante Corporal Athena 350ml',   category: 'Belleza y Skincare',  price: 85,  stock: 6,  icon: '🍓',  photo: '' },
+      { id: 14, code: '#14', name: 'Jabones Barra Chocolate',            category: 'Belleza y Skincare',  price: 40,  stock: 10, icon: '🍫',  photo: '' },
+      { id: 15, code: '#15', name: 'Perfume Capilar Forimbo 100ml',      category: 'Belleza y Skincare',  price: 80,  stock: 5,  icon: '✨',  photo: '' },
+      { id: 16, code: '#16', name: 'Parches Acné Figuras Kawaii',        category: 'Belleza y Skincare',  price: 35,  stock: 12, icon: '⭐',  photo: '' },
+      { id: 17, code: '#17', name: 'Set Brocha y Peine para Tinte',      category: 'Belleza y Skincare',  price: 30,  stock: 8,  icon: '🖌️',  photo: '' },
+      { id: 18, code: '#18', name: 'Termo Inteligente Pantalla LED',     category: 'Gadgets y Novedades', price: 120, stock: 5,  icon: '🥤',  photo: '' },
+      { id: 19, code: '#19', name: 'Ahuevera Eléctrica Rápida',          category: 'Hogar y Cocina',      price: 160, stock: 3,  icon: '🥚',  photo: '' },
+      { id: 20, code: '#20', name: 'Cañón Lanzador Confeti 40cm',        category: 'Juguetes y Fiestas',  price: 45,  stock: 10, icon: '🎉',  photo: '' },
+      { id: 21, code: '#21', name: 'Velas Aromáticas Lata Navideña',     category: 'Hogar y Cocina',      price: 50,  stock: 8,  icon: '🕯️',  photo: '' },
+      { id: 22, code: '#22', name: 'Cepillo Desenredante Flexible',      category: 'Belleza y Skincare',  price: 45,  stock: 7,  icon: '🪮',  photo: '' },
+      { id: 23, code: '#23', name: 'Crema Manos Miss Fon Ice Cream',     category: 'Belleza y Skincare',  price: 35,  stock: 9,  icon: '🍦',  photo: '' },
+      { id: 24, code: '#24', name: 'Mascarilla Facial Velo Surtida',     category: 'Belleza y Skincare',  price: 20,  stock: 20, icon: '🐼',  photo: '' },
+      { id: 25, code: '#25', name: 'Paquete Tenedores Acero Inox',       category: 'Hogar y Cocina',      price: 65,  stock: 5,  icon: '🍴',  photo: '' },
+      { id: 26, code: '#26', name: 'Soporte Ventosa Celular Auto',       category: 'Gadgets y Novedades', price: 85,  stock: 6,  icon: '📱',  photo: '' },
+      { id: 27, code: '#27', name: 'Multicontacto 5 Entradas Blanco',    category: 'Gadgets y Novedades', price: 90,  stock: 4,  icon: '🔌',  photo: '' },
+      { id: 28, code: '#28', name: 'Crema Manos Miss Fon Frutas',        category: 'Belleza y Skincare',  price: 35,  stock: 12, icon: '🍒',  photo: '' },
+      { id: 29, code: '#29', name: 'Juguete Foam Crispy Patitas ASMR',   category: 'Juguetes y Fiestas',  price: 45,  stock: 8,  icon: '🐾',  photo: '' }
+    ];
+
+    const CATEGORIES = [
+      'Belleza y Skincare',
+      'Hogar y Cocina',
+      'Gadgets y Novedades',
+      'Ropa y Accesorios',
+      'Juguetes y Fiestas'
+    ];
+
+    // Estado en memoria
+    let products = [];
+    let waNumber = '';
+    let selectedClientCategory = 'ALL';
+    let cart = {};
+    let hoveredCardId = null;
+    let bulkItems = [];
+    let pendingDeleteId = null;
+    const canvasCache = {};
+
+    // Cargar estado desde localStorage con manejo de errores
+    function loadState() {
+      try {
+        const savedProducts = localStorage.getItem(STORAGE_PRODUCTS_KEY);
+        if (savedProducts) {
+          const parsed = JSON.parse(savedProducts);
+          products = Array.isArray(parsed) && parsed.length > 0 ? parsed : structuredClone(INITIAL_PRODUCTS);
+        } else {
+          products = structuredClone(INITIAL_PRODUCTS);
+        }
+        waNumber = localStorage.getItem(STORAGE_PHONE_KEY) || '';
+      } catch (err) {
+        console.error('Error cargando localStorage:', err);
+        products = structuredClone(INITIAL_PRODUCTS);
+        waNumber = '';
+      }
+    }
+
+    // Guardar estado en localStorage con aviso si se llena el espacio
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(products));
+        updateStats();
+      } catch (err) {
+        console.error('Error guardando en localStorage:', err);
+        showToast('Espacio lleno en el navegador. Exporta tu respaldo JSON.', 'error');
+      }
+    }
+
+    // Sistema de notificaciones Toast (sin usar alert)
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const colors = {
+        success: 'bg-emerald-600 text-white',
+        info: 'bg-slate-900 text-white',
+        error: 'bg-rose-600 text-white'
+      };
+      const el = document.createElement('div');
+      el.className = `animate-toast pointer-events-auto px-4 py-3 rounded-2xl shadow-lg text-xs sm:text-sm font-semibold ${colors[type] || colors.info}`;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => el.remove(), 260);
+      }, 2800);
+    }
+
+    // Genera imagen nítida con HTML5 Canvas cuando el artículo no tiene foto real
+    function getProductImage(product) {
+      if (product.photo) return product.photo;
+
+      const cacheKey = `${product.code}_${product.category}_${product.icon}`;
+      if (canvasCache[cacheKey]) return canvasCache[cacheKey];
+
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 480;
+        canvas.height = 360;
+        const ctx = canvas.getContext('2d');
+
+        const palette = {
+          'Belleza y Skincare':  ['#fdf2f8', '#fbcfe8', '#be185d'],
+          'Hogar y Cocina':      ['#eff6ff', '#bfdbfe', '#1d4ed8'],
+          'Gadgets y Novedades': ['#f5f3ff', '#ddd6fe', '#6d28d9'],
+          'Ropa y Accesorios':   ['#fffbeb', '#fde68a', '#b45309'],
+          'Juguetes y Fiestas':  ['#ecfdf5', '#a7f3d0', '#047857']
+        };
+        const [bg1, bg2, accent] = palette[product.category] || ['#f8fafc', '#e2e8f0', '#334155'];
+
+        const grad = ctx.createLinearGradient(0, 0, 480, 360);
+        grad.addColorStop(0, bg1);
+        grad.addColorStop(1, bg2);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 480, 360);
+
+        // Círculo decorativo suave
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.beginPath();
+        ctx.arc(240, 152, 82, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ícono grande
+        ctx.font = '88px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(product.icon || '🛍️', 240, 156);
+
+        // Etiqueta de categoría
+        ctx.fillStyle = accent;
+        ctx.font = '700 18px Inter, sans-serif';
+        ctx.fillText((product.category || 'Catálogo').toUpperCase(), 240, 266);
+
+        // Ayuda visual
+        ctx.fillStyle = '#475569';
+        ctx.font = '500 14px Inter, sans-serif';
+        ctx.fillText('Arrastra foto o pega con Ctrl+V', 240, 304);
+
+        const dataUrl = canvas.toDataURL('image/png');
+        canvasCache[cacheKey] = dataUrl;
+        return dataUrl;
+      } catch (err) {
+        return `https://placehold.co/480x360/fce7f3/be185d?text=${encodeURIComponent(product.code)}`;
+      }
+    }
+
+    // Comprime imágenes a JPEG ligero para ahorrar espacio en localStorage
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        try {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_DIM = 480;
+              let w = img.width;
+              let h = img.height;
+              if (w > h && w > MAX_DIM) {
+                h = Math.round((h * MAX_DIM) / w);
+                w = MAX_DIM;
+              } else if (h >= w && h > MAX_DIM) {
+                w = Math.round((w * MAX_DIM) / h);
+                h = MAX_DIM;
+              }
+              canvas.width = w;
+              canvas.height = h;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, w, h);
+              resolve(canvas.toDataURL('image/jpeg', 0.76));
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+    // Actualiza los 3 contadores de resumen y el subtítulo superior
+    function updateStats() {
+      const available = products.filter(p => Number(p.stock) > 0).length;
+      const low = products.filter(p => Number(p.stock) > 0 && Number(p.stock) <= 2).length;
+      const out = products.filter(p => Number(p.stock) <= 0).length;
+
+      document.getElementById('statAvailable').textContent = available;
+      document.getElementById('statLow').textContent = low;
+      document.getElementById('statOut').textContent = out;
+      document.getElementById('headerSubtitle').textContent = `${available} disponibles de ${products.length} artículos`;
+    }
+
+    // Filtro rápido desde las tarjetas de resumen
+    function quickFilterStock(stockCode) {
+      const select = document.getElementById('adminStockFilter');
+      select.value = select.value === stockCode ? 'ALL' : stockCode;
+      renderAdmin();
+    }
+
+    // Escapa caracteres HTML para seguridad en plantillas
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Renderiza la cuadrícula de administración
+    function renderAdmin() {
+      const query = document.getElementById('adminSearch').value.trim().toLowerCase();
+      const cat = document.getElementById('adminCategory').value;
+      const stockFilter = document.getElementById('adminStockFilter').value;
+      const grid = document.getElementById('adminGrid');
+
+      const filtered = products.filter(p => {
+        const matchesQuery =
+          !query ||
+          (p.name || '').toLowerCase().includes(query) ||
+          (p.code || '').toLowerCase().includes(query);
+        const matchesCat = cat === 'ALL' || p.category === cat;
+        const stock = Number(p.stock) || 0;
+        const matchesStock =
+          stockFilter === 'ALL' ||
+          (stockFilter === 'IN' && stock > 0) ||
+          (stockFilter === 'LOW' && stock > 0 && stock <= 2) ||
+          (stockFilter === 'OUT' && stock <= 0);
+        return matchesQuery && matchesCat && matchesStock;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white rounded-3xl border border-dashed border-slate-300 p-10 text-center">
+            <div class="text-4xl mb-2">🔎</div>
+            <p class="font-bold text-slate-700 text-sm">No hay artículos que coincidan con tu búsqueda</p>
+            <p class="text-xs text-slate-400 mt-1">Prueba cambiando los filtros o agrega un artículo nuevo.</p>
+          </div>
+        `;
+        updateStats();
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => {
+        const stock = Number(p.stock) || 0;
+        const isOut = stock <= 0;
+        const isLow = stock > 0 && stock <= 2;
+        const imgSrc = getProductImage(p);
+
+        let badge = `<span class="bg-emerald-100 text-emerald-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full">Disponible (${stock})</span>`;
+        if (isOut) {
+          badge = `<span class="bg-rose-100 text-rose-700 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">AGOTADO</span>`;
+        } else if (isLow) {
+          badge = `<span class="bg-amber-100 text-amber-800 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">¡Quedan ${stock}!</span>`;
+        }
+
+        return `
+          <article
+            onmouseenter="hoveredCardId=${p.id}"
+            onmouseleave="if(hoveredCardId===${p.id}) hoveredCardId=null"
+            onclick="hoveredCardId=${p.id}"
+            ondragover="event.preventDefault(); this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="handleCardDrop(event, this, ${p.id})"
+            class="bg-white rounded-3xl shadow-sm border ${isOut ? 'border-rose-200 bg-rose-50/20' : 'border-slate-200/80'} overflow-hidden flex flex-col transition hover:shadow-md"
+          >
+            <!-- Imagen y controles de foto -->
+            <div class="relative h-48 bg-slate-100 overflow-hidden">
+              <img src="${imgSrc}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover ${isOut ? 'grayscale opacity-70' : ''}" />
+              <span class="absolute top-3 left-3 bg-slate-900/85 backdrop-blur-xs text-white font-extrabold text-xs px-2.5 py-1 rounded-xl shadow">
+                ${escapeHtml(p.code)}
+              </span>
+              <label
+                class="absolute top-3 right-3 bg-white/95 hover:bg-white text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl shadow cursor-pointer transition"
+                title="Subir foto, arrastrar aquí o pegar con Ctrl+V"
+              >
+                📷 Foto
+                <input type="file" accept="image/*" onchange="uploadSinglePhoto(event, ${p.id})" class="hidden" />
+              </label>
+            </div>
+
+            <!-- Contenido de la tarjeta -->
+            <div class="p-4 flex-1 flex flex-col justify-between gap-3">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-1">
+                  <span class="text-[11px] font-semibold text-pink-600 truncate">${escapeHtml(p.category)}</span>
+                  ${badge}
+                </div>
+                <h3 class="font-bold text-slate-900 text-sm leading-snug">${escapeHtml(p.name)}</h3>
+              </div>
+
+              <div class="space-y-3">
+                <!-- Inputs editables en línea -->
+                <div class="grid grid-cols-2 gap-2.5 bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Precio ($)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      value="${Number(p.price)}"
+                      onchange="updateProductField(${p.id}, 'price', this.value)"
+                      class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-sm font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Existencia</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value="${stock}"
+                      onchange="updateProductField(${p.id}, 'stock', this.value)"
+                      class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-sm font-extrabold ${isOut ? 'text-rose-600' : isLow ? 'text-amber-600' : 'text-emerald-700'} focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    />
+                  </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onclick="sellOne(${p.id})"
+                    ${isOut ? 'disabled' : ''}
+                    class="flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold transition ${isOut ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-pink-600 hover:bg-pink-700 text-white shadow-sm'}"
+                  >
+                    ${isOut ? 'AGOTADO' : '✅ Vendido (-1)'}
+                  </button>
+                  <button
+                    type="button"
+                    onclick="restockOne(${p.id})"
+                    title="Sumar 1 pieza al stock"
+                    class="py-2.5 px-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-xs border border-emerald-200 transition"
+                  >
+                    +1
+                  </button>
+                  <button
+                    type="button"
+                    onclick="askDeleteProduct(${p.id})"
+                    title="Eliminar artículo"
+                    class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-600 text-xs transition"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      updateStats();
+    }
+
+    // Edición rápida de precio o stock
+    function updateProductField(id, field, rawVal) {
+      const prod = products.find(p => p.id === id);
+      if (!prod) return;
+      const val = Math.max(0, Number(rawVal) || 0);
+      prod[field] = field === 'stock' ? Math.floor(val) : val;
+      saveState();
+      renderAdmin();
+      showToast(`${prod.code}: ${field === 'price' ? 'Precio $' + prod.price : 'Stock ' + prod.stock}`, 'info');
+    }
+
+    // Descontar una pieza vendida
+    function sellOne(id) {
+      const prod = products.find(p => p.id === id);
+      if (!prod || prod.stock <= 0) return;
+      prod.stock -= 1;
+      saveState();
+      renderAdmin();
+      showToast(`Vendido ${prod.code} · Quedan ${prod.stock}`, prod.stock === 0 ? 'info' : 'success');
+    }
+
+    // Sumar una pieza al inventario
+    function restockOne(id) {
+      const prod = products.find(p => p.id === id);
+      if (!prod) return;
+      prod.stock += 1;
+      saveState();
+      renderAdmin();
+      showToast(`+1 agregado a ${prod.code} (Stock: ${prod.stock})`, 'info');
+    }
+
+    // Confirmación personalizada para eliminar un artículo
+    function askDeleteProduct(id) {
+      const prod = products.find(p => p.id === id);
+      if (!prod) return;
+      pendingDeleteId = id;
+      document.getElementById('deleteProductLabel').textContent = `${prod.code} - ${prod.name}`;
+      openModal('deleteModal');
+    }
+
+    function confirmDeleteProduct() {
+      if (pendingDeleteId === null) return;
+      const prod = products.find(p => p.id === pendingDeleteId);
+      products = products.filter(p => p.id !== pendingDeleteId);
+      delete cart[pendingDeleteId];
+      pendingDeleteId = null;
+      saveState();
+      closeModal('deleteModal');
+      renderAdmin();
+      showToast(prod ? `Artículo ${prod.code} eliminado` : 'Artículo eliminado', 'info');
+    }
+
+    // Subir foto individual desde botón 📷 Foto
+    async function uploadSinglePhoto(event, id) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const compressed = await compressImage(file);
+        const prod = products.find(p => p.id === id);
+        if (prod) {
+          prod.photo = compressed;
+          saveState();
+          renderAdmin();
+          showToast(`Foto actualizada en ${prod.code}`, 'success');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('No se pudo procesar la imagen', 'error');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    // Arrastrar y soltar (Drag & Drop) sobre tarjeta
+    async function handleCardDrop(event, cardEl, id) {
+      event.preventDefault();
+      cardEl.classList.remove('drag-over');
+      const file = event.dataTransfer?.files?.[0];
+      if (!file || !file.type.startsWith('image/')) return;
+      try {
+        const compressed = await compressImage(file);
+        const prod = products.find(p => p.id === id);
+        if (prod) {
+          prod.photo = compressed;
+          saveState();
+          renderAdmin();
+          showToast(`Foto agregada a ${prod.code}`, 'success');
+        }
+      } catch (err) {
+        showToast('Error al leer la imagen arrastrada', 'error');
+      }
+    }
+
+    // Pegar foto con Ctrl+V cuando el cursor está sobre una tarjeta
+    document.addEventListener('paste', async (event) => {
+      if (!hoveredCardId) return;
+      const items = event.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          event.preventDefault();
+          const file = item.getAsFile();
+          if (!file) return;
+          try {
+            const compressed = await compressImage(file);
+            const prod = products.find(p => p.id === hoveredCardId);
+            if (prod) {
+              prod.photo = compressed;
+              saveState();
+              renderAdmin();
+              showToast(`Foto pegada en ${prod.code}`, 'success');
+            }
+          } catch (err) {
+            showToast('Error al pegar la imagen', 'error');
+          }
+          break;
+        }
+      }
+    });
+
+    // ==================== VISTA CLIENTE (WHATSAPP) ====================
+
+    function renderClient() {
+      // Píldoras de categorías
+      const pillsContainer = document.getElementById('clientCategoryPills');
+      const allCats = ['ALL', ...CATEGORIES];
+      pillsContainer.innerHTML = allCats.map(cat => {
+        const active = selectedClientCategory === cat;
+        const label = cat === 'ALL' ? '✨ Todos' : cat;
+        return `
+          <button
+            type="button"
+            onclick="selectedClientCategory='${cat}'; renderClient()"
+            class="whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition shrink-0 ${active ? 'bg-pink-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}"
+          >
+            ${label}
+          </button>
+        `;
+      }).join('');
+
+      // Limpiar del carrito artículos que se hayan quedado sin stock
+      for (const key in cart) {
+        const p = products.find(x => x.id === Number(key));
+        if (!p || p.stock <= 0) {
+          delete cart[key];
+        } else if (cart[key] > p.stock) {
+          cart[key] = p.stock;
+        }
+      }
+
+      // Filtrar solo productos con stock > 0
+      const availableProducts = products.filter(p => {
+        const hasStock = Number(p.stock) > 0;
+        const matchesCat = selectedClientCategory === 'ALL' || p.category === selectedClientCategory;
+        return hasStock && matchesCat;
+      });
+
+      const grid = document.getElementById('clientGrid');
+      if (availableProducts.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white rounded-3xl border border-slate-200 p-10 text-center">
+            <div class="text-4xl mb-2">🛍️</div>
+            <p class="font-bold text-slate-700 text-sm">No hay artículos disponibles en esta categoría</p>
+            <p class="text-xs text-slate-400 mt-1">Prueba seleccionando otra categoría arriba.</p>
+          </div>
+        `;
+        updateCartBar();
+        return;
+      }
+
+      grid.innerHTML = availableProducts.map(p => {
+        const imgSrc = getProductImage(p);
+        const qty = cart[p.id] || 0;
+        const stock = Number(p.stock);
+        const isLow = stock <= 2;
+
+        return `
+          <article class="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition">
+            <div>
+              <div class="relative aspect-square bg-slate-100 overflow-hidden">
+                <img src="${imgSrc}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover" />
+                <span class="absolute top-2.5 left-2.5 bg-slate-900/85 text-white font-extrabold text-[11px] px-2.5 py-1 rounded-xl shadow">
+                  ${escapeHtml(p.code)}
+                </span>
+                ${isLow ? `
+                  <span class="absolute bottom-2.5 left-2.5 bg-amber-400 text-slate-900 font-extrabold text-[10px] sm:text-xs px-2.5 py-0.5 rounded-lg shadow">
+                    🔥 ¡Últimas ${stock}!
+                  </span>
+                ` : ''}
+              </div>
+
+              <div class="p-3 sm:p-3.5">
+                <span class="block text-[10px] font-bold text-pink-600 uppercase tracking-wide truncate">${escapeHtml(p.category)}</span>
+                <h3 class="font-bold text-slate-900 text-xs sm:text-sm leading-snug mt-0.5 line-clamp-2 min-h-[2.25rem]">
+                  ${escapeHtml(p.name)}
+                </h3>
+                <div class="mt-2 flex items-baseline justify-between">
+                  <span class="text-base sm:text-lg font-extrabold text-slate-900">$${Number(p.price).toLocaleString('es-MX')}</span>
+                  <span class="text-[11px] text-slate-400 font-medium">${stock} disp.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-3 sm:p-3.5 pt-0">
+              ${qty === 0 ? `
+                <button
+                  type="button"
+                  onclick="addToCart(${p.id})"
+                  class="w-full py-2.5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs sm:text-sm shadow-sm transition"
+                >
+                  + Lo quiero
+                </button>
+              ` : `
+                <div class="flex items-center justify-between bg-pink-50 border border-pink-200 rounded-xl p-1">
+                  <button
+                    type="button"
+                    onclick="removeFromCart(${p.id})"
+                    class="w-8 h-8 rounded-lg bg-white hover:bg-pink-100 text-pink-700 font-extrabold shadow-xs transition"
+                  >
+                    -
+                  </button>
+                  <span class="text-xs sm:text-sm font-extrabold text-pink-900">${qty}</span>
+                  <button
+                    type="button"
+                    onclick="addToCart(${p.id})"
+                    class="w-8 h-8 rounded-lg bg-pink-600 hover:bg-pink-700 text-white font-extrabold shadow-xs transition"
+                  >
+                    +
+                  </button>
+                </div>
+              `}
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      updateCartBar();
+    }
+
+    function addToCart(id) {
+      const prod = products.find(p => p.id === id);
+      if (!prod) return;
+      const current = cart[id] || 0;
+      if (current < prod.stock) {
+        cart[id] = current + 1;
+        renderClient();
+      } else {
+        showToast(`Solo hay ${prod.stock} pieza(s) disponibles`, 'info');
+      }
+    }
+
+    function removeFromCart(id) {
+      if (!cart[id]) return;
+      if (cart[id] > 1) cart[id] -= 1;
+      else delete cart[id];
+      renderClient();
+    }
+
+    function updateCartBar() {
+      const bar = document.getElementById('waCartBar');
+      const isClientVisible = !document.getElementById('viewClient').classList.contains('hidden');
+
+      let totalItems = 0;
+      let totalAmount = 0;
+      for (const id in cart) {
+        const prod = products.find(p => p.id === Number(id));
+        if (prod && prod.stock > 0) {
+          totalItems += cart[id];
+          totalAmount += Number(prod.price) * cart[id];
+        }
+      }
+
+      if (totalItems === 0 || !isClientVisible) {
+        bar.classList.add('hidden');
+      } else {
+        bar.classList.remove('hidden');
+        document.getElementById('cartCountText').textContent = `${totalItems} artículo${totalItems === 1 ? '' : 's'} seleccionado${totalItems === 1 ? '' : 's'}`;
+        document.getElementById('cartTotalText').textContent = `Total estimado: $${totalAmount.toLocaleString('es-MX')}`;
+      }
+    }
+
+    // Construye y abre el mensaje en WhatsApp (wa.me)
+    function sendWhatsAppOrder() {
+      const lines = ['¡Hola! 👋 Me interesan estos artículos de tu catálogo:', ''];
+      let total = 0;
+
+      for (const id in cart) {
+        const prod = products.find(p => p.id === Number(id));
+        if (prod && cart[id] > 0) {
+          const subtotal = Number(prod.price) * cart[id];
+          total += subtotal;
+          lines.push(`• *${prod.code}* ${prod.name} (x${cart[id]}) — $${subtotal}`);
+        }
+      }
+
+      if (total === 0) {
+        showToast('Agrega al menos un artículo a tu pedido', 'info');
+        return;
+      }
+
+      lines.push('');
+      lines.push(`*Total estimado:* $${total}`);
+      lines.push('¿Me confirmas disponibilidad para apartarlos?');
+
+      const cleanPhone = (waNumber || '').replace(/\D/g, '');
+      const text = encodeURIComponent(lines.join('\n'));
+      const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${text}` : `https://wa.me/?text=${text}`;
+      window.open(url, '_blank');
+    }
+
+    // ==================== NAVEGACIÓN Y MODALES ====================
+
+    function switchTab(tab) {
+      const isAdmin = tab === 'admin';
+      document.getElementById('viewAdmin').classList.toggle('hidden', !isAdmin);
+      document.getElementById('viewClient').classList.toggle('hidden', isAdmin);
+
+      document.getElementById('tabAdmin').className = isAdmin
+        ? 'flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-white text-pink-600 shadow-sm transition text-center'
+        : 'flex-1 sm:flex-initial px-4 py-2 rounded-xl text-white/95 hover:bg-white/10 transition text-center';
+
+      document.getElementById('tabClient').className = !isAdmin
+        ? 'flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-white text-pink-600 shadow-sm transition text-center'
+        : 'flex-1 sm:flex-initial px-4 py-2 rounded-xl text-white/95 hover:bg-white/10 transition text-center';
+
+      if (isAdmin) {
+        document.getElementById('waCartBar').classList.add('hidden');
+        renderAdmin();
+      } else {
+        renderClient();
+      }
+    }
+
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Nuevo artículo
+    function openNewModal() {
+      document.getElementById('newProductForm').reset();
+      const nextNum = String(products.length + 1).padStart(2, '0');
+      document.getElementById('newCode').value = `#${nextNum}`;
+      openModal('newModal');
+    }
+
+    async function saveNewProduct(event) {
+      event.preventDefault();
+      const code = document.getElementById('newCode').value.trim() || `#${products.length + 1}`;
+      const name = document.getElementById('newName').value.trim();
+      const category = document.getElementById('newCat').value;
+      const price = Math.max(0, Number(document.getElementById('newPrice').value) || 0);
+      const stock = Math.max(0, Math.floor(Number(document.getElementById('newStock').value) || 0));
+      const photoFile = document.getElementById('newPhoto').files?.[0];
+
+      if (!name) return;
+
+      let photoData = '';
+      if (photoFile) {
+        try {
+          photoData = await compressImage(photoFile);
+        } catch (err) {
+          showToast('No se pudo cargar la foto, se guardará sin imagen', 'error');
+        }
+      }
+
+      products.push({
+        id: Date.now(),
+        code,
+        name,
+        category,
+        price,
+        stock,
+        icon: '🛍️',
+        photo: photoData
+      });
+
+      saveState();
+      closeModal('newModal');
+      renderAdmin();
+      showToast(`Artículo ${code} agregado`, 'success');
+    }
+
+    // Carga masiva de fotos
+    function openBulkModal() {
+      bulkItems = [];
+      document.getElementById('bulkInput').value = '';
+      renderBulkList();
+      openModal('bulkModal');
+    }
+
+    async function previewBulkPhotos(event) {
+      const files = Array.from(event.target.files || []);
+      if (files.length === 0) return;
+
+      showToast(`Procesando ${files.length} foto(s)...`, 'info');
+      const startIndex = bulkItems.length;
+
+      for (let i = 0; i < files.length; i++) {
+        try {
+          const dataUrl = await compressImage(files[i]);
+          const defaultTarget = products[(startIndex + i) % products.length];
+          bulkItems.push({
+            fileName: files[i].name,
+            dataUrl,
+            targetId: defaultTarget ? defaultTarget.id : null
+          });
+        } catch (err) {
+          console.error('Error comprimiendo imagen en lote:', err);
+        }
+      }
+
+      event.target.value = '';
+      renderBulkList();
+    }
+
+    function renderBulkList() {
+      const list = document.getElementById('bulkPreviewList');
+      const counter = document.getElementById('bulkCounter');
+      const applyBtn = document.getElementById('bulkApplyBtn');
+
+      counter.textContent = `${bulkItems.length} foto${bulkItems.length === 1 ? '' : 's'} lista${bulkItems.length === 1 ? '' : 's'}`;
+      applyBtn.disabled = bulkItems.length === 0;
+
+      if (bulkItems.length === 0) {
+        list.innerHTML = `<p class="text-center text-xs text-slate-400 py-4">Aún no has seleccionado fotos.</p>`;
+        return;
+      }
+
+      list.innerHTML = bulkItems.map((item, idx) => {
+        const options = products.map(p =>
+          `<option value="${p.id}" ${p.id === item.targetId ? 'selected' : ''}>${escapeHtml(p.code)} - ${escapeHtml(p.name)}</option>`
+        ).join('');
+
+        return `
+          <div class="flex items-center gap-3 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
+            <img src="${item.dataUrl}" alt="${escapeHtml(item.fileName)}" class="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0 bg-white" />
+            <div class="flex-1 min-w-0 space-y-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[11px] font-medium text-slate-400 truncate">${escapeHtml(item.fileName)}</span>
+                <button type="button" onclick="removeBulkItem(${idx})" class="text-rose-500 hover:text-rose-700 text-xs font-bold px-1">Quitar</button>
+              </div>
+              <select onchange="bulkItems[${idx}].targetId = Number(this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                ${options}
+              </select>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function removeBulkItem(index) {
+      bulkItems.splice(index, 1);
+      renderBulkList();
+    }
+
+    function applyBulkPhotos() {
+      let applied = 0;
+      bulkItems.forEach(item => {
+        const prod = products.find(p => p.id === item.targetId);
+        if (prod) {
+          prod.photo = item.dataUrl;
+          applied++;
+        }
+      });
+      saveState();
+      closeModal('bulkModal');
+      renderAdmin();
+      showToast(`¡${applied} foto(s) aplicadas al inventario!`, 'success');
+    }
+
+    // Configuración de WhatsApp
+    function openWaModal() {
+      document.getElementById('waNumberInput').value = waNumber;
+      openModal('waModal');
+    }
+
+    function saveWaNumber() {
+      waNumber = document.getElementById('waNumberInput').value.trim();
+      try {
+        localStorage.setItem(STORAGE_PHONE_KEY, waNumber);
+      } catch (err) {
+        console.error(err);
+      }
+      closeModal('waModal');
+      showToast('Número de WhatsApp guardado', 'success');
+    }
+
+    // Código QR y copia compatible con iframes
+    function openQrModal() {
+      const box = document.getElementById('qrcodeBox');
+      box.innerHTML = '';
+      try {
+        new QRCode(box, {
+          text: window.location.href,
+          width: 180,
+          height: 180,
+          colorDark: '#0f172a',
+          colorLight: '#ffffff'
+        });
+      } catch (err) {
+        box.innerHTML = '<p class="text-xs text-rose-500">No se pudo generar el QR.</p>';
+      }
+      openModal('qrModal');
+    }
+
+    function copyCatalogLink() {
+      try {
+        const tempInput = document.createElement('textarea');
+        tempInput.value = window.location.href;
+        tempInput.setAttribute('readonly', '');
+        tempInput.style.position = 'fixed';
+        tempInput.style.opacity = '0';
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast('¡Enlace copiado! Pégalo en tus estados de WhatsApp.', 'success');
+      } catch (err) {
+        showToast('No se pudo copiar el enlace automáticamente', 'error');
+      }
+    }
+
+    // Exportar e Importar Respaldo JSON
+    function exportBackup() {
+      try {
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          waNumber,
+          products
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `respaldo_catalogo_wa_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Respaldo JSON descargado', 'success');
+      } catch (err) {
+        showToast('Error al exportar el respaldo', 'error');
+      }
+    }
+
+    function importBackup(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!Array.isArray(data.products)) {
+            showToast('El archivo JSON no es válido', 'error');
+            return;
+          }
+          products = data.products;
+          if (typeof data.waNumber === 'string') {
+            waNumber = data.waNumber;
+            localStorage.setItem(STORAGE_PHONE_KEY, waNumber);
+          }
+          saveState();
+          renderAdmin();
+          showToast(`Respaldo cargado (${products.length} artículos)`, 'success');
+        } catch (err) {
+          showToast('Error al leer el archivo de respaldo', 'error');
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Inicialización al cargar la página
+    loadState();
+    renderAdmin();
+  </script>
+</body>
+</html>
