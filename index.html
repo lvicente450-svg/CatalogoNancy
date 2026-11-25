@@ -41,6 +41,12 @@
       animation: fadeSlide 0.2s ease-out forwards;
     }
   </style>
+<style>
+.wa-modal{position:fixed;inset:0;z-index:60;background:#171022c9;padding:12px;align-items:center;justify-content:center;backdrop-filter:blur(8px);font:14px Inter,system-ui,sans-serif;color:#252334}.wa-modal.hidden{display:none!important}.wa-shell{width:min(1440px,100%);height:96dvh;max-height:1200px;background:#faf8fc;border-radius:22px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 90px #0005}.wa-top{padding:17px 24px;background:#30213f;color:#fff;display:flex;align-items:center;justify-content:space-between}.wa-top b{font-size:18px}.wa-top small{display:block;color:#d6c4df;margin-top:3px}.wa-top button{background:#ffffff20!important;color:#fff!important}.wa-body{display:grid;grid-template-columns:minmax(320px,1fr) minmax(330px,1.05fr);min-height:0;flex:1;overflow:auto}.wa-controls{padding:20px;overflow:auto;min-width:0}.wa-modal label{display:block;font-weight:650;margin-bottom:10px;font-size:14px}.wa-modal input:not([type=checkbox]):not([type=color]):not([type=file]),.wa-modal textarea,.wa-modal select{display:block;box-sizing:border-box;width:100%;padding:9px 10px;margin-top:5px;border:1px solid #d9d1df;border-radius:9px;background:#fff;color:#30243b;font:inherit;min-width:0}.wa-modal textarea{min-height:75px}.wa-modal input[type=color]{width:100%;height:34px;background:none;padding:1px;border:1px solid #ccc;border-radius:6px;margin-top:5px}.wa-modal button,.wa-file{border:1px solid #ddd3e3;border-radius:9px;padding:9px 12px;background:#fff;color:#41334e;cursor:pointer;font:650 13px Inter,system-ui,sans-serif;line-height:1.3}.wa-modal button:hover{background:#f0e6f6}.wa-modal button:focus-visible,.wa-modal input:focus-visible,.wa-modal select:focus-visible{outline:3px solid #b778d5;outline-offset:2px}.wa-modal details{margin:14px 0;border:1px solid #e3dbe9;padding:12px;border-radius:12px;background:#fff}.wa-modal summary{cursor:pointer;font-weight:750;padding:1px 0 10px}.wa-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;margin:8px 0}.wa-row>label{flex:1;min-width:80px}.wa-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.wa-check{display:flex!important;align-items:center;gap:8px;font-weight:500!important}.wa-note{color:#776980;font-size:12px;line-height:1.6;margin:9px 0}.wa-preview{padding:20px;background:#ece6f0;display:flex;flex-direction:column;align-items:center;overflow:auto}.wa-preview-label{font-size:11px;letter-spacing:2px;color:#716479;font-weight:750;margin-bottom:12px}.wa-preview canvas{display:block;width:min(100%,350px);height:auto;aspect-ratio:9/16;box-shadow:0 15px 40px #30213f35;touch-action:none;cursor:move;background:white}.wa-preview>p,.wa-preview>.wa-row{max-width:480px}.wa-preview .wa-primary{background:#49265d;color:#fff;border-color:#49265d}.wa-preview .wa-share{background:#147a55;color:white;border-color:#147a55}#wa-render-info{font-size:12px;line-height:1.4;min-height:20px;margin-top:12px}.wa-picker{max-height:170px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}.wa-picker button{text-align:left;display:flex;gap:8px;align-items:center;font-size:12px}.wa-picker img{width:38px;height:38px;object-fit:cover;border-radius:5px}.wa-picker span{min-width:0;overflow:hidden}.wa-file{display:inline-block!important;position:relative;overflow:hidden;margin:0!important;font-size:13px!important}.wa-file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}.wa-modal .wa-danger{color:#a63650}.wa-modal .wa-muted{opacity:.6}@media(max-width:850px){.wa-modal{padding:0}.wa-shell{border-radius:0;height:100dvh;max-height:none}.wa-body{grid-template-columns:1fr;overflow:auto;display:block}.wa-controls,.wa-preview{overflow:visible}.wa-preview{padding-bottom:35px}.wa-top{padding:13px}.wa-top b{font-size:16px}.wa-preview canvas{width:min(100%,330px)}.wa-controls{padding:13px}.wa-picker{grid-template-columns:1fr 1fr}}
+.wa-modal{display:flex}
+#toastContainer{z-index:80}
+
+</style>
 </head>
 <body class="text-slate-800 antialiased pb-28 overflow-x-hidden">
 
@@ -345,152 +351,43 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL 2: GENERADOR DE ESTADOS DE WHATSAPP (1080x1920) ==================== -->
-  <div id="statusModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
-    <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[94vh] flex flex-col animate-fade">
-      <!-- Cabecera del Modal -->
-      <div class="px-5 py-3.5 bg-gradient-to-r from-pink-600 to-purple-600 text-white flex items-center justify-between gap-2 shrink-0">
-        <div>
-          <h3 class="font-extrabold text-base sm:text-lg leading-tight">📲 Generador de Estado de WhatsApp</h3>
-          <p class="text-[11px] sm:text-xs text-pink-100">Imagen HD lista para subir (1080 × 1920 px · formato 9:16)</p>
-        </div>
-        <button type="button" onclick="closeModal('statusModal')" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white font-bold text-lg flex items-center justify-center transition">
-          &times;
-        </button>
-      </div>
-
-      <!-- Cuerpo responsivo: Controles izquierda / Vista previa derecha -->
-      <div class="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
-
-        <!-- COLUMNA DE CONTROLES (7 cols) -->
-        <div class="lg:col-span-7 space-y-4">
-
-          <!-- 1. Selector de formato -->
-          <div>
-            <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-2">1. Elige el formato</label>
-            <div class="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                id="btnModeSingle"
-                onclick="setStatusMode('single')"
-                class="p-3 rounded-2xl border-2 border-pink-600 bg-pink-50 text-pink-700 font-extrabold text-xs sm:text-sm transition text-center"
-              >
-                🖼️ 1 Producto Destacado
-              </button>
-              <button
-                type="button"
-                id="btnModeCollage"
-                onclick="setStatusMode('collage')"
-                class="p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-extrabold text-xs sm:text-sm transition text-center"
-              >
-                ⊞ Collage 4 Productos (2x2)
-              </button>
-            </div>
-          </div>
-
-          <!-- 2. Selector de tema visual -->
-          <div>
-            <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-2">2. Estilo visual</label>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button type="button" data-theme="rosaGlam" onclick="setStatusTheme('rosaGlam')" class="status-theme-btn px-3 py-2 rounded-xl border-2 border-pink-600 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold text-xs shadow-sm transition">
-                💖 Rosa Glam
-              </button>
-              <button type="button" data-theme="negroDorado" onclick="setStatusTheme('negroDorado')" class="status-theme-btn px-3 py-2 rounded-xl border-2 border-slate-200 bg-gradient-to-r from-slate-900 to-amber-700 text-amber-200 font-bold text-xs shadow-sm transition">
-                ✨ Negro Dorado
-              </button>
-              <button type="button" data-theme="mentaFresco" onclick="setStatusTheme('mentaFresco')" class="status-theme-btn px-3 py-2 rounded-xl border-2 border-slate-200 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-xs shadow-sm transition">
-                🌿 Menta Fresco
-              </button>
-              <button type="button" data-theme="lilaPastel" onclick="setStatusTheme('lilaPastel')" class="status-theme-btn px-3 py-2 rounded-xl border-2 border-slate-200 bg-gradient-to-r from-purple-400 to-violet-500 text-white font-bold text-xs shadow-sm transition">
-                💜 Lila Pastel
-              </button>
-            </div>
-          </div>
-
-          <!-- 3. Textos editables (Etiqueta superior + Título) -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-1.5">3. Etiqueta superior</label>
-              <input
-                type="text"
-                id="statusTagInput"
-                value="¡DISPONIBLE HOY!"
-                oninput="drawStatusCanvas()"
-                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-500"
-              />
-              <div class="flex flex-wrap gap-1.5 mt-1.5">
-                <button type="button" onclick="setStatusTag('¡DISPONIBLE HOY!')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-pink-100 text-[10px] font-bold text-slate-700">¡DISPONIBLE HOY!</button>
-                <button type="button" onclick="setStatusTag('¡NUEVO INGRESO!')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-pink-100 text-[10px] font-bold text-slate-700">¡NUEVO INGRESO!</button>
-                <button type="button" onclick="setStatusTag('¡ÚLTIMAS PIEZAS!')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-pink-100 text-[10px] font-bold text-slate-700">¡ÚLTIMAS PIEZAS!</button>
-                <button type="button" onclick="setStatusTag('¡OFERTA ESPECIAL!')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-pink-100 text-[10px] font-bold text-slate-700">¡OFERTA ESPECIAL!</button>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-1.5">Título del estado</label>
-              <input
-                type="text"
-                id="statusTitleInput"
-                value="CATÁLOGO NANCY"
-                oninput="drawStatusCanvas()"
-                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-500"
-              />
-              <p class="text-[11px] text-slate-400 mt-1.5">Se muestra grande en la parte superior del estado.</p>
-            </div>
-          </div>
-
-          <!-- 4. Selector visual de productos -->
-          <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2.5">
-            <div class="flex items-center justify-between gap-2">
-              <label class="text-xs font-extrabold text-slate-600 uppercase tracking-wide">
-                4. Selecciona productos (<span id="statusSelectedCount" class="text-pink-600">0/1</span>)
-              </label>
-              <button type="button" onclick="clearStatusSelection()" class="text-[11px] font-bold text-rose-500 hover:text-rose-700">
-                Limpiar selección
-              </button>
-            </div>
-
-            <input
-              type="text"
-              id="statusProductSearch"
-              oninput="renderStatusProductPicker()"
-              placeholder="🔍 Filtrar por código (#01) o nombre..."
-              class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-            />
-
-            <div id="statusProductPicker" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1"></div>
-          </div>
-        </div>
-
-        <!-- COLUMNA DE VISTA PREVIA Y ACCIONES (5 cols) -->
-        <div class="lg:col-span-5 flex flex-col items-center justify-between bg-slate-100 rounded-3xl p-4 border border-slate-200/80 gap-4">
-          <div class="w-full flex flex-col items-center">
-            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Vista previa en vivo (9:16)</span>
-            <!-- Canvas HD 1080x1920 escalado responsivamente -->
-            <div class="w-full max-w-[260px] sm:max-w-[290px] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-slate-200">
-              <canvas id="statusCanvas" width="1080" height="1920" class="w-full h-full block"></canvas>
-            </div>
-          </div>
-
-          <!-- Botones finales de descarga y compartido -->
-          <div class="w-full space-y-2">
-            <button
-              type="button"
-              onclick="shareStatusImage()"
-              class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 active:scale-[0.98]"
-            >
-              📤 Compartir en WhatsApp
-            </button>
-            <button
-              type="button"
-              onclick="downloadStatusImage()"
-              class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2 active:scale-[0.98]"
-            >
-              ⬇️ Descargar Imagen PNG (HD)
-            </button>
-          </div>
-        </div>
-
+  <div id="statusModal" class="hidden wa-modal" role="dialog" aria-modal="true" aria-labelledby="wa-heading">
+    <div class="wa-shell">
+      <header class="wa-top"><div><b id="wa-heading">Estudio de estados · Catálogo Nancy</b><small>16 composiciones editables · 1080 × 1920</small></div><button type="button" onclick="closeModal('statusModal')" aria-label="Cerrar editor">✕</button></header>
+      <div class="wa-body">
+        <section class="wa-controls">
+          <label>Diseño<select id="wa-template" onchange="waChooseTemplate(Number(this.value))"></select></label>
+          <div class="wa-row"><label>Productos<select id="wa-count" onchange="waChangeCount(Number(this.value))"></select></label><label>Destacado<select id="wa-feature" onchange="waFeature(Number(this.value))"></select></label></div>
+          <div class="wa-row"><button onclick="waUndo()">Deshacer</button><button onclick="waRedo()">Rehacer</button><button onclick="waReset()">Restablecer diseño</button></div>
+          <details open><summary>Productos y fotografías</summary>
+            <label>Espacio a reemplazar<select id="wa-slot" onchange="waSlot=Number(this.value);waProductForm()"></select></label>
+            <input id="statusProductSearch" placeholder="Buscar en inventario por nombre o código" oninput="renderStatusProductPicker()" aria-label="Buscar producto">
+            <div id="statusProductPicker" class="wa-picker"></div>
+            <div id="wa-product-form"></div>
+            <p class="wa-note">Los textos y precios de publicidad son copias. No cambian el inventario. Para siluetas flotantes, carga fotografías PNG con fondo transparente.</p>
+          </details>
+          <details><summary>Paleta, contacto y QR</summary><div id="wa-palette" class="wa-row"></div>
+            <button onclick="waSyncContact()">Usar contacto actual del catálogo</button>
+            <label>Enlace del QR opcional<input id="wa-qr-url" type="url" placeholder="https://…" onchange="waSetQr(this.value)"></label>
+            <label class="wa-check"><input id="wa-qr-on" type="checkbox" onchange="waToggleQr(this.checked)"> Mostrar QR</label>
+            <p class="wa-note">El QR se genera con el enlace indicado. Puedes editar o reemplazar su imagen en Capas.</p>
+          </details>
+          <details open><summary>Capas y edición de cada elemento</summary>
+            <label>Elemento<select id="wa-layer" onchange="waSelect(this.value)"></select></label>
+            <div id="wa-inspector"></div>
+            <div class="wa-row"><button onclick="waAdd('text')">+ Texto</button><button onclick="waAdd('rect')">+ Forma</button><button onclick="waAdd('image')">+ Imagen</button><button onclick="waDuplicate()">Duplicar</button></div>
+            <div class="wa-row"><button onclick="waOrder(-1)">Bajar capa</button><button onclick="waOrder(1)">Subir capa</button><button onclick="waDelete()">Eliminar capa</button></div>
+            <p class="wa-note">Toca una capa en la vista previa y arrástrala. Usa X, Y, tamaño, escala y giro para ajustes precisos. Los fondos y texturas también son capas reemplazables.</p>
+          </details>
+          <details><summary>Guardar proyecto editable</summary><div class="wa-row"><button onclick="waSaveLocal()">Guardar en este navegador</button><button onclick="waLoadLocal()">Abrir guardado</button><button onclick="waExportProject()">Descargar proyecto JSON</button><label class="wa-file">Abrir JSON<input type="file" accept="application/json,.json" onchange="waImportProject(event)"></label></div><p class="wa-note">El proyecto guarda las 16 plantillas que hayas editado y sus fotos; no se envía a Firebase. El JSON permite continuar en otro dispositivo.</p></details>
+        </section>
+        <section class="wa-preview">
+          <div class="wa-preview-label">VISTA PREVIA · 9:16</div>
+          <canvas id="statusCanvas" width="1080" height="1920" aria-label="Vista previa editable del estado"></canvas>
+          <p id="wa-render-info" role="status" aria-live="polite"></p>
+          <div class="wa-row"><button class="wa-primary" onclick="downloadStatusImage()">Descargar PNG</button><button class="wa-share" onclick="shareStatusImage()">Compartir en WhatsApp</button></div>
+          <p class="wa-note">El menú de compartir depende del navegador. En equipos sin envío de archivos, se descarga el PNG para subirlo a tu estado.</p>
+        </section>
       </div>
     </div>
   </div>
@@ -1661,568 +1558,222 @@
       }
     });
 
-    // ==================== 3. GENERADOR DE IMÁGENES PARA ESTADOS DE WHATSAPP (1080x1920) ====================
-
-    function openStatusModal(preselectedProductId = null) {
-      document.getElementById('statusProductSearch').value = '';
-      document.getElementById('statusTitleInput').value = (storeName || 'CATÁLOGO NANCY').toUpperCase();
-
-      if (preselectedProductId !== null) {
-        statusMode = 'single';
-        statusSelectedIds = [preselectedProductId];
-      } else {
-        // Si no hay selección previa, preseleccionar el primer producto disponible
-        if (statusSelectedIds.length === 0 && products.length > 0) {
-          const firstAvail = products.find(p => Number(p.stock) > 0) || products[0];
-          statusSelectedIds = [firstAvail.id];
+    // Editor publicitario aislado: nunca llama a saveToFirebase ni modifica products.
+    const WA_TEMPLATES = [
+      ['Catálogo elegante',4,4,'#f6e9df','#bd8d96','#b58a49','#563c3e','Pequeños detalles,\ngrandes favoritos.','Una selección especial para ti.'],
+      ['Exhibición premium',4,4,'#780d1d','#ce263a','#edc16a','#fff4e1','LA SELECCIÓN\nPREMIUM','Cuatro favoritos que merecen su lugar.'],
+      ['Producto de la semana',1,1,'#fff4d9','#d52c30','#f3c83c','#492b26','PRODUCTO DE\nLA SEMANA','Un favorito. Muchas razones para elegirlo.'],
+      ['Destacado urbano',1,1,'#b9b9b5','#d82329','#282927','#121312','HECHO PARA\nDESTACAR','Encuentra tu próximo favorito.'],
+      ['Pop Color',2,4,'#6a36b2','#b8f7d5','#f5b8df','#ffffff','¡QUÉ BUEN\nDESCUBRIMIENTO!','Color, estilo y cosas que te van a encantar.'],
+      ['Urban Street',4,5,'#141414','#ff6b20','#eadcc7','#ffffff','NUEVO\nEN LA CALLE','Dale un giro a lo de todos los días.'],
+      ['Retro Digital',4,4,'#1643bf','#a4ff36','#e8f4ff','#ffffff','NUEVOS\nFAVORITOS.EXE','Abre una ventana a tus próximos favoritos.'],
+      ['Neon Future',4,4,'#040d1c','#a6ff42','#267cff','#ffffff','EL FUTURO\nSE VE ASÍ','Novedades con energía propia.'],
+      ['Productos flotantes',5,5,'#111111','#ff8124','#ffb04b','#ffffff','TODO LO QUE\nTE ENCANTA','Cinco favoritos para tu lista.'],
+      ['Urban Explorer',5,6,'#ee7229','#19241f','#f7e6c5','#18221e','EXPLORA\nLO NUEVO','Tu próxima gran elección empieza aquí.'],
+      ['Mundo de diversión',4,4,'#33c9d0','#ffe151','#ed6853','#123b4f','¡UN MUNDO DE\nDIVERSIÓN!','Cuatro ideas para crear grandes momentos.'],
+      ['Retro Boutique',3,3,'#111413','#c9f57b','#e8dfce','#ffffff','BUEN GUSTO.\nOTRA ÉPOCA.','Tu selección de pequeños tesoros.'],
+      ['Industrial Minimal',4,4,'#d5d6d2','#f16e2a','#1b1d1b','#171917','OBJETOS\nCON CARÁCTER','Diseño práctico. Favoritos de todos los días.'],
+      ['Promo Neon',4,6,'#351060','#62ff19','#a47bff','#ffffff','¡NOVEDADES DE\nLA SEMANA!','¡Encuentra eso que tanto buscabas!'],
+      ['Neon Night',5,5,'#100d20','#79ff2c','#ba4dff','#ffffff','¡PRENDE\nTU ESTILO!','Cinco novedades, infinitas razones para elegir.'],
+      ['Sport Dynamic',6,6,'#092a3e','#29df4c','#1276a3','#ffffff','¡DESCUBRE TUS\nNUEVOS FAVORITOS!','Seis opciones, un estilo único.']
+    ];
+    let waScene=null,waDrafts={},waSelected='',waSlot=0,waHistory=[],waFuture=[],waSerial=0,waToken=0,waRenderPromise=Promise.resolve(),waArtwork=null,waFailures=[],waDrag=null;
+    const waImages=new Map(),waClone=v=>JSON.parse(JSON.stringify(v));
+    const waEl=id=>document.getElementById(id),waEscape=v=>escapeHtml(String(v??''));
+    function waNew(type,label,x,y,w,h,extra={}){return {id:'wa'+(++waSerial),type,label,x,y,w,h,scale:1,rotation:0,opacity:1,visible:true,locked:false,color:'ink',stroke:'',lineWidth:3,radius:0,...extra};}
+    function waColor(s,c){return s.palette[c]||c||'transparent';}
+    function waTemplate(index,count,previous=null){
+      const t=WA_TEMPLATES[index-1],s={version:1,template:index,count:count||t[1],feature:0,palette:{bg:t[3],accent:t[4],secondary:t[5],ink:t[6]},layers:[],slots:[],qrUrl:'',qrVisible:false};
+      const put=(...a)=>{const n=waNew(...a);s.layers.push(n);return n;};
+      const rect=(l,x,y,w,h,c,e={})=>put('rect',l,x,y,w,h,{color:c,...e});
+      const text=(l,v,x,y,w,h,size=38,c='ink',e={})=>put('text',l,x,y,w,h,{text:v,fontSize:size,font:'Arial',weight:'700',align:'left',color:c,...e});
+      const pattern=(l,kind,c,opacity=.25,x=0,y=0,w=1080,h=1920)=>put('pattern',l,x,y,w,h,{kind,color:c,opacity,spacing:44});
+      rect('Fondo principal',0,0,1080,1920,'bg',{locked:true});
+      if(index===1){rect('Baño rosa',0,0,430,1920,'accent',{opacity:.22});rect('Línea dorada',510,380,3,1220,'secondary');put('ellipse','Halo dorado',-260,-270,900,900,{color:'',stroke:'secondary',lineWidth:4});}
+      if(index===2){rect('Luz roja',0,0,1080,1920,'bg',{gradient:'accent'});put('ellipse','Arco premium',100,230,880,1340,{color:'',stroke:'secondary',lineWidth:3,opacity:.55});}
+      if(index===3){put('ellipse','Sol amarillo',570,200,650,650,{color:'secondary'});rect('Banda roja',0,1430,1080,490,'accent');}
+      if(index===4){pattern('Grano de concreto','noise','ink',.12);rect('Franja roja',-90,620,1260,530,'accent',{rotation:-11});pattern('Textura de la franja','noise','#ffffff',.22,0,580,1080,620);}
+      if(index===5){put('ellipse','Burbuja menta',650,80,620,620,{color:'accent'});put('ellipse','Burbuja rosa',-210,1200,620,620,{color:'secondary'});pattern('Puntos pop','dots','secondary',.35);}
+      if(index===6){pattern('Grano del papel','noise','secondary',.17);put('poly','Papel rasgado naranja',-20,360,1120,1200,{color:'accent',points:[[0,.04],[.2,0],[.38,.03],[.6,0],[.8,.05],[1,0],[1,.94],[.8,1],[.6,.96],[.4,1],[.2,.95],[0,1]]});text('Sello street','NUEVO / EDICIÓN LOCAL',680,1500,340,70,27,'secondary',{rotation:-90});}
+      if(index===7)pattern('Cuadrícula digital','grid','secondary',.4);
+      if(index===8){pattern('Retícula técnica','grid','secondary',.12);put('poly','Ruta neón verde',15,210,1050,1430,{color:'',stroke:'accent',lineWidth:8,glow:12,points:[[0,0],[.3,0],[.4,.09],[1,.09],[1,.8],[.8,1],[.15,1],[0,.85],[0,0]]});put('poly','Circuito azul',60,360,960,1200,{color:'',stroke:'secondary',lineWidth:5,glow:15,points:[[0,.15],[.22,0],[.95,0],[1,.1],[1,.9],[.8,1]]});}
+      if(index===9){put('ellipse','Curva naranja superior',420,-680,1400,1320,{color:'accent'});put('ellipse','Curva naranja inferior',-710,1350,1500,1100,{color:'accent'});put('ellipse','Órbita comercial',-350,180,1800,1530,{color:'',stroke:'secondary',lineWidth:6,rotation:20,opacity:.65});}
+      if(index===10){pattern('Curvas topográficas','topo','ink',.17);put('poly','Ruta del explorador',80,410,900,1160,{color:'',stroke:'secondary',lineWidth:5,dash:[15,14],points:[[.05,0],[.82,.15],[.17,.38],[.87,.6],[.3,.85],[.9,1]]});}
+      if(index===11){pattern('Confeti','confetti','secondary',.65);rect('Panel amarillo superior',-35,15,1150,315,'accent',{rotation:-3});}
+      if(index===12){pattern('Cuadrícula boutique','grid','secondary',.23);rect('Monitor retro · carcasa',125,350,830,620,'secondary',{radius:58});rect('Monitor retro · bisel',175,400,730,470,'#252925',{radius:32});rect('Monitor retro · pantalla editable',205,430,670,410,'accent',{radius:15});text('Texto de pantalla','NEW FINDS\nSELECCIÓN ESPECIAL',255,510,570,210,64,'bg',{font:'Courier New',align:'center'});rect('Soporte computadora',460,965,160,75,'secondary');rect('Base computadora',310,1020,460,35,'secondary',{radius:12});}
+      if(index===13){pattern('Guías industriales','grid','ink',.12);rect('Margen negro',0,0,26,1920,'secondary');rect('Acento industrial',780,0,300,260,'accent');}
+      if(index===14){pattern('Destellos','stars','secondary',.55);put('ellipse','Órbita blanca',-110,180,1300,1410,{color:'',stroke:'#ffffff',lineWidth:3});put('ellipse','Halo promocional',-100,-130,1280,2170,{color:'',stroke:'accent',lineWidth:36,glow:25});}
+      if(index===15){pattern('Pared de ladrillo','brick','secondary',.38);put('ellipse','Aro neón verde',110,70,860,740,{color:'',stroke:'accent',lineWidth:13,glow:28});put('ellipse','Aro neón violeta',60,115,960,760,{color:'',stroke:'secondary',lineWidth:10,glow:30});}
+      if(index===16){pattern('Puntos deportivos','dots','secondary',.48);rect('Luz del estadio',0,0,1080,1920,'bg',{gradient:'#04131d',opacity:.4});}
+      const titleY=index===15?180:95;
+      text('Etiqueta superior','SELECCIÓN / '+String(index).padStart(2,'0'),64,35,920,42,25,index===1?'secondary':'accent',{tracking:3});
+      text('Título',t[7],64,titleY,952,index===15?200:220,index===1?76:85,'ink',{font:index===1?'Georgia':'Arial',weight:'900',align:index===15?'center':'left'});
+      text('Subtítulo',t[8],64,index===15?407:319,952,80,30,'ink',{weight:'400',align:index===15?'center':'left'});
+      if(index===1)text('Nombre del catálogo',storeName||'Catálogo Nancy',560,390,450,46,32,'secondary',{font:'Georgia'});
+      if(index===3){text('Etiqueta semanal','EL FAVORITO',65,402,600,72,50,'accent');text('Nota semanal','DOS VISTAS · UN PRODUCTO',65,490,900,48,26,'ink');}
+      if(index===4)text('Código gigante','#01',42,435,990,350,290,'ink',{role:'hero-code',opacity:.9});
+      const regular=(cols,n,y=445,h=1110,gap=35)=>{const rows=Math.ceil(n/cols),w=(952-(cols-1)*gap)/cols,ch=(h-(rows-1)*gap)/rows;return Array.from({length:n},(_,i)=>({x:64+(i%cols)*(w+gap),y:y+Math.floor(i/cols)*(ch+gap),w,h:ch}));};
+      let boxes;
+      if(index===1)boxes=Array.from({length:4},(_,i)=>({x:73,y:440+i*280,w:390,h:240,tx:560,tw:450,rotation:i%2?6:-6}));
+      else if(index===3)boxes=[{x:80,y:650,w:920,h:900}];
+      else if(index===4)boxes=[{x:150,y:700,w:780,h:890}];
+      else if(index===9)boxes=[{x:64,y:490,w:300,h:380,rotation:-10},{x:716,y:485,w:300,h:380,rotation:10},{x:64,y:1020,w:300,h:380,rotation:-8},{x:716,y:1020,w:300,h:380,rotation:9},{x:390,y:1220,w:300,h:350,rotation:-7}];
+      else if(index===11)boxes=Array.from({length:4},(_,i)=>({x:64,y:420+i*295,w:952,h:260,tx:650,tw:330}));
+      else if(index===12)boxes=regular(3,3,1130,455,25);
+      else if(index===13)boxes=[{x:64,y:440,w:575,h:700},{x:685,y:440,w:330,h:700},{x:64,y:1200,w:455,h:395},{x:560,y:1200,w:455,h:395}];
+      else if(index===15)boxes=[{x:70,y:595,w:435,h:420},{x:575,y:595,w:435,h:420},{x:55,y:1090,w:300,h:480},{x:390,y:1090,w:300,h:480},{x:725,y:1090,w:300,h:480}];
+      else if(index===16)boxes=regular(3,6,490,1110,35);
+      else boxes=regular(index===10||s.count>4?3:2,s.count,445,1140,35);
+      for(let i=0;i<s.count;i++){
+        const p=previous?.slots?.[i]||{code:'#'+String(i+1).padStart(2,'0'),name:'Nombre del producto',description:'Detalles que te encantarán.',price:'$00',showPrice:true,photo:'',photo2:''};
+        s.slots.push(waClone(p));const b=boxes[i],g={slot:i},dark=[1,3,4,10,11,13].includes(index),ink=dark?'ink':'#ffffff';
+        const tx=b.tx||b.x,tw=b.tw||b.w;
+        if(index===1){rect('Marco foto '+(i+1),b.x-12,b.y-12,b.w+24,b.h+24,'#fffaf5',{...g,rotation:b.rotation});}
+        if(index===2){rect('Pedestal frente '+(i+1),b.x,b.y+b.h*.42+22,b.w,52,'accent',{...g,gradient:'bg'});put('ellipse','Pedestal superior '+(i+1),b.x,b.y+b.h*.42,b.w,44,{...g,color:'secondary'});}
+        if([5,7,8,10,11,12,13,14,16].includes(index)){
+          const color=index===11?(i%2?'secondary':'accent'):index===13?(i===0?'accent':'secondary'):index===16?'accent':index===12?'secondary':index===7?'secondary':'accent';
+          rect('Panel producto '+(i+1),b.x,b.y,b.w,b.h,color,{...g,radius:[5,11,14].includes(index)?28:0,opacity:index===8?.13:1,gradient:index===16?'bg':''});
         }
-        const maxCount = statusMode === 'single' ? 1 : 4;
-        statusSelectedIds = statusSelectedIds.slice(0, maxCount);
+        if(index===6)rect('Papel producto '+(i+1),b.x-8,b.y,b.w+16,b.h,'secondary',{...g,rotation:i%2?3:-3});
+        if(index===7){rect('Barra de ventana '+(i+1),b.x,b.y,b.w,40,'accent',g);text('Controles de ventana '+(i+1),'● ● ●    PRODUCTO',b.x+14,b.y+8,b.w-28,27,18,'bg',g);}
+        if(index===8)rect('Borde neón '+(i+1),b.x,b.y,b.w,b.h,'',{...g,stroke:i%2?'secondary':'accent',glow:10,lineWidth:3});
+        let img={x:b.x+12,y:b.y+45,w:b.w-24,h:b.h*.46,rotation:b.rotation||0};
+        let ty=b.y+b.h*.55;
+        if(index===1){img={x:b.x,y:b.y,w:b.w,h:b.h,rotation:b.rotation};ty=b.y+8;}
+        if(index===2){img.y=b.y+5;img.h=b.h*.44;ty=b.y+b.h*.57;}
+        if(index===3){img={x:75,y:610,w:600,h:640};ty=1435;}
+        if(index===4){img={x:b.x,y:b.y,w:b.w,h:700};ty=1400;}
+        if(index===9){img={...b,h:b.h*.76};ty=b.y+b.h*.75;}
+        if(index===11){img={x:b.x+25,y:b.y+10,w:510,h:240};ty=b.y+45;}
+        if(index===12){img={x:b.x+14,y:b.y+35,w:b.w-28,h:240};ty=b.y+290;}
+        if(index===13){img={x:b.x+15,y:b.y+15,w:b.w-30,h:b.h*.57};ty=b.y+b.h*.64;}
+        if(index===16){img={x:b.x-13,y:b.y-28,w:b.w+26,h:b.h*.68};ty=b.y+b.h*.66;}
+        const im=put('image','Foto '+(i+1),img.x,img.y,img.w,img.h,{...g,role:'photo',src:p.photo,fit:'contain',rotation:img.rotation||0,placeholder:'FOTO '+(i+1)});
+        if(index===3)put('image','Foto alternativa independiente',560,890,430,450,{...g,role:'photo2',src:p.photo2,fit:'contain',rotation:8,placeholder:'SEGUNDA FOTO'});
+        const textColor=[5,6,7,11,12,13,14].includes(index)?(index===13&&i>0?'#ffffff':'#18221e'):index===10?'secondary':index===3?'#fff4d9':ink;
+        let cx=tx+10,cy=ty,ww=tw-20,sz=index===1?34:index===11?32:index===3||index===4?52:index===9?26:index===12?26:b.w<350?26:34;
+        const compact=[9,12,16].includes(index),large=[3,4].includes(index),nameOffset=large?47:39,descOffset=large?125:112,priceOffset=large?187:compact?112:169;
+        text('Código '+(i+1),p.code,cx,cy,ww,large?60:42,sz,index===1?'secondary':textColor,{...g,role:'code',weight:'900'});
+        text('Nombre '+(i+1),p.name,cx,cy+nameOffset,ww,large?80:68,sz,textColor,{...g,role:'name'});
+        text('Descripción '+(i+1),p.description,cx,cy+descOffset,ww,large?60:52,Math.max(20,sz-9),textColor,{...g,role:'description',weight:'400',visible:!compact});
+        text('Precio '+(i+1),p.price,cx,cy+priceOffset,ww,large?85:52,large?66:Math.max(30,sz+4),index===1?'secondary':textColor,{...g,role:'price',visible:p.showPrice});
       }
-
-      updateStatusModeUI();
-      updateStatusThemeUI();
-      renderStatusProductPicker();
-      openModal('statusModal');
-      drawStatusCanvas();
+      if(index===9){text('Título de lista central','TU LISTA',392,730,295,48,35,'accent');for(let i=0;i<5;i++)text('Lista central '+(i+1),s.slots[i].code+' · '+s.slots[i].name,390,800+i*67,300,60,24,'#ffffff',{slot:i,role:'list'});}
+      rect('Fondo de llamada a la acción',64,1700,952,88,index===1?'secondary':'accent',{radius:index===1?44:14});
+      text('Llamada a la acción','¡PÍDELO POR WHATSAPP!',94,1725,892,52,36,[1,2,3,4,10].includes(index)?'#ffffff':'#11201a',{align:'center',role:'cta'});
+      text('Contacto',waNumber||'Configura tu WhatsApp en el catálogo',64,1815,952,48,30,index===3?'#fff4d9':'ink',{align:'center',role:'contact',weight:'600'});
+      put('image','QR opcional',865,1475,140,140,{src:'',visible:false,role:'qr',fit:'contain',placeholder:'QR'});
+      return s;
     }
-
-    function setStatusMode(mode) {
-      statusMode = mode;
-      const maxCount = mode === 'single' ? 1 : 4;
-
-      if (mode === 'single' && statusSelectedIds.length > 1) {
-        statusSelectedIds = [statusSelectedIds[0]];
-      } else if (mode === 'collage' && statusSelectedIds.length < 4) {
-        // Completar automáticamente hasta 4 productos disponibles para facilitar el collage
-        const candidates = products.filter(p => Number(p.stock) > 0 && !statusSelectedIds.includes(p.id));
-        for (const cand of candidates) {
-          if (statusSelectedIds.length >= 4) break;
-          statusSelectedIds.push(cand.id);
-        }
-      }
-
-      statusSelectedIds = statusSelectedIds.slice(0, maxCount);
-      updateStatusModeUI();
-      renderStatusProductPicker();
-      drawStatusCanvas();
+    function waRemember(){if(!waScene)return;waHistory.push(JSON.stringify(waScene));if(waHistory.length>30)waHistory.shift();waFuture=[];}
+    function waChanged(inspect=false){waDrafts[waScene.template]=waScene;drawStatusCanvas();if(inspect)waRefresh();}
+    function waChooseTemplate(index){
+      if(waScene)waDrafts[waScene.template]=waScene;
+      waScene=waDrafts[index]||waTemplate(index);waDrafts[index]=waScene;waHistory=[];waFuture=[];waSelected='';waSlot=0;waRefresh();drawStatusCanvas();
     }
-
-    function updateStatusModeUI() {
-      const btnSingle = document.getElementById('btnModeSingle');
-      const btnCollage = document.getElementById('btnModeCollage');
-
-      if (statusMode === 'single') {
-        btnSingle.className = 'p-3 rounded-2xl border-2 border-pink-600 bg-pink-50 text-pink-700 font-extrabold text-xs sm:text-sm transition text-center';
-        btnCollage.className = 'p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-extrabold text-xs sm:text-sm transition text-center';
-      } else {
-        btnCollage.className = 'p-3 rounded-2xl border-2 border-pink-600 bg-pink-50 text-pink-700 font-extrabold text-xs sm:text-sm transition text-center';
-        btnSingle.className = 'p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-extrabold text-xs sm:text-sm transition text-center';
-      }
+    function openStatusModal(id=null){
+      if(!waScene)waChooseTemplate(id===null?1:3);
+      if(id!==null){waChooseTemplate(3);const p=products.find(p=>String(p.id)===String(id));if(p)waUseProduct(p.id);}
+      openModal('statusModal');waBindCanvas();waRefresh();drawStatusCanvas();
     }
-
-    function setStatusTheme(themeKey) {
-      statusTheme = themeKey;
-      updateStatusThemeUI();
-      drawStatusCanvas();
+    function waChangeCount(n){waRemember();waScene=waTemplate(waScene.template,n,waScene);waSlot=Math.min(waSlot,n-1);waSelected='';waChanged(true);showToast('Cantidad aplicada. Se ha reconstruido la composición; puedes deshacer.','info');}
+    function waFeature(i){waRemember();const old=waScene.feature;if(old!==i){const layers=waScene.layers.filter(n=>n.slot===old),other=waScene.layers.filter(n=>n.slot===i);for(const a of layers){const b=other.find(n=>a.role?n.role===a.role:n.label.replace(/\d+$/,'')===a.label.replace(/\d+$/,''));if(b){for(const k of ['x','y','w','h','rotation','fontSize','color','gradient']){const v=a[k];a[k]=b[k];b[k]=v;}}}}waScene.feature=i;waChanged(true);}
+    function waReset(){waRemember();waScene=waTemplate(waScene.template,waScene.count);waSelected='';waChanged(true);}
+    function waUndo(){if(!waHistory.length)return;waFuture.push(JSON.stringify(waScene));waScene=JSON.parse(waHistory.pop());waSelected='';waSlot=Math.min(waSlot,waScene.count-1);waChanged(true);}
+    function waRedo(){if(!waFuture.length)return;waHistory.push(JSON.stringify(waScene));waScene=JSON.parse(waFuture.pop());waSelected='';waChanged(true);}
+    function waRefresh(){
+      if(!waScene)return;const s=waScene,t=WA_TEMPLATES[s.template-1];
+      waEl('wa-template').innerHTML=WA_TEMPLATES.map((t,i)=>`<option value="${i+1}">${String(i+1).padStart(2,'0')} · ${t[0]}</option>`).join('');waEl('wa-template').value=s.template;
+      waEl('wa-count').innerHTML=Array.from({length:t[2]-t[1]+1},(_,i)=>`<option>${t[1]+i}</option>`).join('');waEl('wa-count').value=s.count;
+      waEl('wa-feature').innerHTML=s.slots.map((p,i)=>`<option value="${i}">Espacio ${i+1}</option>`).join('');waEl('wa-feature').value=s.feature;waEl('wa-feature').parentElement.style.display=s.template===13?'block':'none';
+      waEl('wa-slot').innerHTML=s.slots.map((p,i)=>`<option value="${i}">${i+1} · ${waEscape(p.code)} ${waEscape(p.name)}</option>`).join('');waEl('wa-slot').value=waSlot;
+      waEl('wa-palette').innerHTML=Object.entries(s.palette).map(([k,v])=>`<label>${({bg:'Fondo',accent:'Acento',secondary:'Secundario',ink:'Texto'})[k]}<input type="color" value="${v}" onchange="waPalette('${k}',this.value)"></label>`).join('');
+      waEl('wa-qr-url').value=s.qrUrl;waEl('wa-qr-on').checked=s.qrVisible;
+      waLayerList();waProductForm();renderStatusProductPicker();waInspector();
     }
-
-    function updateStatusThemeUI() {
-      document.querySelectorAll('.status-theme-btn').forEach(btn => {
-        if (btn.dataset.theme === statusTheme) {
-          btn.classList.add('ring-2', 'ring-offset-2', 'ring-pink-600', 'scale-[1.02]');
-        } else {
-          btn.classList.remove('ring-2', 'ring-offset-2', 'ring-pink-600', 'scale-[1.02]');
-        }
-      });
+    function waLayerList(){waEl('wa-layer').innerHTML='<option value="">Selecciona una capa…</option>'+waScene.layers.slice().reverse().map(n=>`<option value="${n.id}">${n.visible?'':'○ '}${waEscape(n.label)}${n.locked?' · fija':''}</option>`).join('');waEl('wa-layer').value=waSelected;}
+    function waSelect(id){waSelected=id;waEl('wa-layer').value=id;waInspector();waPreviewSelection();}
+    function waNode(){return waScene?.layers.find(n=>n.id===waSelected);}
+    function waPalette(k,v){waRemember();waScene.palette[k]=v;waChanged();waInspector();}
+    function waProductForm(){if(!waScene)return;const p=waScene.slots[waSlot];if(!p)return;
+      waEl('wa-product-form').innerHTML=`<div class="wa-row"><label class="wa-file">Cargar foto local<input type="file" accept="image/*" onchange="waUploadProduct(event,false)"></label>${waScene.template===3?'<label class="wa-file">Cargar segunda foto<input type="file" accept="image/*" onchange="waUploadProduct(event,true)"></label>':''}</div>`+
+      ['code','name','description','price'].map(k=>`<label>${({code:'Código',name:'Nombre',description:'Descripción',price:'Precio publicitario'})[k]}<input value="${waEscape(p[k])}" onchange="waProductValue('${k}',this.value)"></label>`).join('')+`<label class="wa-check"><input type="checkbox" ${p.showPrice?'checked':''} onchange="waProductValue('showPrice',this.checked)"> Mostrar precio de este producto</label><button onclick="waHideSlot()">Mostrar / ocultar todo este producto</button>`;
     }
-
-    function setStatusTag(text) {
-      document.getElementById('statusTagInput').value = text;
-      drawStatusCanvas();
+    function renderStatusProductPicker(){if(!waScene)return;const query=(waEl('statusProductSearch')?.value||'').trim().toLowerCase();const host=waEl('statusProductPicker');if(!host)return;
+      host.innerHTML='';for(const p of products.filter(p=>!query||(String(p.name)+' '+p.code).toLowerCase().includes(query))){const b=document.createElement('button');b.type='button';b.onclick=()=>waUseProduct(p.id);const img=document.createElement('img');img.src=getProductImage(p);img.alt='';const name=document.createElement('span');name.textContent=`${p.code} · ${p.name} · $${p.price}`;b.append(img,name);host.appendChild(b);}if(!host.children.length)host.textContent='No hay productos que coincidan.';
     }
-
-    function clearStatusSelection() {
-      statusSelectedIds = [];
-      renderStatusProductPicker();
-      drawStatusCanvas();
+    function waUseProduct(id){const p=products.find(p=>String(p.id)===String(id));if(!p)return;waRemember();const copy={sourceId:p.id,code:String(p.code||''),name:String(p.name||''),description:String(p.description||'Detalles que te encantarán.'),price:'$'+Number(p.price||0),showPrice:true,photo:p.photo||'',photo2:''};waScene.slots[waSlot]=copy;waApplySlot(waSlot);waChanged(true);}
+    function waApplySlot(i){const p=waScene.slots[i];for(const n of waScene.layers.filter(n=>n.slot===i)){if(['code','name','description','price'].includes(n.role))n.text=p[n.role];if(n.role==='price')n.visible=p.showPrice;if(n.role==='photo')n.src=p.photo;if(n.role==='photo2')n.src=p.photo2;if(n.role==='list')n.text=p.code+' · '+p.name;}if(i===0){const h=waScene.layers.find(n=>n.role==='hero-code');if(h)h.text=p.code;}}
+    function waProductValue(k,v){waRemember();waScene.slots[waSlot][k]=v;waApplySlot(waSlot);waChanged();waLayerList();}
+    function waHideSlot(){waRemember();const group=waScene.layers.filter(n=>n.slot===waSlot),visible=group.some(n=>n.visible);for(const n of group)n.visible=!visible&&(n.role!=='price'||waScene.slots[waSlot].showPrice);waChanged(true);}
+    async function waReadFile(file){if(!file||!file.type.startsWith('image/'))throw new Error('Elige un archivo de imagen.');if(file.size>30*1024*1024)throw new Error('La foto supera 30 MB. Usa una versión más pequeña.');
+      const src=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(file);});const img=await waLoadImage(src);if(!img)throw new Error('No se pudo abrir la foto. Prueba PNG, JPG o WebP.');const scale=Math.min(1,2000/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/webp',.93);
     }
-
-    function toggleStatusProduct(id) {
-      const maxCount = statusMode === 'single' ? 1 : 4;
-      const exists = statusSelectedIds.includes(id);
-
-      if (exists) {
-        statusSelectedIds = statusSelectedIds.filter(sid => sid !== id);
-      } else {
-        if (statusMode === 'single') {
-          statusSelectedIds = [id];
-        } else {
-          if (statusSelectedIds.length >= maxCount) {
-            showToast('En collage puedes elegir máximo 4 productos', 'info');
-            return;
-          }
-          statusSelectedIds.push(id);
-        }
-      }
-
-      renderStatusProductPicker();
-      drawStatusCanvas();
+    async function waUploadProduct(e,second){const file=e.target.files[0],scene=waScene,slot=waSlot;if(!file)return;try{const src=await waReadFile(file);if(scene!==waScene)return;waRemember();scene.slots[slot][second?'photo2':'photo']=src;waApplySlot(slot);waChanged(true);}catch(err){showToast(err.message,'error');}finally{e.target.value='';}}
+    function waInspector(){const n=waNode(),host=waEl('wa-inspector');if(!n){host.innerHTML='<p class="wa-note">Selecciona cualquier elemento. También puedes seleccionar fondos y capas ocultas en la lista.</p>';return;}
+      const num=(k,l,min,max,step=1)=>`<label>${l}<input type="number" value="${n[k]??0}" min="${min}" max="${max}" step="${step}" onchange="waEdit('${k}',Number(this.value))"></label>`;
+      host.innerHTML=`<label>Nombre de capa<input value="${waEscape(n.label)}" onchange="waEdit('label',this.value)"></label><div class="wa-row"><label class="wa-check"><input type="checkbox" ${n.visible?'checked':''} onchange="waEdit('visible',this.checked)"> Visible</label><label class="wa-check"><input type="checkbox" ${n.locked?'checked':''} onchange="waEdit('locked',this.checked)"> Fijar posición</label>${n.type==='text'?`<label class="wa-check"><input type="checkbox" ${n.autoFit!==false?'checked':''} onchange="waEdit('autoFit',this.checked)"> Ajustar texto al espacio</label>`:''}</div>`+
+      `<div class="wa-grid">${num('x','X',-3000,3000)}${num('y','Y',-3000,4000)}${num('rotation','Giro °',-360,360)}${num('w','Ancho',1,5000)}${num('h','Alto',1,5000)}${num('scale','Escala',.05,10,.05)}${num('opacity','Opacidad',0,1,.05)}${num('radius','Redondeo',0,1000)}${num('lineWidth','Borde',0,100)}${num('glow','Resplandor',0,100)}</div>`+
+      (n.type==='text'?`<label>Texto<textarea onchange="waEdit('text',this.value)">${waEscape(n.text)}</textarea></label><div class="wa-row"><label>Tipografía<select onchange="waEdit('font',this.value)">${['Arial','Georgia','Courier New','Inter','Impact','Trebuchet MS'].map(f=>`<option ${n.font===f?'selected':''}>${f}</option>`).join('')}</select></label>${num('fontSize','Tamaño',8,500)}<label>Peso<select onchange="waEdit('weight',this.value)">${['400','600','700','900'].map(w=>`<option ${n.weight===w?'selected':''}>${w}</option>`).join('')}</select></label><label>Alineación<select onchange="waEdit('align',this.value)">${['left','center','right'].map((v,i)=>`<option value="${v}" ${n.align===v?'selected':''}>${['Izquierda','Centro','Derecha'][i]}</option>`).join('')}</select></label></div>`:'')+
+      `<div class="wa-row">${['color','stroke','gradient'].map((k,i)=>`<label>${['Color / relleno','Borde / línea','Degradado final'][i]}<input value="${waEscape(n[k]||'')}" list="wa-colors" onchange="waEdit('${k}',this.value)" placeholder="#hex o nombre de paleta"><input type="color" value="${/^#[0-9a-f]{6}$/i.test(waColor(waScene,n[k]))?waColor(waScene,n[k]):'#ffffff'}" aria-label="Elegir color" onchange="waEdit('${k}',this.value)"></label>`).join('')}</div><datalist id="wa-colors"><option>bg</option><option>accent</option><option>secondary</option><option>ink</option><option>transparent</option></datalist>`+
+      (n.type==='pattern'?`<label>Textura<select onchange="waEdit('kind',this.value)">${['grid','dots','noise','topo','brick','confetti','stars'].map(v=>`<option ${v===n.kind?'selected':''}>${v}</option>`).join('')}</select></label>${num('spacing','Separación de textura',12,250)}`:'')+
+      `<div class="wa-row"><label class="wa-file">Reemplazar por imagen<input type="file" accept="image/*" onchange="waUploadLayer(event)"></label>${n.src?'<button onclick="waEdit(\'src\',\'\')">Quitar foto</button>':''}</div>`+
+      (n.type==='image'?`<label>Ajuste de foto<select onchange="waEdit('fit',this.value)"><option value="contain" ${n.fit==='contain'?'selected':''}>Completa</option><option value="cover" ${n.fit==='cover'?'selected':''}>Rellenar y recortar</option><option value="stretch" ${n.fit==='stretch'?'selected':''}>Estirar</option></select></label>`:'');
     }
-
-    function renderStatusProductPicker() {
-      const query = document.getElementById('statusProductSearch').value.trim().toLowerCase();
-      const maxCount = statusMode === 'single' ? 1 : 4;
-      document.getElementById('statusSelectedCount').textContent = `${statusSelectedIds.length}/${maxCount}`;
-
-      const filtered = products.filter(p =>
-        !query ||
-        (p.name || '').toLowerCase().includes(query) ||
-        (p.code || '').toLowerCase().includes(query)
-      );
-
-      const container = document.getElementById('statusProductPicker');
-      container.innerHTML = filtered.map(p => {
-        const isSelected = statusSelectedIds.includes(p.id);
-        const orderIndex = statusSelectedIds.indexOf(p.id) + 1;
-        const imgSrc = getProductImage(p);
-
-        return `
-          <button
-            type="button"
-            onclick="toggleStatusProduct(${p.id})"
-            class="flex items-center gap-2.5 p-2 rounded-xl border-2 text-left transition ${isSelected ? 'border-pink-600 bg-pink-50 shadow-sm' : 'border-slate-200 bg-white hover:bg-slate-50'}"
-          >
-            <div class="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 bg-slate-100 border border-slate-200">
-              <img src="${imgSrc}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover" />
-              ${isSelected ? `<span class="absolute inset-0 bg-pink-600/70 text-white font-extrabold text-xs flex items-center justify-center">${orderIndex}</span>` : ''}
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center justify-between gap-1">
-                <span class="text-[11px] font-extrabold text-slate-900">${escapeHtml(p.code)}</span>
-                <span class="text-[11px] font-extrabold text-pink-600">$${Number(p.price)}</span>
-              </div>
-              <p class="text-[11px] font-medium text-slate-600 truncate">${escapeHtml(p.name)}</p>
-            </div>
-          </button>
-        `;
-      }).join('');
+    function waEdit(k,v){const n=waNode();if(!n)return;if(typeof v==='number'&&!Number.isFinite(v))return;if(['color','stroke','gradient'].includes(k)&&v&&!waScene.palette[v]&&!CSS.supports('color',v)){showToast('Usa un color válido, como #ff8800, o un nombre de paleta.','error');waInspector();return;}const limits={w:[1,5000],h:[1,5000],scale:[.05,10],opacity:[0,1],fontSize:[8,500],spacing:[12,250],glow:[0,100],lineWidth:[0,100],radius:[0,1000]};if(limits[k])v=Math.min(limits[k][1],Math.max(limits[k][0],v));waRemember();n[k]=v;
+      if(n.slot!==undefined&&['text','src','visible'].includes(k)){const p=waScene.slots[n.slot];if(k==='text'&&['name','code','description','price'].includes(n.role))p[n.role]=v;if(k==='src'&&['photo','photo2'].includes(n.role))p[n.role]=v;if(k==='visible'&&n.role==='price')p.showPrice=v;waProductForm();}
+      waChanged();waLayerList();if(['src','type','color','gradient','stroke'].includes(k))waInspector();
     }
-
-    // Auxiliar compatible para rectángulos redondeados en Canvas
-    function drawRoundRect(ctx, x, y, w, h, r) {
-      const radius = Math.min(r, w / 2, h / 2);
-      ctx.beginPath();
-      ctx.moveTo(x + radius, y);
-      ctx.arcTo(x + w, y, x + w, y + h, radius);
-      ctx.arcTo(x + w, y + h, x, y + h, radius);
-      ctx.arcTo(x, y + h, x, y, radius);
-      ctx.arcTo(x, y, x + w, y, radius);
-      ctx.closePath();
+    async function waUploadLayer(e){const n=waNode(),scene=waScene;if(!n||!e.target.files[0])return;try{const src=await waReadFile(e.target.files[0]);if(scene!==waScene)return;waRemember();n.type='image';n.src=src;n.fit='contain';if(n.slot!==undefined&&['photo','photo2'].includes(n.role))waScene.slots[n.slot][n.role]=src;waChanged(true);}catch(err){showToast(err.message,'error');}finally{e.target.value='';}}
+    function waAdd(type){waRemember();const n=waNew(type,type==='text'?'Texte libre':type==='rect'?'Forme libre':'Image libre',140,650,600,type==='text'?170:450,{color:'accent',text:'Ton nouveau texte',font:'Arial',weight:'700',fontSize:60,align:'left',src:'',fit:'contain',placeholder:'FOTO'});n.label=({text:'Texto libre',rect:'Forma libre',image:'Imagen libre'})[type];if(type==='text')n.text='Tu nuevo texto';waScene.layers.push(n);waSelected=n.id;waChanged(true);}
+    function waDuplicate(){const n=waNode();if(!n)return;waRemember();const c=waClone(n);c.id='wa'+(++waSerial);c.label+=' · copia';c.x+=25;c.y+=25;delete c.slot;delete c.role;waScene.layers.push(c);waSelected=c.id;waChanged(true);}
+    function waDelete(){const n=waNode();if(!n)return;waRemember();waScene.layers=waScene.layers.filter(x=>x!==n);waSelected='';waChanged(true);}
+    function waOrder(dir){const n=waNode();if(!n)return;const a=waScene.layers,i=a.indexOf(n),j=Math.min(a.length-1,Math.max(0,i+dir));waRemember();a.splice(i,1);a.splice(j,0,n);waChanged(true);}
+    function waSyncContact(){waRemember();const n=waScene.layers.find(n=>n.role==='contact');if(n)n.text=waNumber||'Configura tu WhatsApp en el catálogo';waChanged(true);}
+    async function waSetQr(url){const scene=waScene;scene.qrUrl=url;try{if(url&&!/^https?:\/\//i.test(url))throw new Error('Usa un enlace completo https:// para el QR.');if(!url){waToggleQr(false);return;}if(typeof QRCode==='undefined')throw new Error('El generador QR requiere conexión a Internet. Puedes cargar tu propio QR.');const box=document.createElement('div');new QRCode(box,{text:url,width:280,height:280,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});await new Promise(ok=>setTimeout(ok,40));const c=box.querySelector('canvas');if(!c)throw new Error('No fue posible generar el QR.');if(scene!==waScene)return;waRemember();const n=scene.layers.find(n=>n.role==='qr');if(n){n.src=c.toDataURL('image/png');n.visible=true;scene.qrVisible=true;}waChanged(true);}catch(err){showToast(err.message,'error');}}
+    function waToggleQr(on){const n=waScene.layers.find(n=>n.role==='qr');if(!n)return;if(on&&!n.src){waSetQr(waEl('wa-qr-url').value);return;}waRemember();n.visible=on;waScene.qrVisible=on;waChanged(true);}
+    function waProject(){waDrafts[waScene.template]=waScene;return {format:'nancy-wa-studio',version:1,active:waScene.template,drafts:waDrafts};}
+    function waSaveLocal(){try{localStorage.setItem('nancy_wa_projects_v1',JSON.stringify(waProject()));showToast('Proyecto guardado solo en este navegador.');}catch(e){showToast('No hay espacio local. Descarga el proyecto JSON para conservar las fotos.','error');}}
+    function waValidateProject(p){if(p?.format!=='nancy-wa-studio'||p.version!==1||!p.drafts||typeof p.drafts!=='object')throw new Error('Proyecto no compatible.');for(const [key,s]of Object.entries(p.drafts)){const t=WA_TEMPLATES[Number(key)-1];if(!t||s.template!==Number(key)||s.count<t[1]||s.count>t[2]||!Array.isArray(s.layers)||s.layers.length>600||!Array.isArray(s.slots)||s.slots.length!==s.count||!s.palette)throw new Error('Estructura de proyecto inválida.');for(const c of Object.values(s.palette))if(typeof c!=='string'||!/^#[0-9a-f]{6}$/i.test(c))throw new Error('Paleta inválida.');for(const n of s.layers){if(!['rect','ellipse','poly','text','image','pattern'].includes(n.type)||typeof n.id!=='string'||!['x','y','w','h','scale','opacity','rotation'].every(k=>Number.isFinite(n[k]))||n.w<=0||n.w>5000||n.h<=0||n.h>5000||n.scale<=0||n.scale>10)throw new Error('Capa inválida.');if(n.src&&!/^(data:image\/(png|jpeg|webp|gif);base64,|https?:\/\/)/i.test(n.src))throw new Error('Origen de foto no permitido.');if(n.type==='poly'&&(!Array.isArray(n.points)||n.points.length>100))throw new Error('Forma inválida.');}}if(!p.drafts[p.active])throw new Error('No se encontró el diseño activo.');return p;}
+    function waOpenProject(p){waValidateProject(p);waDrafts=waClone(p.drafts);waScene=waDrafts[p.active];waSerial=Math.max(waSerial,...Object.values(waDrafts).flatMap(s=>s.layers.map(n=>Number(n.id.replace(/^wa/,''))||0)));waSelected='';waSlot=0;waHistory=[];waFuture=[];waRefresh();drawStatusCanvas();}
+    function waLoadLocal(){try{const p=localStorage.getItem('nancy_wa_projects_v1');if(!p)throw new Error('Todavía no hay un proyecto guardado en este navegador.');waOpenProject(JSON.parse(p));showToast('Proyecto recuperado.');}catch(e){showToast(e.message,'error');}}
+    function waDownloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
+    function waExportProject(){waDownloadBlob(new Blob([JSON.stringify(waProject())],{type:'application/json'}),'catalogo-nancy-proyecto.json');}
+    async function waImportProject(e){try{const f=e.target.files[0];if(!f)return;if(f.size>60*1024*1024)throw new Error('El proyecto supera 60 MB.');waOpenProject(JSON.parse(await f.text()));showToast('Proyecto abierto sin modificar el inventario.');}catch(err){showToast(err.message,'error');}finally{e.target.value='';}}
+    function waLoadImage(src){if(!src)return Promise.resolve(null);if(waImages.has(src))return waImages.get(src);const promise=new Promise(ok=>{const im=new Image();let done=false;const finish=v=>{if(done)return;done=true;clearTimeout(timer);ok(v);};const timer=setTimeout(()=>finish(null),12000);im.crossOrigin='anonymous';im.onload=()=>finish(im);im.onerror=()=>finish(null);im.src=src;});waImages.set(src,promise);promise.then(im=>{if(!im)waImages.delete(src);});return promise;}
+    function waPath(c,n){c.beginPath();if(n.type==='ellipse')c.ellipse(n.w/2,n.h/2,n.w/2,n.h/2,0,0,Math.PI*2);else if(n.type==='poly'){n.points.forEach((p,i)=>i?c.lineTo(p[0]*n.w,p[1]*n.h):c.moveTo(p[0]*n.w,p[1]*n.h));if(n.color)c.closePath();}else if(c.roundRect)c.roundRect(0,0,n.w,n.h,Math.min(n.radius||0,n.w/2,n.h/2));else c.rect(0,0,n.w,n.h);}
+    function waDrawPattern(c,n){const st=Math.max(12,n.spacing||44),w=n.w,h=n.h;c.lineWidth=n.lineWidth||2;c.strokeStyle=c.fillStyle;
+      if(n.kind==='grid'){c.beginPath();for(let x=0;x<w;x+=st){c.moveTo(x,0);c.lineTo(x,h);}for(let y=0;y<h;y+=st){c.moveTo(0,y);c.lineTo(w,y);}c.stroke();}
+      if(n.kind==='dots'){for(let y=0;y<h;y+=st)for(let x=0;x<w;x+=st){c.beginPath();c.arc(x+(y/st%2)*st/2,y,Math.max(2,st*.075),0,Math.PI*2);c.fill();}}
+      if(n.kind==='brick'){for(let y=0;y<h;y+=st){c.strokeRect(0,y,w,st);for(let x=(y/st%2)*st*2;x<w;x+=st*4)c.strokeRect(x,y,st*4,st);}}
+      if(n.kind==='topo'){for(let i=0;i<23;i++){c.beginPath();for(let a=0;a<=Math.PI*2+.05;a+=.05){const r=50+i*39+20*Math.sin(a*4+i*.14);const x=w*.55+Math.cos(a)*r,y=h*.45+Math.sin(a)*r*1.35;a===0?c.moveTo(x,y):c.lineTo(x,y);}c.stroke();}}
+      if(n.kind==='noise'||n.kind==='confetti'||n.kind==='stars'){let seed=293;const rand=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;};const num=n.kind==='noise'?2300:n.kind==='stars'?40:100;for(let i=0;i<num;i++){const x=rand()*w,y=rand()*h,r=n.kind==='noise'?1+rand()*2:4+rand()*9;if(n.kind==='stars'){c.beginPath();c.moveTo(x-r,y);c.lineTo(x+r,y);c.moveTo(x,y-r);c.lineTo(x,y+r);c.stroke();}else{c.save();c.translate(x,y);c.rotate(rand()*6);c.fillRect(0,0,r,n.kind==='confetti'?r*2:r);c.restore();}}}
     }
-
-    // Auxiliar para dibujar imágenes con recorte centrado tipo object-fit: cover
-    function drawImageCover(ctx, img, x, y, w, h, radius = 0) {
-      ctx.save();
-      if (radius > 0) {
-        drawRoundRect(ctx, x, y, w, h, radius);
-        ctx.clip();
-      } else {
-        ctx.beginPath();
-        ctx.rect(x, y, w, h);
-        ctx.clip();
-      }
-
-      const imgRatio = img.width / img.height;
-      const boxRatio = w / h;
-      let sx = 0, sy = 0, sw = img.width, sh = img.height;
-
-      if (imgRatio > boxRatio) {
-        sw = img.height * boxRatio;
-        sx = (img.width - sw) / 2;
-      } else {
-        sh = img.width / boxRatio;
-        sy = (img.height - sh) / 2;
-      }
-
-      ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-      ctx.restore();
+    function waTextLines(c,text,w){const lines=[];for(const part of String(text||'').split('\n')){let line='';for(const word of part.split(/\s+/)){if(c.measureText(line?(line+' '+word):word).width>w&&line){lines.push(line);line='';}if(c.measureText(word).width>w){for(const ch of word){if(c.measureText(line+ch).width>w&&line){lines.push(line);line='';}line+=ch;}}else line+=(line?' ':'')+word;}lines.push(line);}return lines;}
+    function waTextLayout(c,n){let size=n.fontSize||36,lines;do{c.font=`${n.weight||700} ${size}px "${n.font||'Arial'}"`;lines=waTextLines(c,n.text,n.w);if(n.autoFit===false||lines.length*size*1.16<=n.h||size<=8)break;size--;}while(size>=8);return {lines,size,lineHeight:size*1.16};}
+    async function waRenderScene(s){const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;const c=canvas.getContext('2d'),failures=[];
+      const loaded=new Map(await Promise.all(s.layers.filter(n=>n.visible&&n.type==='image'&&n.src).map(async n=>[n.id,await waLoadImage(n.src)])));
+      for(const n of s.layers){if(!n.visible)continue;c.save();c.globalAlpha=n.opacity;c.translate(n.x+n.w/2,n.y+n.h/2);c.rotate(n.rotation*Math.PI/180);c.scale(n.scale,n.scale);c.translate(-n.w/2,-n.h/2);c.fillStyle=waColor(s,n.color);c.strokeStyle=waColor(s,n.stroke);c.lineWidth=n.lineWidth||0;c.setLineDash(n.dash||[]);if(n.glow){c.shadowColor=waColor(s,n.stroke||n.color);c.shadowBlur=n.glow;}
+        if(n.gradient){const g=c.createLinearGradient(0,0,n.w,n.h);g.addColorStop(0,waColor(s,n.color));g.addColorStop(1,waColor(s,n.gradient));c.fillStyle=g;}
+        if(n.type==='text'){c.shadowBlur=n.glow||0;c.beginPath();c.rect(0,0,n.w,n.h);c.clip();c.textBaseline='top';c.textAlign=n.align||'left';const layout=waTextLayout(c,n),lines=layout.lines,lh=layout.lineHeight,x=n.align==='center'?n.w/2:n.align==='right'?n.w:0;for(let i=0;i<lines.length;i++){if(i*lh>=n.h)break;c.fillText(lines[i],x,i*lh);} }
+        else if(n.type==='image'){const im=loaded.get(n.id);waPath(c,n);c.clip();if(im){if(n.fit==='stretch')c.drawImage(im,0,0,n.w,n.h);else{const scale=n.fit==='cover'?Math.max(n.w/im.width,n.h/im.height):Math.min(n.w/im.width,n.h/im.height);c.drawImage(im,(n.w-im.width*scale)/2,(n.h-im.height*scale)/2,im.width*scale,im.height*scale);}}else{if(n.src)failures.push(n.label);c.fillStyle='#ffffff16';c.fillRect(0,0,n.w,n.h);c.strokeStyle='#88888880';c.setLineDash([10,10]);c.strokeRect(1,1,n.w-2,n.h-2);c.fillStyle=waColor(s,'ink');c.font='600 24px Arial';c.textAlign='center';c.textBaseline='middle';c.fillText(n.src?'FOTO NO DISPONIBLE':n.placeholder||'FOTO',n.w/2,n.h/2,Math.max(1,n.w-20));}}
+        else if(n.type==='pattern'){c.beginPath();c.rect(0,0,n.w,n.h);c.clip();waDrawPattern(c,n);}
+        else{waPath(c,n);if(n.color)c.fill();if(n.stroke&&n.lineWidth)c.stroke();}c.restore();
+      }return {canvas,failures};
     }
-
-    // Auxiliar para envolver texto automáticamente en N líneas
-    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 2, align = 'center') {
-      const words = String(text || '').split(/\s+/);
-      const lines = [];
-      let current = '';
-
-      for (const word of words) {
-        const test = current ? `${current} ${word}` : word;
-        if (ctx.measureText(test).width > maxWidth && current) {
-          lines.push(current);
-          current = word;
-          if (lines.length === maxLines - 1) break;
-        } else {
-          current = test;
-        }
-      }
-      if (current) lines.push(current);
-
-      // Si sobraron palabras, truncar con puntos suspensivos en la última línea
-      const joined = lines.join(' ');
-      if (joined.length < String(text || '').trim().length && lines.length > 0) {
-        let last = lines[lines.length - 1];
-        while (ctx.measureText(last + '…').width > maxWidth && last.length > 1) {
-          last = last.slice(0, -1);
-        }
-        lines[lines.length - 1] = last + '…';
-      }
-
-      ctx.textAlign = align;
-      ctx.textBaseline = 'top';
-      lines.forEach((line, idx) => {
-        ctx.fillText(line, x, y + idx * lineHeight);
-      });
-      return lines.length;
+    function drawStatusCanvas(){if(!waScene)return Promise.resolve();const token=++waToken,s=waClone(waScene);waEl('wa-render-info').textContent='Actualizando vista previa…';waRenderPromise=(async()=>{if(document.fonts)await document.fonts.ready;const r=await waRenderScene(s);if(token!==waToken)return;waArtwork=r.canvas;waFailures=r.failures;waPreviewSelection();const empty=s.layers.filter(n=>n.visible&&n.type==='image'&&!n.src&&n.role!=='qr').length;waEl('wa-render-info').textContent=r.failures.length?'No se pudieron cargar: '+r.failures.join(', ')+'. Reemplázalas con fotos locales.':empty?`1080 × 1920 · ${empty} espacios de foto por completar.`:'1080 × 1920 · Vista previa lista.';})();return waRenderPromise;}
+    function waPreviewSelection(){const canvas=waEl('statusCanvas');if(!canvas||!waArtwork)return;const c=canvas.getContext('2d');c.clearRect(0,0,1080,1920);c.drawImage(waArtwork,0,0);const n=waNode();if(n&&n.visible){c.save();c.translate(n.x+n.w/2,n.y+n.h/2);c.rotate(n.rotation*Math.PI/180);c.scale(n.scale,n.scale);c.strokeStyle='#fa3eac';c.lineWidth=4/n.scale;c.setLineDash([14/n.scale,8/n.scale]);c.strokeRect(-n.w/2,-n.h/2,n.w,n.h);c.restore();}}
+    function waBindCanvas(){const c=waEl('statusCanvas');if(c.dataset.bound)return;c.dataset.bound='1';const point=e=>{const r=c.getBoundingClientRect();return {x:(e.clientX-r.left)*1080/r.width,y:(e.clientY-r.top)*1920/r.height};};
+      c.addEventListener('pointerdown',e=>{const p=point(e);const n=waScene.layers.slice().reverse().find(n=>{if(!n.visible||n.locked)return false;const a=-n.rotation*Math.PI/180,dx=(p.x-n.x-n.w/2)/n.scale,dy=(p.y-n.y-n.h/2)/n.scale;return Math.abs(dx*Math.cos(a)-dy*Math.sin(a))<=n.w/2&&Math.abs(dx*Math.sin(a)+dy*Math.cos(a))<=n.h/2;});waSelect(n?.id||'');if(n){waRemember();waDrag={id:n.id,px:p.x,py:p.y,x:n.x,y:n.y};c.setPointerCapture(e.pointerId);}});
+      c.addEventListener('pointermove',e=>{if(!waDrag)return;const p=point(e),n=waScene.layers.find(n=>n.id===waDrag.id);n.x=Math.round(waDrag.x+p.x-waDrag.px);n.y=Math.round(waDrag.y+p.y-waDrag.py);drawStatusCanvas();});
+      const finish=()=>{if(waDrag){waDrag=null;waChanged();waInspector();}};c.addEventListener('pointerup',finish);c.addEventListener('pointercancel',finish);
     }
-
-    function loadImgAsync(src) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => resolve(img);
-        img.onerror = () => resolve(null);
-        img.src = src;
-      });
+    async function waPng(){// Always render a fresh, selection-free snapshot; never export a stale preview.
+      if(document.fonts)await document.fonts.ready;const r=await waRenderScene(waClone(waScene));if(r.failures.length)throw new Error('Reemplaza las fotos que no cargaron: '+r.failures.join(', '));return new Promise((ok,no)=>{try{r.canvas.toBlob(b=>b?ok(b):no(new Error('No se pudo crear el PNG.')),'image/png');}catch(e){no(new Error('Una foto externa bloquea la descarga. Cárgala desde tu dispositivo.'));}});
     }
+    async function downloadStatusImage(){try{const b=await waPng();waDownloadBlob(b,`nancy-diseno-${String(waScene.template).padStart(2,'0')}-1080x1920.png`);showToast('PNG 1080 × 1920 descargado.');}catch(e){showToast(e.message,'error');}}
+    async function shareStatusImage(){try{const b=await waPng(),file=new File([b],'catalogo-nancy.png',{type:'image/png'});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:storeName||'Catálogo Nancy'});showToast('Imagen compartida.');}else{waDownloadBlob(b,'catalogo-nancy-1080x1920.png');showToast('PNG descargado. Súbelo a tu estado de WhatsApp.','info');}}catch(e){if(e.name!=='AbortError')showToast(e.message,'error');}}
 
-    function formatWaDisplay(num) {
-      const digits = String(num || '').replace(/\D/g, '');
-      if (!digits) return '';
-      if (digits.length === 12 && digits.startsWith('52')) {
-        return `+52 ${digits.slice(2, 4)} ${digits.slice(4, 8)} ${digits.slice(8)}`;
-      }
-      if (digits.length === 10) {
-        return `${digits.slice(0, 2)} ${digits.slice(2, 6)} ${digits.slice(6)}`;
-      }
-      return `+${digits}`;
-    }
-
-    // Dibuja el lienzo HD 1080x1920 para Estados de WhatsApp
-    async function drawStatusCanvas() {
-      const token = ++statusRenderToken;
-      const canvas = document.getElementById('statusCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const W = 1080;
-      const H = 1920;
-
-      const theme = STATUS_THEMES[statusTheme] || STATUS_THEMES.rosaGlam;
-      const tagText = (document.getElementById('statusTagInput').value || '¡DISPONIBLE HOY!').trim().toUpperCase();
-      const titleText = (document.getElementById('statusTitleInput').value || storeName || 'CATÁLOGO NANCY').trim().toUpperCase();
-
-      const selectedProducts = statusSelectedIds
-        .map(id => products.find(p => p.id === id))
-        .filter(Boolean);
-
-      // Precargar imágenes de los productos seleccionados
-      const loadedImgs = await Promise.all(
-        selectedProducts.map(p => loadImgAsync(getProductImage(p)))
-      );
-
-      // Cancelar si hubo otra actualización más reciente
-      if (token !== statusRenderToken) return;
-
-      // 1. Fondo degradado vertical elegante
-      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
-      bgGrad.addColorStop(0, theme.bgStart);
-      bgGrad.addColorStop(0.55, theme.bgMid);
-      bgGrad.addColorStop(1, theme.bgEnd);
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, W, H);
-
-      // Círculos decorativos sutiles en el fondo
-      ctx.save();
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.beginPath();
-      ctx.arc(140, 220, 220, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(960, 1660, 280, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // 2. Etiqueta superior tipo píldora
-      ctx.save();
-      ctx.font = '900 34px Inter, sans-serif';
-      const tagMetrics = ctx.measureText(tagText);
-      const tagW = Math.min(W - 140, tagMetrics.width + 96);
-      const tagH = 74;
-      const tagX = (W - tagW) / 2;
-      const tagY = 84;
-
-      ctx.shadowColor = 'rgba(0,0,0,0.22)';
-      ctx.shadowBlur = 18;
-      ctx.shadowOffsetY = 6;
-      ctx.fillStyle = theme.tagBg;
-      drawRoundRect(ctx, tagX, tagY, tagW, tagH, 37);
-      ctx.fill();
-
-      ctx.shadowColor = 'transparent';
-      ctx.fillStyle = theme.tagText;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(tagText, W / 2, tagY + tagH / 2 + 2);
-      ctx.restore();
-
-      // 3. Título principal grande
-      ctx.save();
-      ctx.fillStyle = theme.titleColor;
-      ctx.font = '900 66px Inter, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.shadowColor = 'rgba(0,0,0,0.22)';
-      ctx.shadowBlur = 14;
-      ctx.fillText(titleText.slice(0, 24), W / 2, 186);
-      ctx.restore();
-
-      // 4. Contenido central según modo (1 Producto Destacado o Collage 2x2)
-      if (selectedProducts.length === 0) {
-        // Estado vacío amigable
-        ctx.save();
-        ctx.fillStyle = 'rgba(255,255,255,0.2)';
-        drawRoundRect(ctx, 90, 420, W - 180, 1020, 56);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '800 46px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('Selecciona un producto', W / 2, 900);
-        ctx.font = '600 34px Inter, sans-serif';
-        ctx.fillText('para ver tu diseño aquí', W / 2, 965);
-        ctx.restore();
-      } else if (statusMode === 'single') {
-        // === MODO 1 PRODUCTO DESTACADO ===
-        const p = selectedProducts[0];
-        const img = loadedImgs[0];
-
-        const cardX = 76;
-        const cardY = 300;
-        const cardW = W - 152;
-        const cardH = 1280;
-
-        // Tarjeta blanca/oscura con sombra suave
-        ctx.save();
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
-        ctx.shadowBlur = 45;
-        ctx.shadowOffsetY = 20;
-        ctx.fillStyle = theme.cardBg;
-        drawRoundRect(ctx, cardX, cardY, cardW, cardH, 54);
-        ctx.fill();
-        ctx.restore();
-
-        // Foto principal recortada con object-fit: cover
-        const imgPad = 36;
-        const imgX = cardX + imgPad;
-        const imgY = cardY + imgPad;
-        const imgW = cardW - imgPad * 2;
-        const imgH = 820;
-
-        if (img) {
-          drawImageCover(ctx, img, imgX, imgY, imgW, imgH, 38);
-        }
-
-        // Etiqueta de código (#01) sobre esquina superior izquierda de la foto
-        ctx.save();
-        ctx.fillStyle = theme.codeBg;
-        drawRoundRect(ctx, imgX + 26, imgY + 26, 152, 66, 22);
-        ctx.fill();
-        ctx.fillStyle = theme.codeText;
-        ctx.font = '900 36px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(p.code || '#01', imgX + 26 + 76, imgY + 26 + 34);
-        ctx.restore();
-
-        // Etiqueta de últimas piezas si stock <= 2
-        if (Number(p.stock) > 0 && Number(p.stock) <= 2) {
-          ctx.save();
-          ctx.fillStyle = '#facc15';
-          drawRoundRect(ctx, imgX + imgW - 316, imgY + 26, 290, 62, 20);
-          ctx.fill();
-          ctx.fillStyle = '#0f172a';
-          ctx.font = '900 28px Inter, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(`🔥 ¡ÚLTIMAS ${p.stock}!`, imgX + imgW - 171, imgY + 58);
-          ctx.restore();
-        }
-
-        // Nombre del producto (hasta 2 líneas)
-        ctx.save();
-        ctx.fillStyle = theme.cardTitle;
-        ctx.font = '800 48px Inter, sans-serif';
-        drawWrappedText(ctx, p.name, W / 2, imgY + imgH + 46, imgW - 20, 62, 2, 'center');
-        ctx.restore();
-
-        // Precio grande destacado
-        ctx.save();
-        ctx.fillStyle = theme.priceColor;
-        ctx.font = '900 118px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`$${Number(p.price).toLocaleString('es-MX')}`, W / 2, cardY + cardH - 125);
-        ctx.restore();
-      } else {
-        // === MODO COLLAGE 4 PRODUCTOS (2x2) ===
-        const gridStartX = 56;
-        const gridStartY = 300;
-        const gap = 32;
-        const cardW = (W - gridStartX * 2 - gap) / 2; // 468px
-        const cardH = 626;
-
-        for (let i = 0; i < 4; i++) {
-          const p = selectedProducts[i];
-          const img = loadedImgs[i];
-          const col = i % 2;
-          const row = Math.floor(i / 2);
-          const cx = gridStartX + col * (cardW + gap);
-          const cy = gridStartY + row * (cardH + gap);
-
-          // Fondo de tarjeta
-          ctx.save();
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
-          ctx.shadowBlur = 28;
-          ctx.shadowOffsetY = 12;
-          ctx.fillStyle = p ? theme.cardBg : 'rgba(255,255,255,0.22)';
-          drawRoundRect(ctx, cx, cy, cardW, cardH, 38);
-          ctx.fill();
-          ctx.restore();
-
-          if (!p) {
-            ctx.save();
-            ctx.fillStyle = 'rgba(255,255,255,0.85)';
-            ctx.font = '700 28px Inter, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(`Espacio #${i + 1}`, cx + cardW / 2, cy + cardH / 2);
-            ctx.restore();
-            continue;
-          }
-
-          // Foto con recorte cover
-          const pad = 20;
-          const photoX = cx + pad;
-          const photoY = cy + pad;
-          const photoW = cardW - pad * 2;
-          const photoH = 380;
-
-          if (img) {
-            drawImageCover(ctx, img, photoX, photoY, photoW, photoH, 26);
-          }
-
-          // Código (#01)
-          ctx.save();
-          ctx.fillStyle = theme.codeBg;
-          drawRoundRect(ctx, photoX + 16, photoY + 16, 108, 48, 16);
-          ctx.fill();
-          ctx.fillStyle = theme.codeText;
-          ctx.font = '900 26px Inter, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(p.code || '', photoX + 16 + 54, photoY + 16 + 25);
-          ctx.restore();
-
-          // Nombre legible (máx 2 líneas)
-          ctx.save();
-          ctx.fillStyle = theme.cardTitle;
-          ctx.font = '800 30px Inter, sans-serif';
-          drawWrappedText(ctx, p.name, cx + cardW / 2, photoY + photoH + 22, photoW - 12, 38, 2, 'center');
-          ctx.restore();
-
-          // Precio destacado
-          ctx.save();
-          ctx.fillStyle = theme.priceColor;
-          ctx.font = '900 62px Inter, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(`$${Number(p.price).toLocaleString('es-MX')}`, cx + cardW / 2, cy + cardH - 56);
-          ctx.restore();
-        }
-      }
-
-      // 5. Pie de página con llamada a la acción WhatsApp
-      const footerW = W - 140;
-      const footerH = 186;
-      const footerX = 70;
-      const footerY = H - footerH - 72;
-
-      ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.25)';
-      ctx.shadowBlur = 24;
-      ctx.shadowOffsetY = 8;
-      ctx.fillStyle = theme.footerBg;
-      drawRoundRect(ctx, footerX, footerY, footerW, footerH, 42);
-      ctx.fill();
-
-      ctx.shadowColor = 'transparent';
-      ctx.fillStyle = theme.footerText;
-      ctx.font = '900 48px Inter, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      const formattedWa = formatWaDisplay(waNumber);
-      if (formattedWa) {
-        ctx.fillText('💬 ¡Pídelo por WhatsApp!', W / 2, footerY + 66);
-        ctx.fillStyle = theme.footerSub;
-        ctx.font = '800 40px Inter, sans-serif';
-        ctx.fillText(formattedWa, W / 2, footerY + 130);
-      } else {
-        ctx.fillText('💬 ¡Pídelo por WhatsApp!', W / 2, footerY + footerH / 2);
-      }
-      ctx.restore();
-    }
-
-    function downloadStatusImage() {
-      try {
-        const canvas = document.getElementById('statusCanvas');
-        const link = document.createElement('a');
-        link.download = `estado_whatsapp_${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showToast('Imagen HD (1080×1920) descargada', 'success');
-      } catch (err) {
-        showToast('No se pudo descargar la imagen', 'error');
-      }
-    }
-
-    async function shareStatusImage() {
-      const canvas = document.getElementById('statusCanvas');
-      try {
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-        if (!blob) throw new Error('Error creando PNG');
-
-        const file = new File([blob], 'estado_catalogo_nancy.png', { type: 'image/png' });
-
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: storeName || 'Catálogo Nancy',
-            text: '¡Disponible hoy! Pídelo por WhatsApp 💬'
-          });
-          showToast('Listo para publicar en WhatsApp', 'success');
-        } else {
-          // Respaldo automático en navegadores de escritorio
-          downloadStatusImage();
-          showToast('Imagen descargada. Súbela directo a tu Estado de WhatsApp.', 'info');
-        }
-      } catch (err) {
-        if (err && err.name !== 'AbortError') {
-          downloadStatusImage();
-        }
-      }
-    }
 
     // ==================== MODALES AUXILIARES ====================
 
@@ -2484,7 +2035,13 @@
 
     // Arrancar conexión en tiempo real al cargar la página
     window.addEventListener('DOMContentLoaded', () => {
-      initFirebaseRealtime();
+      if (new URLSearchParams(location.search).get('prueba') === '1') {
+        products = JSON.parse(JSON.stringify(INITIAL_PRODUCTS));
+        setSyncBadge('offline');
+        revealUI();
+      } else {
+        initFirebaseRealtime();
+      }
     });
   </script>
 </body>
