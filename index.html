@@ -9,9 +9,13 @@
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <!-- QRCode.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Firebase SDK Compat (App + Realtime Database) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+
   <style>
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -20,7 +24,7 @@
     .drag-over {
       border-color: #db2777 !important;
       background-color: #fdf2f8 !important;
-      box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.22);
+      box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.25);
     }
     .no-scrollbar::-webkit-scrollbar {
       display: none;
@@ -40,10 +44,10 @@
 </head>
 <body class="text-slate-800 antialiased pb-28 overflow-x-hidden">
 
-  <!-- ==================== BARRA SUPERIOR ==================== -->
+  <!-- ==================== ENCABEZADO PRINCIPAL ==================== -->
   <header class="sticky top-0 z-30 bg-gradient-to-r from-pink-600 via-fuchsia-600 to-purple-600 text-white shadow-md">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-      <!-- Identidad de la tienda -->
+      <!-- Marca y subtítulo -->
       <div class="flex items-center gap-2.5 min-w-0">
         <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl shadow-inner shrink-0">
           🛍️
@@ -53,21 +57,21 @@
             Catálogo Nancy
           </h1>
           <p id="headerSubtitle" class="text-[11px] sm:text-xs text-pink-100 font-medium truncate">
-            Cargando catálogo en vivo...
+            Conectando con el catálogo...
           </p>
         </div>
       </div>
 
-      <!-- Controles derechos: Modo Cliente -->
+      <!-- Controles derechos: Vista Cliente -->
       <div id="headerClientControls" class="flex items-center gap-2 shrink-0">
         <button
           type="button"
-          id="btnRefreshClient"
-          onclick="refreshFromCloud(true)"
-          title="Actualizar catálogo"
-          class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center text-base transition active:scale-95"
+          onclick="openQrModal()"
+          title="Ver código QR del catálogo"
+          class="px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition active:scale-95"
         >
-          🔄
+          <span>📲</span>
+          <span>QR</span>
         </button>
         <button
           type="button"
@@ -79,36 +83,36 @@
         </button>
       </div>
 
-      <!-- Controles derechos: Modo Administrador -->
+      <!-- Controles derechos: Vista Administrador -->
       <div id="headerAdminControls" class="hidden items-center gap-2 shrink-0">
         <span
           id="syncStatusBadge"
-          class="px-2.5 py-1.5 rounded-xl bg-white/15 backdrop-blur-sm text-[11px] sm:text-xs font-bold whitespace-nowrap"
+          class="px-2.5 py-1.5 rounded-xl bg-emerald-500/90 text-white text-[11px] sm:text-xs font-extrabold whitespace-nowrap shadow-sm"
         >
-          ☁️ En vivo
+          🟢 Conectado en vivo
         </span>
         <button
           type="button"
           onclick="exitAdminMode()"
           class="px-3 py-2 rounded-xl bg-white text-pink-600 hover:bg-pink-50 font-extrabold text-xs sm:text-sm shadow-sm transition whitespace-nowrap"
         >
-          🔓 Ver como Cliente
+          🔓 Vista Cliente
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Notificaciones Toast -->
+  <!-- Notificaciones Toast flotantes -->
   <div id="toastContainer" class="fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-xs w-[calc(100%-2rem)]"></div>
 
   <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
   <main class="max-w-6xl mx-auto px-4 pt-5">
 
-    <!-- ==================== VISTA 1: CATÁLOGO PÚBLICO PARA CLIENTES (POR DEFECTO) ==================== -->
+    <!-- ==================== 1. VISTA PÚBLICA PARA CLIENTES ==================== -->
     <section id="viewClient" class="space-y-4 sm:space-y-5">
 
-      <!-- Barra de búsqueda rápida para clientes -->
-      <div class="bg-white p-3 sm:p-4 rounded-3xl shadow-sm border border-slate-200/70 space-y-3">
+      <!-- Buscador y píldoras de categorías -->
+      <div class="bg-white p-3.5 sm:p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-3">
         <div class="relative">
           <input
             type="text"
@@ -128,22 +132,21 @@
           </button>
         </div>
 
-        <!-- Píldoras de filtro por categoría -->
         <div id="clientCategoryPills" class="flex items-center gap-2 overflow-x-auto pb-0.5 no-scrollbar"></div>
       </div>
 
-      <!-- Indicador de carga inicial -->
+      <!-- Estado de carga inicial -->
       <div id="clientLoadingBox" class="bg-white rounded-3xl border border-slate-200/80 p-10 text-center">
-        <div class="text-3xl mb-2 animate-bounce">🛍️</div>
+        <div class="text-4xl mb-2 animate-bounce">🛍️</div>
         <p class="font-bold text-slate-700 text-sm">Cargando productos disponibles...</p>
-        <p class="text-xs text-slate-400 mt-1">Conectando con la tienda en vivo</p>
+        <p class="text-xs text-slate-400 mt-1">Sincronizando inventario en tiempo real</p>
       </div>
 
-      <!-- Grid de productos para clientes (solo stock > 0) -->
+      <!-- Grid de productos disponibles (stock > 0) -->
       <div id="clientGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 hidden"></div>
     </section>
 
-    <!-- ==================== VISTA 2: PANEL DE ADMINISTRACIÓN (PIN 2511) ==================== -->
+    <!-- ==================== 2. PANEL DE ADMINISTRACIÓN (PIN 2511) ==================== -->
     <section id="viewAdmin" class="hidden space-y-5 animate-fade">
 
       <!-- 3 Tarjetas de Resumen -->
@@ -179,9 +182,26 @@
         </button>
       </div>
 
-      <!-- Barra de Acciones Principales del Administrador -->
+      <!-- Barra de Herramientas del Administrador -->
       <div class="bg-white p-3.5 sm:p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-3">
         <div class="flex flex-wrap items-center gap-2">
+          <!-- Botón destacado Generador de Estados WA -->
+          <button
+            type="button"
+            onclick="openStatusModal()"
+            class="bg-gradient-to-r from-pink-600 via-fuchsia-600 to-emerald-500 hover:opacity-95 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-1.5 active:scale-95"
+          >
+            📲 Crear Estado WA
+          </button>
+
+          <button
+            type="button"
+            onclick="openBulkModal()"
+            class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-3.5 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5"
+          >
+            📸 Cargar Varias Fotos
+          </button>
+
           <button
             type="button"
             onclick="openNewModal()"
@@ -189,32 +209,19 @@
           >
             ➕ Nuevo Artículo
           </button>
+
           <button
             type="button"
-            onclick="openBulkModal()"
-            class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-3.5 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5"
-          >
-            📸 Subir Varias Fotos
-          </button>
-          <button
-            type="button"
-            onclick="openStoreModal()"
+            onclick="openWaModal()"
             class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5"
           >
-            ⚙️ Tienda y WhatsApp
-          </button>
-          <button
-            type="button"
-            onclick="openQrModal()"
-            class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center gap-1.5"
-          >
-            📲 Código QR
+            💬 Número WhatsApp
           </button>
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
           <span class="text-[11px] text-slate-400 font-medium">
-            Cada cambio se guarda automáticamente en la nube para todos los celulares.
+            Todos los cambios se sincronizan al instante con Firebase y se ven en todos los celulares.
           </span>
           <div class="flex flex-wrap items-center gap-2">
             <button
@@ -222,7 +229,7 @@
               onclick="exportBackup()"
               class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-2 rounded-xl text-xs transition"
             >
-              ⬇️ Respaldo
+              ⬇️ Guardar Respaldo
             </button>
             <label class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-2 rounded-xl text-xs cursor-pointer transition inline-flex items-center">
               ⬆️ Cargar Respaldo (.json)
@@ -232,7 +239,7 @@
         </div>
       </div>
 
-      <!-- Buscador y Filtros de Admin -->
+      <!-- Buscador y Filtros del Panel Admin -->
       <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
         <div class="md:col-span-6">
           <input
@@ -271,13 +278,13 @@
         </div>
       </div>
 
-      <!-- Grid de Productos en Modo Administrador -->
+      <!-- Grid de Tarjetas de Administración -->
       <div id="adminGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
 
   </main>
 
-  <!-- ==================== BARRA FLOTANTE VERDE DE PEDIDO (VISTA CLIENTE) ==================== -->
+  <!-- ==================== BARRA FLOTANTE VERDE DE WHATSAPP (CLIENTES) ==================== -->
   <div
     id="waCartBar"
     class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto bg-emerald-600 text-white p-3.5 sm:p-4 rounded-2xl shadow-2xl border border-emerald-400/40 flex items-center justify-between gap-3 z-40 hidden animate-fade"
@@ -295,14 +302,14 @@
     </button>
   </div>
 
-  <!-- ==================== MODAL: ACCESO PIN ADMINISTRADOR (2511) ==================== -->
+  <!-- ==================== MODAL 1: ACCESO PIN ADMINISTRADOR (2511) ==================== -->
   <div id="pinModal" class="fixed inset-0 bg-slate-900/65 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-2xl border border-slate-100 text-center animate-fade">
       <div class="w-12 h-12 rounded-2xl bg-pink-100 text-pink-600 flex items-center justify-center text-2xl mx-auto mb-3">
         🔒
       </div>
       <h3 class="font-extrabold text-lg text-slate-900">Acceso Administrador</h3>
-      <p class="text-xs text-slate-500 mt-1 mb-4">Ingresa el PIN de 4 dígitos para editar el inventario</p>
+      <p class="text-xs text-slate-500 mt-1 mb-4">Ingresa el PIN numérico de 4 dígitos</p>
 
       <input
         type="password"
@@ -316,7 +323,7 @@
       />
       <p id="pinErrorMsg" class="text-xs font-bold text-rose-600 min-h-[1rem] mb-3"></p>
 
-      <!-- Teclado numérico rápido para celular -->
+      <!-- Teclado numérico táctil -->
       <div class="grid grid-cols-3 gap-2 mb-4">
         <button type="button" onclick="appendPinDigit('1')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">1</button>
         <button type="button" onclick="appendPinDigit('2')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">2</button>
@@ -338,7 +345,157 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: NUEVO ARTÍCULO ==================== -->
+  <!-- ==================== MODAL 2: GENERADOR DE ESTADOS DE WHATSAPP (1080x1920) ==================== -->
+  <div id="statusModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-5xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[94vh] flex flex-col animate-fade">
+      <!-- Cabecera del Modal -->
+      <div class="px-5 py-3.5 bg-gradient-to-r from-pink-600 to-purple-600 text-white flex items-center justify-between gap-2 shrink-0">
+        <div>
+          <h3 class="font-extrabold text-base sm:text-lg leading-tight">📲 Generador de Estado de WhatsApp</h3>
+          <p class="text-[11px] sm:text-xs text-pink-100">Imagen HD lista para subir (1080 × 1920 px · formato 9:16)</p>
+        </div>
+        <button type="button" onclick="closeModal('statusModal')" class="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white font-bold text-lg flex items-center justify-center transition">
+          &times;
+        </button>
+      </div>
+
+      <!-- Cuerpo responsivo: Controles izquierda / Vista previa derecha -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- COLUMNA DE CONTROLES (7 cols) -->
+        <div class="lg:col-span-7 space-y-4">
+
+          <!-- 1. Selector de formato -->
+          <div>
+            <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-2">1. Elige el formato</label>
+            <div class="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                id="btnModeSingle"
+                onclick="setStatusMode('single')"
+                class="p-3 rounded-2xl border-2 border-pink-600 bg-pink-50 text-pink-700 font-extrabold text-xs sm:text-sm transition text-center"
+              >
+                🖼️ 1 Producto Destacado
+              </button>
+              <button
+                type="button"
+                id="btnModeCollage"
+                onclick="setStatusMode('collage')"
+                class="p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-extrabold text-xs sm:text-sm transition text-center"
+              >
+                ⊞ Collage 4 Productos (2x2)
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Selector de tema visual -->
+          <div>
+            <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-2">2. Estilo visual</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button type="button" data-theme="rosaGlam" onclick="setStatusTheme('rosaGlam')" class="status-theme-btn px-3 py-2 rounded-xl border-2 border-pink-600 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold text-xs shadow-sm transition">
+                💖 Rosa Glam
+              </button>
+              <button type="button" data-theme="negroDorado" onclick="setStatusTheme('negroDorado')" class="status-theme-btn px-3 py-2 rounded-xl border-2 border-slate-200 bg-gradient-to-r from-slate-900 to-amber-700 text-amber-200 font-bold text-xs shadow-sm transition">
+                ✨ Negro Dorado
+              </button>
+              <button type="button" data-theme="mentaFresco" onclick="setStatusTheme('mentaFresco')" class="status-theme-btn px-3 py-2 rounded-xl border-2 border-slate-200 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-xs shadow-sm transition">
+                🌿 Menta Fresco
+              </button>
+              <button type="button" data-theme="lilaPastel" onclick="setStatusTheme('lilaPastel')" class="status-theme-btn px-3 py-2 rounded-xl border-2 border-slate-200 bg-gradient-to-r from-purple-400 to-violet-500 text-white font-bold text-xs shadow-sm transition">
+                💜 Lila Pastel
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Textos editables (Etiqueta superior + Título) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-1.5">3. Etiqueta superior</label>
+              <input
+                type="text"
+                id="statusTagInput"
+                value="¡DISPONIBLE HOY!"
+                oninput="drawStatusCanvas()"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-500"
+              />
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <button type="button" onclick="setStatusTag('¡DISPONIBLE HOY!')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-pink-100 text-[10px] font-bold text-slate-700">¡DISPONIBLE HOY!</button>
+                <button type="button" onclick="setStatusTag('¡NUEVO INGRESO!')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-pink-100 text-[10px] font-bold text-slate-700">¡NUEVO INGRESO!</button>
+                <button type="button" onclick="setStatusTag('¡ÚLTIMAS PIEZAS!')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-pink-100 text-[10px] font-bold text-slate-700">¡ÚLTIMAS PIEZAS!</button>
+                <button type="button" onclick="setStatusTag('¡OFERTA ESPECIAL!')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-pink-100 text-[10px] font-bold text-slate-700">¡OFERTA ESPECIAL!</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-1.5">Título del estado</label>
+              <input
+                type="text"
+                id="statusTitleInput"
+                value="CATÁLOGO NANCY"
+                oninput="drawStatusCanvas()"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-pink-500"
+              />
+              <p class="text-[11px] text-slate-400 mt-1.5">Se muestra grande en la parte superior del estado.</p>
+            </div>
+          </div>
+
+          <!-- 4. Selector visual de productos -->
+          <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <label class="text-xs font-extrabold text-slate-600 uppercase tracking-wide">
+                4. Selecciona productos (<span id="statusSelectedCount" class="text-pink-600">0/1</span>)
+              </label>
+              <button type="button" onclick="clearStatusSelection()" class="text-[11px] font-bold text-rose-500 hover:text-rose-700">
+                Limpiar selección
+              </button>
+            </div>
+
+            <input
+              type="text"
+              id="statusProductSearch"
+              oninput="renderStatusProductPicker()"
+              placeholder="🔍 Filtrar por código (#01) o nombre..."
+              class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+            />
+
+            <div id="statusProductPicker" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+
+        <!-- COLUMNA DE VISTA PREVIA Y ACCIONES (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col items-center justify-between bg-slate-100 rounded-3xl p-4 border border-slate-200/80 gap-4">
+          <div class="w-full flex flex-col items-center">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Vista previa en vivo (9:16)</span>
+            <!-- Canvas HD 1080x1920 escalado responsivamente -->
+            <div class="w-full max-w-[260px] sm:max-w-[290px] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-slate-200">
+              <canvas id="statusCanvas" width="1080" height="1920" class="w-full h-full block"></canvas>
+            </div>
+          </div>
+
+          <!-- Botones finales de descarga y compartido -->
+          <div class="w-full space-y-2">
+            <button
+              type="button"
+              onclick="shareStatusImage()"
+              class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 active:scale-[0.98]"
+            >
+              📤 Compartir en WhatsApp
+            </button>
+            <button
+              type="button"
+              onclick="downloadStatusImage()"
+              class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2 active:scale-[0.98]"
+            >
+              ⬇️ Descargar Imagen PNG (HD)
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: NUEVO ARTÍCULO ==================== -->
   <div id="newModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50 overflow-y-auto">
     <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-100 my-6 animate-fade">
       <div class="flex items-center justify-between mb-4">
@@ -347,7 +504,6 @@
       </div>
 
       <form id="newProductForm" onsubmit="saveNewProduct(event)" class="space-y-3.5 text-sm">
-        <!-- Foto directa desde cámara o galería -->
         <div class="flex items-center gap-3.5 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
           <img
             id="newPhotoPreview"
@@ -360,7 +516,7 @@
               📷 Tomar o elegir foto
               <input type="file" id="newPhotoInput" accept="image/*" onchange="previewNewProductPhoto(event)" class="hidden" />
             </label>
-            <p class="text-[11px] text-slate-400 mt-1">Se comprime automáticamente para cargar rápido.</p>
+            <p class="text-[11px] text-slate-400 mt-1">Compresión automática a máximo 500px.</p>
           </div>
         </div>
 
@@ -405,20 +561,20 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: SUBIR VARIAS FOTOS ==================== -->
+  <!-- ==================== MODAL 4: CARGA MASIVA DE FOTOS ==================== -->
   <div id="bulkModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-100 max-h-[88vh] flex flex-col animate-fade">
       <div class="flex items-center justify-between mb-2">
-        <h3 class="font-extrabold text-lg text-slate-900">📸 Subir Varias Fotos</h3>
+        <h3 class="font-extrabold text-lg text-slate-900">📸 Cargar Varias Fotos</h3>
         <button type="button" onclick="closeModal('bulkModal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">&times;</button>
       </div>
       <p class="text-xs text-slate-500 mb-3">
-        Selecciona varias fotos a la vez. Se comprimen a tamaño ligero (450px) y se sincronizan directo a la nube.
+        Selecciona varias fotos a la vez. Se comprimen automáticamente (JPEG máx 500px) y se guardan en Firebase.
       </p>
 
       <label class="border-2 border-dashed border-pink-300 hover:border-pink-500 bg-pink-50/50 rounded-2xl p-4 text-center cursor-pointer transition mb-3 block">
-        <span class="block text-sm font-bold text-pink-700">Toca aquí para elegir tus fotos</span>
-        <span class="block text-[11px] text-slate-500 mt-0.5">Se asignan en orden (#01, #02...) o puedes elegir cada producto</span>
+        <span class="block text-sm font-bold text-pink-700">Toca aquí para seleccionar tus fotos</span>
+        <span class="block text-[11px] text-slate-500 mt-0.5">Se asignan en orden (#01, #02...) o puedes reasignarlas aquí abajo</span>
         <input type="file" id="bulkInput" multiple accept="image/*" onchange="previewBulkPhotos(event)" class="hidden" />
       </label>
 
@@ -429,53 +585,44 @@
         <div class="flex gap-2">
           <button type="button" onclick="closeModal('bulkModal')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
           <button type="button" id="bulkApplyBtn" onclick="applyBulkPhotos()" disabled class="px-4 py-2 rounded-xl text-xs sm:text-sm bg-pink-600 disabled:bg-slate-300 hover:bg-pink-700 text-white font-bold shadow-sm transition">
-            Guardar en la Nube
+            Guardar Todas
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== MODAL: TIENDA Y WHATSAPP ==================== -->
-  <div id="storeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+  <!-- ==================== MODAL 5: CONFIGURAR NÚMERO DE WHATSAPP ==================== -->
+  <div id="waModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-slate-100 animate-fade">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-extrabold text-lg text-slate-900">⚙️ Tienda y WhatsApp</h3>
-        <button type="button" onclick="closeModal('storeModal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">&times;</button>
+        <h3 class="font-extrabold text-lg text-slate-900">💬 Número de WhatsApp</h3>
+        <button type="button" onclick="closeModal('waModal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">&times;</button>
       </div>
-      <div class="space-y-3.5 text-sm">
+      <div class="space-y-3 text-sm">
         <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">Nombre de la Tienda</label>
-          <input
-            type="text"
-            id="storeNameInput"
-            placeholder="Ej. Catálogo Nancy"
-            class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold focus:outline-none focus:ring-2 focus:ring-pink-500"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">Número de WhatsApp (con lada 52)</label>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">Número con lada (ej. 525512345678)</label>
           <input
             type="tel"
             id="waNumberInput"
-            placeholder="Ej. 525512345678"
+            placeholder="525512345678"
             class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
-          <p class="text-[11px] text-slate-400 mt-1">Aquí llegarán todos los pedidos que armen tus clientes.</p>
+          <p class="text-[11px] text-slate-400 mt-1">Este número se usará en los pedidos de clientes y en el pie de las imágenes de Estado WA.</p>
         </div>
       </div>
       <div class="flex justify-end gap-2 mt-5 pt-3 border-t border-slate-100">
-        <button type="button" onclick="closeModal('storeModal')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
-        <button type="button" onclick="saveStoreSettings()" class="px-5 py-2 rounded-xl text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-sm">Guardar</button>
+        <button type="button" onclick="closeModal('waModal')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
+        <button type="button" onclick="saveWaSettings()" class="px-5 py-2 rounded-xl text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-sm">Guardar</button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== MODAL: CÓDIGO QR ==================== -->
+  <!-- ==================== MODAL 6: CÓDIGO QR DEL CATÁLOGO ==================== -->
   <div id="qrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-2xl border border-slate-100 text-center animate-fade">
       <h3 class="font-extrabold text-lg text-slate-900 mb-1">📲 Código QR del Catálogo</h3>
-      <p class="text-xs text-slate-500 mb-4">Cualquier persona que escanee este QR verá solo los productos disponibles en vivo.</p>
+      <p class="text-xs text-slate-500 mb-4">Escanea o comparte este enlace para ver los productos disponibles en vivo.</p>
       <div id="qrcodeBox" class="flex justify-center p-3 bg-slate-50 rounded-2xl border border-slate-100 mb-4"></div>
       <button type="button" onclick="copyCatalogLink()" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm shadow-sm mb-2 transition">
         🔗 Copiar Enlace
@@ -486,7 +633,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: CONFIRMAR ELIMINACIÓN ==================== -->
+  <!-- ==================== MODAL 7: CONFIRMAR ELIMINACIÓN ==================== -->
   <div id="deleteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-slate-100 text-center animate-fade">
       <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mx-auto mb-3">
@@ -505,14 +652,22 @@
     </div>
   </div>
 
-  <!-- ==================== LÓGICA JAVASCRIPT + FIREBASE REST API ==================== -->
+  <!-- ==================== LÓGICA PRINCIPAL + FIREBASE SDK + CANVAS 1080x1920 ==================== -->
   <script>
-    // Configuración principal
-    const FIREBASE_URL = 'https://catalogonancy-default-rtdb.firebaseio.com/bazar.json';
+    // ==================== CONFIGURACIÓN GLOBAL ====================
+    const FIREBASE_DB_URL = 'https://catalogonancy-default-rtdb.firebaseio.com';
     const ADMIN_PIN = '2511';
-    const LOCAL_CACHE_KEY = 'catalogo_nancy_cache_v1';
+    const LOCAL_CACHE_KEY = 'catalogo_nancy_realtime_v2';
 
-    // Lista exacta de 29 productos iniciales
+    const CATEGORIES = [
+      'Belleza y Skincare',
+      'Hogar y Cocina',
+      'Gadgets y Novedades',
+      'Ropa y Accesorios',
+      'Juguetes y Fiestas'
+    ];
+
+    // 29 artículos iniciales exactos (solo se cargan si Firebase está vacío)
     const INITIAL_PRODUCTS = [
       { id: 1,  code: '#01', name: 'Pegamento Fuerte Calzado 100ml',     category: 'Gadgets y Novedades', price: 45,  stock: 5,  icon: '👟',  photo: '' },
       { id: 2,  code: '#02', name: 'Body Mist Perfume Bosuya',           category: 'Belleza y Skincare',  price: 65,  stock: 8,  icon: '🌸',  photo: '' },
@@ -545,15 +700,9 @@
       { id: 29, code: '#29', name: 'Juguete Foam Crispy Patitas ASMR',   category: 'Juguetes y Fiestas',  price: 45,  stock: 8,  icon: '🐾',  photo: '' }
     ];
 
-    const CATEGORIES = [
-      'Belleza y Skincare',
-      'Hogar y Cocina',
-      'Gadgets y Novedades',
-      'Ropa y Accesorios',
-      'Juguetes y Fiestas'
-    ];
-
-    // Estado global
+    // Estado de la aplicación
+    let db = null;
+    let bazarRef = null;
     let storeName = 'Catálogo Nancy';
     let waNumber = '';
     let products = [];
@@ -564,22 +713,101 @@
     let bulkItems = [];
     let pendingDeleteId = null;
     let newModalCompressedPhoto = '';
+    let hasReceivedCloudData = false;
     const canvasCache = {};
 
-    // ==================== SINCRONIZACIÓN CON FIREBASE REST API ====================
+    // Estado del Generador de Estados de WhatsApp
+    let statusMode = 'single'; // 'single' | 'collage'
+    let statusTheme = 'rosaGlam';
+    let statusSelectedIds = [];
+    let statusRenderToken = 0;
 
-    function setSyncStatus(state) {
+    // Definición de los 4 temas visuales para el Estado de WhatsApp
+    const STATUS_THEMES = {
+      rosaGlam: {
+        bgStart: '#ec4899',
+        bgMid: '#d946ef',
+        bgEnd: '#7e22ce',
+        accent: '#db2777',
+        tagBg: '#fde047',
+        tagText: '#1e1b4b',
+        titleColor: '#ffffff',
+        cardBg: '#ffffff',
+        cardTitle: '#0f172a',
+        priceColor: '#db2777',
+        codeBg: '#0f172a',
+        codeText: '#ffffff',
+        footerBg: 'rgba(15, 23, 42, 0.85)',
+        footerText: '#ffffff',
+        footerSub: '#fde047'
+      },
+      negroDorado: {
+        bgStart: '#0f172a',
+        bgMid: '#1e1b18',
+        bgEnd: '#09090b',
+        accent: '#d97706',
+        tagBg: '#f59e0b',
+        tagText: '#09090b',
+        titleColor: '#fef3c7',
+        cardBg: '#18181b',
+        cardTitle: '#f8fafc',
+        priceColor: '#fbbf24',
+        codeBg: '#f59e0b',
+        codeText: '#09090b',
+        footerBg: '#f59e0b',
+        footerText: '#09090b',
+        footerSub: '#18181b'
+      },
+      mentaFresco: {
+        bgStart: '#10b981',
+        bgMid: '#14b8a6',
+        bgEnd: '#0f766e',
+        accent: '#059669',
+        tagBg: '#ffffff',
+        tagText: '#065f46',
+        titleColor: '#ffffff',
+        cardBg: '#ffffff',
+        cardTitle: '#0f172a',
+        priceColor: '#059669',
+        codeBg: '#064e3b',
+        codeText: '#ffffff',
+        footerBg: 'rgba(6, 78, 59, 0.9)',
+        footerText: '#ffffff',
+        footerSub: '#a7f3d0'
+      },
+      lilaPastel: {
+        bgStart: '#e9d5ff',
+        bgMid: '#f5d0fe',
+        bgEnd: '#c4b5fd',
+        accent: '#7c3aed',
+        tagBg: '#7c3aed',
+        tagText: '#ffffff',
+        titleColor: '#3b0764',
+        cardBg: '#ffffff',
+        cardTitle: '#1e1b4b',
+        priceColor: '#7c3aed',
+        codeBg: '#581c87',
+        codeText: '#ffffff',
+        footerBg: '#581c87',
+        footerText: '#ffffff',
+        footerSub: '#e9d5ff'
+      }
+    };
+
+    // ==================== INICIALIZACIÓN DE FIREBASE SDK COMPAT ====================
+
+    function setSyncBadge(state) {
       const badge = document.getElementById('syncStatusBadge');
       if (!badge) return;
       if (state === 'saving') {
-        badge.textContent = '⏳ Guardando en la nube...';
-        badge.className = 'px-2.5 py-1.5 rounded-xl bg-amber-400 text-slate-900 text-[11px] sm:text-xs font-extrabold whitespace-nowrap';
-      } else if (state === 'error') {
-        badge.textContent = '⚠️ Error de conexión';
-        badge.className = 'px-2.5 py-1.5 rounded-xl bg-rose-600 text-white text-[11px] sm:text-xs font-extrabold whitespace-nowrap';
+        badge.textContent = '⏳ Guardando...';
+        badge.className = 'px-2.5 py-1.5 rounded-xl bg-amber-400 text-slate-900 text-[11px] sm:text-xs font-extrabold whitespace-nowrap shadow-sm';
+      } else if (state === 'offline') {
+        badge.textContent = '🟠 Modo local';
+        badge.className = 'px-2.5 py-1.5 rounded-xl bg-amber-500 text-white text-[11px] sm:text-xs font-extrabold whitespace-nowrap shadow-sm';
       } else {
-        badge.textContent = '☁️ En vivo';
-        badge.className = 'px-2.5 py-1.5 rounded-xl bg-emerald-500/90 text-white text-[11px] sm:text-xs font-extrabold whitespace-nowrap';
+        badge.textContent = '🟢 Conectado en vivo';
+        badge.className = 'px-2.5 py-1.5 rounded-xl bg-emerald-500/90 text-white text-[11px] sm:text-xs font-extrabold whitespace-nowrap shadow-sm';
       }
     }
 
@@ -592,43 +820,17 @@
           updatedAt: Date.now()
         }));
       } catch (err) {
-        console.warn('No se pudo actualizar caché local:', err);
+        console.warn('No se pudo guardar en localStorage:', err);
       }
     }
 
-    function readLegacyOrCachedData() {
+    function loadLocalCache() {
       try {
-        // 1. Revisar migración desde versión anterior ('wa_bazar_products')
-        const legacyProductsRaw = localStorage.getItem('wa_bazar_products');
-        if (legacyProductsRaw) {
-          const parsedLegacy = JSON.parse(legacyProductsRaw);
-          if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0) {
-            return {
-              storeName: 'Catálogo Nancy',
-              waNumber: localStorage.getItem('wa_bazar_number') || '',
-              products: parsedLegacy
-            };
-          }
-        }
-        // 2. Revisar caché anterior de 'wa_catalogo_productos_v1'
-        const prevCatalogRaw = localStorage.getItem('wa_catalogo_productos_v1');
-        if (prevCatalogRaw) {
-          const parsedPrev = JSON.parse(prevCatalogRaw);
-          if (Array.isArray(parsedPrev) && parsedPrev.length > 0) {
-            return {
-              storeName: 'Catálogo Nancy',
-              waNumber: localStorage.getItem('wa_catalogo_telefono_v1') || '',
-              products: parsedPrev
-            };
-          }
-        }
-        // 3. Revisar caché actual
-        const cachedRaw = localStorage.getItem(LOCAL_CACHE_KEY);
-        if (cachedRaw) {
-          const parsedCache = JSON.parse(cachedRaw);
-          if (Array.isArray(parsedCache.products) && parsedCache.products.length > 0) {
-            return parsedCache;
-          }
+        const raw = localStorage.getItem(LOCAL_CACHE_KEY) || localStorage.getItem('catalogo_nancy_cache_v1');
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.products) && parsed.products.length > 0) {
+          return parsed;
         }
       } catch (err) {
         console.warn('Error leyendo caché local:', err);
@@ -636,11 +838,15 @@
       return null;
     }
 
-    // Guarda todo el estado en Firebase con PUT
-    async function syncToFirebase(silent = false) {
+    // Guarda el estado completo en Firebase Realtime Database + localStorage
+    async function saveToFirebase() {
       saveLocalCache();
-      setSyncStatus('saving');
+      if (!bazarRef) {
+        setSyncBadge('offline');
+        return false;
+      }
 
+      setSyncBadge('saving');
       const payload = {
         storeName: storeName || 'Catálogo Nancy',
         waNumber: waNumber || '',
@@ -649,99 +855,115 @@
       };
 
       try {
-        const response = await fetch(FIREBASE_URL, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        setSyncStatus('live');
-        if (!silent) {
-          updateStoreHeader();
-        }
+        await bazarRef.set(payload);
+        setSyncBadge('live');
         return true;
       } catch (err) {
         console.error('Error guardando en Firebase:', err);
-        setSyncStatus('error');
-        showToast('Error al guardar en la nube. Revisa tu internet.', 'error');
+        setSyncBadge('offline');
+        showToast('Error al sincronizar con la nube. Guardado localmente.', 'error');
         return false;
       }
     }
 
-    // Carga los datos desde Firebase con GET
-    async function loadFromFirebase(showRefreshToast = false) {
+    function initFirebaseRealtime() {
+      // Cargar caché local de inmediato para que no haya pantalla vacía si hay red lenta
+      const cached = loadLocalCache();
+      if (cached) {
+        storeName = cached.storeName || 'Catálogo Nancy';
+        waNumber = cached.waNumber || '';
+        products = cached.products;
+        revealUI();
+      }
+
       try {
-        const response = await fetch(FIREBASE_URL, { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+        if (typeof firebase === 'undefined') {
+          throw new Error('Firebase SDK no disponible');
         }
-        const data = await response.json();
+        if (!firebase.apps.length) {
+          firebase.initializeApp({ databaseURL: FIREBASE_DB_URL });
+        }
+        db = firebase.database();
+        bazarRef = db.ref('bazar');
 
-        if (data && Array.isArray(data.products) && data.products.length > 0) {
-          storeName = data.storeName || 'Catálogo Nancy';
-          waNumber = data.waNumber || '';
-          products = data.products;
-          saveLocalCache();
-          setSyncStatus('live');
-          if (showRefreshToast) showToast('Catálogo actualizado en vivo', 'success');
-        } else {
-          // Firebase está vacío: intentar migrar de localStorage o cargar los 29 iniciales
-          const localData = readLegacyOrCachedData();
-          if (localData) {
-            storeName = localData.storeName || 'Catálogo Nancy';
-            waNumber = localData.waNumber || '';
-            products = localData.products;
+        // Monitorear estado de conexión en tiempo real
+        db.ref('.info/connected').on('value', (snap) => {
+          if (snap.val() === true) {
+            setSyncBadge('live');
           } else {
-            storeName = 'Catálogo Nancy';
-            waNumber = '';
-            products = structuredClone(INITIAL_PRODUCTS);
+            setSyncBadge('offline');
           }
-          await syncToFirebase(true);
-        }
+        });
+
+        // Escucha en tiempo real de cambios en el catálogo
+        bazarRef.on('value', async (snapshot) => {
+          hasReceivedCloudData = true;
+          const data = snapshot.val();
+
+          if (data && Array.isArray(data.products) && data.products.length > 0) {
+            storeName = data.storeName || 'Catálogo Nancy';
+            waNumber = data.waNumber || '';
+            products = data.products;
+            saveLocalCache();
+            setSyncBadge('live');
+            revealUI();
+          } else {
+            // Firebase está vacío: cargar los 29 artículos iniciales (o caché previo)
+            const localFallback = loadLocalCache();
+            if (localFallback && localFallback.products.length > 0) {
+              storeName = localFallback.storeName || 'Catálogo Nancy';
+              waNumber = localFallback.waNumber || '';
+              products = localFallback.products;
+            } else {
+              storeName = 'Catálogo Nancy';
+              waNumber = '';
+              products = JSON.parse(JSON.stringify(INITIAL_PRODUCTS));
+            }
+            revealUI();
+            await saveToFirebase();
+          }
+        }, (err) => {
+          console.error('Error en suscripción Firebase:', err);
+          setSyncBadge('offline');
+          if (!products.length) {
+            products = JSON.parse(JSON.stringify(INITIAL_PRODUCTS));
+          }
+          revealUI();
+        });
+
+        // Respaldo de seguridad por si Firebase tarda más de 4s sin red
+        setTimeout(() => {
+          if (!hasReceivedCloudData && products.length === 0) {
+            products = JSON.parse(JSON.stringify(INITIAL_PRODUCTS));
+            setSyncBadge('offline');
+            revealUI();
+          }
+        }, 4000);
       } catch (err) {
-        console.error('Error conectando con Firebase:', err);
-        setSyncStatus('error');
-        // Fallback a caché local o iniciales si no hay red
-        if (products.length === 0) {
-          const fallback = readLegacyOrCachedData();
-          if (fallback) {
-            storeName = fallback.storeName || 'Catálogo Nancy';
-            waNumber = fallback.waNumber || '';
-            products = fallback.products;
-          } else {
-            products = structuredClone(INITIAL_PRODUCTS);
-          }
+        console.error('Error iniciando Firebase:', err);
+        setSyncBadge('offline');
+        if (!products.length) {
+          products = JSON.parse(JSON.stringify(INITIAL_PRODUCTS));
         }
-        if (showRefreshToast) {
-          showToast('No se pudo conectar con la nube', 'error');
-        }
-      } finally {
-        document.getElementById('clientLoadingBox').classList.add('hidden');
-        document.getElementById('clientGrid').classList.remove('hidden');
-        updateStoreHeader();
-        if (isAdminMode) {
-          renderAdmin();
-        } else {
-          renderClient();
-        }
+        revealUI();
       }
     }
 
-    async function refreshFromCloud(manual = false) {
-      const btn = document.getElementById('btnRefreshClient');
-      if (btn) btn.classList.add('animate-spin');
-      await loadFromFirebase(manual);
-      if (btn) setTimeout(() => btn.classList.remove('animate-spin'), 300);
-    }
-
-    // Refrescar automáticamente en vista cliente cuando vuelve a la pestaña
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && !isAdminMode) {
-        loadFromFirebase(false);
+    function revealUI() {
+      document.getElementById('clientLoadingBox').classList.add('hidden');
+      document.getElementById('clientGrid').classList.remove('hidden');
+      updateHeaderAndStats();
+      if (isAdminMode) {
+        renderAdmin();
+      } else {
+        renderClient();
       }
-    });
+      // Si el modal de Estado WA está abierto, actualizar selector y vista previa
+      if (!document.getElementById('statusModal').classList.contains('hidden')) {
+        renderStatusProductPicker();
+        drawStatusCanvas();
+      }
+    }
 
     // ==================== UTILIDADES VISUALES Y COMPRESIÓN ====================
 
@@ -771,7 +993,7 @@
         .replace(/"/g, '&quot;');
     }
 
-    function updateStoreHeader() {
+    function updateHeaderAndStats() {
       const cleanName = storeName || 'Catálogo Nancy';
       document.title = cleanName;
       document.getElementById('headerStoreName').textContent = cleanName;
@@ -789,7 +1011,7 @@
       document.getElementById('statOut').textContent = out;
     }
 
-    // Genera tarjeta ilustrada en Canvas (nunca falla ni muestra imagen rota)
+    // Ilustración nítida en Canvas cuando el producto no tiene foto real
     function getProductImage(product) {
       if (product.photo) return product.photo;
 
@@ -798,8 +1020,8 @@
 
       try {
         const canvas = document.createElement('canvas');
-        canvas.width = 450;
-        canvas.height = 360;
+        canvas.width = 500;
+        canvas.height = 500;
         const ctx = canvas.getContext('2d');
 
         const palettes = {
@@ -811,39 +1033,39 @@
         };
         const [bg1, bg2, accent] = palettes[product.category] || ['#f8fafc', '#e2e8f0', '#334155'];
 
-        const grad = ctx.createLinearGradient(0, 0, 450, 360);
+        const grad = ctx.createLinearGradient(0, 0, 500, 500);
         grad.addColorStop(0, bg1);
         grad.addColorStop(1, bg2);
         ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 450, 360);
+        ctx.fillRect(0, 0, 500, 500);
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.58)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
         ctx.beginPath();
-        ctx.arc(225, 150, 80, 0, Math.PI * 2);
+        ctx.arc(250, 210, 105, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.font = '84px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+        ctx.font = '112px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(product.icon || '🛍️', 225, 154);
+        ctx.fillText(product.icon || '🛍️', 250, 216);
 
         ctx.fillStyle = accent;
-        ctx.font = '700 17px Inter, sans-serif';
-        ctx.fillText((product.category || 'Catálogo').toUpperCase(), 225, 268);
+        ctx.font = '800 22px Inter, sans-serif';
+        ctx.fillText((product.category || 'Catálogo').toUpperCase(), 250, 365);
 
         ctx.fillStyle = '#475569';
-        ctx.font = '600 15px Inter, sans-serif';
-        ctx.fillText(product.code || '', 225, 304);
+        ctx.font = '700 20px Inter, sans-serif';
+        ctx.fillText(product.code || '', 250, 410);
 
         const url = canvas.toDataURL('image/png');
         canvasCache[key] = url;
         return url;
       } catch (err) {
-        return `https://placehold.co/450x360/fce7f3/be185d?text=${encodeURIComponent(product.code || 'Foto')}`;
+        return `https://placehold.co/500x500/fce7f3/be185d?text=${encodeURIComponent(product.code || 'Foto')}`;
       }
     }
 
-    // Compresión automática de fotos en Canvas: ancho máx 450px, JPEG calidad 0.72
+    // Compresión automática a JPEG máx 500px
     function compressImage(file) {
       return new Promise((resolve, reject) => {
         try {
@@ -851,19 +1073,22 @@
           reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
-              const MAX_W = 450;
+              const MAX_SIZE = 500;
               let w = img.width;
               let h = img.height;
-              if (w > MAX_W) {
-                h = Math.round((h * MAX_W) / w);
-                w = MAX_W;
+              if (w > h && w > MAX_SIZE) {
+                h = Math.round((h * MAX_SIZE) / w);
+                w = MAX_SIZE;
+              } else if (h >= w && h > MAX_SIZE) {
+                w = Math.round((w * MAX_SIZE) / h);
+                h = MAX_SIZE;
               }
               const canvas = document.createElement('canvas');
               canvas.width = w;
               canvas.height = h;
               const ctx = canvas.getContext('2d');
               ctx.drawImage(img, 0, 0, w, h);
-              resolve(canvas.toDataURL('image/jpeg', 0.72));
+              resolve(canvas.toDataURL('image/jpeg', 0.78));
             };
             img.onerror = reject;
             img.src = e.target.result;
@@ -876,13 +1101,13 @@
       });
     }
 
-    // ==================== ACCESO ADMINISTRADOR CON PIN 2511 ====================
+    // ==================== ACCESO ADMINISTRADOR (PIN 2511) ====================
 
     function openPinModal() {
       document.getElementById('pinInput').value = '';
       document.getElementById('pinErrorMsg').textContent = '';
       openModal('pinModal');
-      setTimeout(() => document.getElementById('pinInput').focus(), 100);
+      setTimeout(() => document.getElementById('pinInput').focus(), 80);
     }
 
     function appendPinDigit(digit) {
@@ -925,9 +1150,9 @@
       document.getElementById('headerAdminControls').classList.remove('hidden');
       document.getElementById('headerAdminControls').classList.add('flex');
       document.getElementById('waCartBar').classList.add('hidden');
-      updateStoreHeader();
+      updateHeaderAndStats();
       renderAdmin();
-      showToast('Modo Administrador activado', 'info');
+      showToast('Modo Administrador desbloqueado', 'info');
     }
 
     function exitAdminMode() {
@@ -937,11 +1162,11 @@
       document.getElementById('headerAdminControls').classList.add('hidden');
       document.getElementById('headerAdminControls').classList.remove('flex');
       document.getElementById('headerClientControls').classList.remove('hidden');
-      updateStoreHeader();
+      updateHeaderAndStats();
       renderClient();
     }
 
-    // ==================== VISTA CLIENTE (CATÁLOGO PÚBLICO) ====================
+    // ==================== 1. VISTA PÚBLICA PARA CLIENTES ====================
 
     function clearClientSearch() {
       document.getElementById('clientSearch').value = '';
@@ -953,12 +1178,12 @@
       const query = searchInput.value.trim().toLowerCase();
       document.getElementById('clearClientSearchBtn').classList.toggle('hidden', query.length === 0);
 
-      // Píldoras de categoría
+      // Renderizar píldoras de categorías
       const pillsContainer = document.getElementById('clientCategoryPills');
       const allCats = ['ALL', ...CATEGORIES];
       pillsContainer.innerHTML = allCats.map(cat => {
         const active = selectedClientCategory === cat;
-        const label = cat === 'ALL' ? '✨ Todo' : cat;
+        const label = cat === 'ALL' ? '✨ Todas' : cat;
         return `
           <button
             type="button"
@@ -970,7 +1195,7 @@
         `;
       }).join('');
 
-      // Ajustar carrito al stock real
+      // Limitar carrito al stock real
       for (const idKey in cart) {
         const prod = products.find(p => p.id === Number(idKey));
         if (!prod || Number(prod.stock) <= 0) {
@@ -980,7 +1205,7 @@
         }
       }
 
-      // Mostrar SOLO productos con stock > 0
+      // Mostrar solo productos con stock > 0
       const available = products.filter(p => {
         const stock = Number(p.stock) || 0;
         if (stock <= 0) return false;
@@ -1026,7 +1251,7 @@
                 </span>
                 ${isLow ? `
                   <span class="absolute bottom-2.5 left-2.5 bg-amber-400 text-slate-950 font-extrabold text-[10px] sm:text-xs px-2.5 py-0.5 rounded-lg shadow">
-                    🔥 ¡Últimas ${stock} pieza${stock === 1 ? '' : 's'}!
+                    🔥 ¡Últimas ${stock}!
                   </span>
                 ` : ''}
               </div>
@@ -1148,7 +1373,7 @@
       window.open(url, '_blank');
     }
 
-    // ==================== PANEL DE ADMINISTRACIÓN ====================
+    // ==================== 2. PANEL DE ADMINISTRACIÓN ====================
 
     function quickFilterStock(code) {
       const sel = document.getElementById('adminStockFilter');
@@ -1184,7 +1409,7 @@
             <p class="text-xs text-slate-400 mt-1">Ajusta los filtros o agrega un artículo nuevo.</p>
           </div>
         `;
-        updateStoreHeader();
+        updateHeaderAndStats();
         return;
       }
 
@@ -1223,7 +1448,7 @@
               </label>
             </div>
 
-            <!-- Campos editables directos -->
+            <!-- Campos editables en línea -->
             <div class="p-4 flex-1 flex flex-col justify-between gap-3">
               <div class="space-y-2">
                 <div class="flex items-center justify-between gap-2">
@@ -1239,7 +1464,7 @@
                 />
               </div>
 
-              <div class="space-y-3">
+              <div class="space-y-2.5">
                 <div class="grid grid-cols-2 gap-2.5 bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
                   <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Precio ($)</label>
@@ -1265,13 +1490,13 @@
                   </div>
                 </div>
 
-                <!-- Botones grandes de control -->
-                <div class="flex items-center gap-2">
+                <!-- Botones de acción rápida -->
+                <div class="flex items-center gap-1.5">
                   <button
                     type="button"
                     onclick="sellOne(${p.id})"
                     ${isOut ? 'disabled' : ''}
-                    class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-extrabold transition ${isOut ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-pink-600 hover:bg-pink-700 text-white shadow-sm active:scale-[0.98]'}"
+                    class="flex-1 py-2.5 px-2.5 rounded-xl text-xs font-extrabold transition ${isOut ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-pink-600 hover:bg-pink-700 text-white shadow-sm active:scale-[0.98]'}"
                   >
                     ${isOut ? 'AGOTADO' : '✅ Vendido (-1)'}
                   </button>
@@ -1279,15 +1504,23 @@
                     type="button"
                     onclick="restockOne(${p.id})"
                     title="Sumar 1 pieza"
-                    class="py-2.5 px-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-xs sm:text-sm border border-emerald-200 transition"
+                    class="py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-xs border border-emerald-200 transition"
                   >
                     +1
                   </button>
                   <button
                     type="button"
+                    onclick="openStatusModal(${p.id})"
+                    title="Crear imagen de Estado de WhatsApp para este artículo"
+                    class="py-2.5 px-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-extrabold text-xs border border-purple-200 transition"
+                  >
+                    📲 Estado
+                  </button>
+                  <button
+                    type="button"
                     onclick="askDeleteProduct(${p.id})"
                     title="Eliminar producto"
-                    class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-600 text-xs sm:text-sm transition"
+                    class="py-2.5 px-2.5 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-600 text-xs transition"
                   >
                     🗑️
                   </button>
@@ -1298,7 +1531,7 @@
         `;
       }).join('');
 
-      updateStoreHeader();
+      updateHeaderAndStats();
     }
 
     async function updateProductField(id, field, rawVal) {
@@ -1318,8 +1551,8 @@
       }
 
       renderAdmin();
-      await syncToFirebase();
-      showToast(`Guardado ${prod.code} en la nube`, 'success');
+      await saveToFirebase();
+      showToast(`Guardado ${prod.code} en vivo`, 'success');
     }
 
     async function sellOne(id) {
@@ -1327,7 +1560,7 @@
       if (!prod || Number(prod.stock) <= 0) return;
       prod.stock = Number(prod.stock) - 1;
       renderAdmin();
-      await syncToFirebase();
+      await saveToFirebase();
       showToast(`Vendido ${prod.code} · Quedan ${prod.stock}`, prod.stock === 0 ? 'info' : 'success');
     }
 
@@ -1336,7 +1569,7 @@
       if (!prod) return;
       prod.stock = (Number(prod.stock) || 0) + 1;
       renderAdmin();
-      await syncToFirebase();
+      await saveToFirebase();
       showToast(`+1 agregado a ${prod.code} (Stock: ${prod.stock})`, 'info');
     }
 
@@ -1353,10 +1586,11 @@
       const prod = products.find(p => p.id === pendingDeleteId);
       products = products.filter(p => p.id !== pendingDeleteId);
       delete cart[pendingDeleteId];
+      statusSelectedIds = statusSelectedIds.filter(sid => sid !== pendingDeleteId);
       pendingDeleteId = null;
       closeModal('deleteModal');
       renderAdmin();
-      await syncToFirebase();
+      await saveToFirebase();
       showToast(prod ? `${prod.code} eliminado` : 'Artículo eliminado', 'info');
     }
 
@@ -1371,8 +1605,8 @@
         if (prod) {
           prod.photo = compressed;
           renderAdmin();
-          await syncToFirebase();
-          showToast(`Foto de ${prod.code} guardada en la nube`, 'success');
+          await saveToFirebase();
+          showToast(`Foto de ${prod.code} sincronizada`, 'success');
         }
       } catch (err) {
         showToast('No se pudo procesar la foto', 'error');
@@ -1392,8 +1626,8 @@
         if (prod) {
           prod.photo = compressed;
           renderAdmin();
-          await syncToFirebase();
-          showToast(`Foto de ${prod.code} guardada en la nube`, 'success');
+          await saveToFirebase();
+          showToast(`Foto de ${prod.code} guardada`, 'success');
         }
       } catch (err) {
         showToast('Error al cargar la imagen arrastrada', 'error');
@@ -1416,8 +1650,8 @@
             if (prod) {
               prod.photo = compressed;
               renderAdmin();
-              await syncToFirebase();
-              showToast(`Foto pegada en ${prod.code} y sincronizada`, 'success');
+              await saveToFirebase();
+              showToast(`Foto pegada en ${prod.code} y guardada`, 'success');
             }
           } catch (err) {
             showToast('Error al pegar la imagen', 'error');
@@ -1427,7 +1661,570 @@
       }
     });
 
-    // ==================== MODALES DE ADMINISTRACIÓN ====================
+    // ==================== 3. GENERADOR DE IMÁGENES PARA ESTADOS DE WHATSAPP (1080x1920) ====================
+
+    function openStatusModal(preselectedProductId = null) {
+      document.getElementById('statusProductSearch').value = '';
+      document.getElementById('statusTitleInput').value = (storeName || 'CATÁLOGO NANCY').toUpperCase();
+
+      if (preselectedProductId !== null) {
+        statusMode = 'single';
+        statusSelectedIds = [preselectedProductId];
+      } else {
+        // Si no hay selección previa, preseleccionar el primer producto disponible
+        if (statusSelectedIds.length === 0 && products.length > 0) {
+          const firstAvail = products.find(p => Number(p.stock) > 0) || products[0];
+          statusSelectedIds = [firstAvail.id];
+        }
+        const maxCount = statusMode === 'single' ? 1 : 4;
+        statusSelectedIds = statusSelectedIds.slice(0, maxCount);
+      }
+
+      updateStatusModeUI();
+      updateStatusThemeUI();
+      renderStatusProductPicker();
+      openModal('statusModal');
+      drawStatusCanvas();
+    }
+
+    function setStatusMode(mode) {
+      statusMode = mode;
+      const maxCount = mode === 'single' ? 1 : 4;
+
+      if (mode === 'single' && statusSelectedIds.length > 1) {
+        statusSelectedIds = [statusSelectedIds[0]];
+      } else if (mode === 'collage' && statusSelectedIds.length < 4) {
+        // Completar automáticamente hasta 4 productos disponibles para facilitar el collage
+        const candidates = products.filter(p => Number(p.stock) > 0 && !statusSelectedIds.includes(p.id));
+        for (const cand of candidates) {
+          if (statusSelectedIds.length >= 4) break;
+          statusSelectedIds.push(cand.id);
+        }
+      }
+
+      statusSelectedIds = statusSelectedIds.slice(0, maxCount);
+      updateStatusModeUI();
+      renderStatusProductPicker();
+      drawStatusCanvas();
+    }
+
+    function updateStatusModeUI() {
+      const btnSingle = document.getElementById('btnModeSingle');
+      const btnCollage = document.getElementById('btnModeCollage');
+
+      if (statusMode === 'single') {
+        btnSingle.className = 'p-3 rounded-2xl border-2 border-pink-600 bg-pink-50 text-pink-700 font-extrabold text-xs sm:text-sm transition text-center';
+        btnCollage.className = 'p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-extrabold text-xs sm:text-sm transition text-center';
+      } else {
+        btnCollage.className = 'p-3 rounded-2xl border-2 border-pink-600 bg-pink-50 text-pink-700 font-extrabold text-xs sm:text-sm transition text-center';
+        btnSingle.className = 'p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-extrabold text-xs sm:text-sm transition text-center';
+      }
+    }
+
+    function setStatusTheme(themeKey) {
+      statusTheme = themeKey;
+      updateStatusThemeUI();
+      drawStatusCanvas();
+    }
+
+    function updateStatusThemeUI() {
+      document.querySelectorAll('.status-theme-btn').forEach(btn => {
+        if (btn.dataset.theme === statusTheme) {
+          btn.classList.add('ring-2', 'ring-offset-2', 'ring-pink-600', 'scale-[1.02]');
+        } else {
+          btn.classList.remove('ring-2', 'ring-offset-2', 'ring-pink-600', 'scale-[1.02]');
+        }
+      });
+    }
+
+    function setStatusTag(text) {
+      document.getElementById('statusTagInput').value = text;
+      drawStatusCanvas();
+    }
+
+    function clearStatusSelection() {
+      statusSelectedIds = [];
+      renderStatusProductPicker();
+      drawStatusCanvas();
+    }
+
+    function toggleStatusProduct(id) {
+      const maxCount = statusMode === 'single' ? 1 : 4;
+      const exists = statusSelectedIds.includes(id);
+
+      if (exists) {
+        statusSelectedIds = statusSelectedIds.filter(sid => sid !== id);
+      } else {
+        if (statusMode === 'single') {
+          statusSelectedIds = [id];
+        } else {
+          if (statusSelectedIds.length >= maxCount) {
+            showToast('En collage puedes elegir máximo 4 productos', 'info');
+            return;
+          }
+          statusSelectedIds.push(id);
+        }
+      }
+
+      renderStatusProductPicker();
+      drawStatusCanvas();
+    }
+
+    function renderStatusProductPicker() {
+      const query = document.getElementById('statusProductSearch').value.trim().toLowerCase();
+      const maxCount = statusMode === 'single' ? 1 : 4;
+      document.getElementById('statusSelectedCount').textContent = `${statusSelectedIds.length}/${maxCount}`;
+
+      const filtered = products.filter(p =>
+        !query ||
+        (p.name || '').toLowerCase().includes(query) ||
+        (p.code || '').toLowerCase().includes(query)
+      );
+
+      const container = document.getElementById('statusProductPicker');
+      container.innerHTML = filtered.map(p => {
+        const isSelected = statusSelectedIds.includes(p.id);
+        const orderIndex = statusSelectedIds.indexOf(p.id) + 1;
+        const imgSrc = getProductImage(p);
+
+        return `
+          <button
+            type="button"
+            onclick="toggleStatusProduct(${p.id})"
+            class="flex items-center gap-2.5 p-2 rounded-xl border-2 text-left transition ${isSelected ? 'border-pink-600 bg-pink-50 shadow-sm' : 'border-slate-200 bg-white hover:bg-slate-50'}"
+          >
+            <div class="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 bg-slate-100 border border-slate-200">
+              <img src="${imgSrc}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover" />
+              ${isSelected ? `<span class="absolute inset-0 bg-pink-600/70 text-white font-extrabold text-xs flex items-center justify-center">${orderIndex}</span>` : ''}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-[11px] font-extrabold text-slate-900">${escapeHtml(p.code)}</span>
+                <span class="text-[11px] font-extrabold text-pink-600">$${Number(p.price)}</span>
+              </div>
+              <p class="text-[11px] font-medium text-slate-600 truncate">${escapeHtml(p.name)}</p>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // Auxiliar compatible para rectángulos redondeados en Canvas
+    function drawRoundRect(ctx, x, y, w, h, r) {
+      const radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+    }
+
+    // Auxiliar para dibujar imágenes con recorte centrado tipo object-fit: cover
+    function drawImageCover(ctx, img, x, y, w, h, radius = 0) {
+      ctx.save();
+      if (radius > 0) {
+        drawRoundRect(ctx, x, y, w, h, radius);
+        ctx.clip();
+      } else {
+        ctx.beginPath();
+        ctx.rect(x, y, w, h);
+        ctx.clip();
+      }
+
+      const imgRatio = img.width / img.height;
+      const boxRatio = w / h;
+      let sx = 0, sy = 0, sw = img.width, sh = img.height;
+
+      if (imgRatio > boxRatio) {
+        sw = img.height * boxRatio;
+        sx = (img.width - sw) / 2;
+      } else {
+        sh = img.width / boxRatio;
+        sy = (img.height - sh) / 2;
+      }
+
+      ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+      ctx.restore();
+    }
+
+    // Auxiliar para envolver texto automáticamente en N líneas
+    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 2, align = 'center') {
+      const words = String(text || '').split(/\s+/);
+      const lines = [];
+      let current = '';
+
+      for (const word of words) {
+        const test = current ? `${current} ${word}` : word;
+        if (ctx.measureText(test).width > maxWidth && current) {
+          lines.push(current);
+          current = word;
+          if (lines.length === maxLines - 1) break;
+        } else {
+          current = test;
+        }
+      }
+      if (current) lines.push(current);
+
+      // Si sobraron palabras, truncar con puntos suspensivos en la última línea
+      const joined = lines.join(' ');
+      if (joined.length < String(text || '').trim().length && lines.length > 0) {
+        let last = lines[lines.length - 1];
+        while (ctx.measureText(last + '…').width > maxWidth && last.length > 1) {
+          last = last.slice(0, -1);
+        }
+        lines[lines.length - 1] = last + '…';
+      }
+
+      ctx.textAlign = align;
+      ctx.textBaseline = 'top';
+      lines.forEach((line, idx) => {
+        ctx.fillText(line, x, y + idx * lineHeight);
+      });
+      return lines.length;
+    }
+
+    function loadImgAsync(src) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
+      });
+    }
+
+    function formatWaDisplay(num) {
+      const digits = String(num || '').replace(/\D/g, '');
+      if (!digits) return '';
+      if (digits.length === 12 && digits.startsWith('52')) {
+        return `+52 ${digits.slice(2, 4)} ${digits.slice(4, 8)} ${digits.slice(8)}`;
+      }
+      if (digits.length === 10) {
+        return `${digits.slice(0, 2)} ${digits.slice(2, 6)} ${digits.slice(6)}`;
+      }
+      return `+${digits}`;
+    }
+
+    // Dibuja el lienzo HD 1080x1920 para Estados de WhatsApp
+    async function drawStatusCanvas() {
+      const token = ++statusRenderToken;
+      const canvas = document.getElementById('statusCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const W = 1080;
+      const H = 1920;
+
+      const theme = STATUS_THEMES[statusTheme] || STATUS_THEMES.rosaGlam;
+      const tagText = (document.getElementById('statusTagInput').value || '¡DISPONIBLE HOY!').trim().toUpperCase();
+      const titleText = (document.getElementById('statusTitleInput').value || storeName || 'CATÁLOGO NANCY').trim().toUpperCase();
+
+      const selectedProducts = statusSelectedIds
+        .map(id => products.find(p => p.id === id))
+        .filter(Boolean);
+
+      // Precargar imágenes de los productos seleccionados
+      const loadedImgs = await Promise.all(
+        selectedProducts.map(p => loadImgAsync(getProductImage(p)))
+      );
+
+      // Cancelar si hubo otra actualización más reciente
+      if (token !== statusRenderToken) return;
+
+      // 1. Fondo degradado vertical elegante
+      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+      bgGrad.addColorStop(0, theme.bgStart);
+      bgGrad.addColorStop(0.55, theme.bgMid);
+      bgGrad.addColorStop(1, theme.bgEnd);
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Círculos decorativos sutiles en el fondo
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.beginPath();
+      ctx.arc(140, 220, 220, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(960, 1660, 280, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // 2. Etiqueta superior tipo píldora
+      ctx.save();
+      ctx.font = '900 34px Inter, sans-serif';
+      const tagMetrics = ctx.measureText(tagText);
+      const tagW = Math.min(W - 140, tagMetrics.width + 96);
+      const tagH = 74;
+      const tagX = (W - tagW) / 2;
+      const tagY = 84;
+
+      ctx.shadowColor = 'rgba(0,0,0,0.22)';
+      ctx.shadowBlur = 18;
+      ctx.shadowOffsetY = 6;
+      ctx.fillStyle = theme.tagBg;
+      drawRoundRect(ctx, tagX, tagY, tagW, tagH, 37);
+      ctx.fill();
+
+      ctx.shadowColor = 'transparent';
+      ctx.fillStyle = theme.tagText;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tagText, W / 2, tagY + tagH / 2 + 2);
+      ctx.restore();
+
+      // 3. Título principal grande
+      ctx.save();
+      ctx.fillStyle = theme.titleColor;
+      ctx.font = '900 66px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.shadowColor = 'rgba(0,0,0,0.22)';
+      ctx.shadowBlur = 14;
+      ctx.fillText(titleText.slice(0, 24), W / 2, 186);
+      ctx.restore();
+
+      // 4. Contenido central según modo (1 Producto Destacado o Collage 2x2)
+      if (selectedProducts.length === 0) {
+        // Estado vacío amigable
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        drawRoundRect(ctx, 90, 420, W - 180, 1020, 56);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 46px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Selecciona un producto', W / 2, 900);
+        ctx.font = '600 34px Inter, sans-serif';
+        ctx.fillText('para ver tu diseño aquí', W / 2, 965);
+        ctx.restore();
+      } else if (statusMode === 'single') {
+        // === MODO 1 PRODUCTO DESTACADO ===
+        const p = selectedProducts[0];
+        const img = loadedImgs[0];
+
+        const cardX = 76;
+        const cardY = 300;
+        const cardW = W - 152;
+        const cardH = 1280;
+
+        // Tarjeta blanca/oscura con sombra suave
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
+        ctx.shadowBlur = 45;
+        ctx.shadowOffsetY = 20;
+        ctx.fillStyle = theme.cardBg;
+        drawRoundRect(ctx, cardX, cardY, cardW, cardH, 54);
+        ctx.fill();
+        ctx.restore();
+
+        // Foto principal recortada con object-fit: cover
+        const imgPad = 36;
+        const imgX = cardX + imgPad;
+        const imgY = cardY + imgPad;
+        const imgW = cardW - imgPad * 2;
+        const imgH = 820;
+
+        if (img) {
+          drawImageCover(ctx, img, imgX, imgY, imgW, imgH, 38);
+        }
+
+        // Etiqueta de código (#01) sobre esquina superior izquierda de la foto
+        ctx.save();
+        ctx.fillStyle = theme.codeBg;
+        drawRoundRect(ctx, imgX + 26, imgY + 26, 152, 66, 22);
+        ctx.fill();
+        ctx.fillStyle = theme.codeText;
+        ctx.font = '900 36px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.code || '#01', imgX + 26 + 76, imgY + 26 + 34);
+        ctx.restore();
+
+        // Etiqueta de últimas piezas si stock <= 2
+        if (Number(p.stock) > 0 && Number(p.stock) <= 2) {
+          ctx.save();
+          ctx.fillStyle = '#facc15';
+          drawRoundRect(ctx, imgX + imgW - 316, imgY + 26, 290, 62, 20);
+          ctx.fill();
+          ctx.fillStyle = '#0f172a';
+          ctx.font = '900 28px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`🔥 ¡ÚLTIMAS ${p.stock}!`, imgX + imgW - 171, imgY + 58);
+          ctx.restore();
+        }
+
+        // Nombre del producto (hasta 2 líneas)
+        ctx.save();
+        ctx.fillStyle = theme.cardTitle;
+        ctx.font = '800 48px Inter, sans-serif';
+        drawWrappedText(ctx, p.name, W / 2, imgY + imgH + 46, imgW - 20, 62, 2, 'center');
+        ctx.restore();
+
+        // Precio grande destacado
+        ctx.save();
+        ctx.fillStyle = theme.priceColor;
+        ctx.font = '900 118px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`$${Number(p.price).toLocaleString('es-MX')}`, W / 2, cardY + cardH - 125);
+        ctx.restore();
+      } else {
+        // === MODO COLLAGE 4 PRODUCTOS (2x2) ===
+        const gridStartX = 56;
+        const gridStartY = 300;
+        const gap = 32;
+        const cardW = (W - gridStartX * 2 - gap) / 2; // 468px
+        const cardH = 626;
+
+        for (let i = 0; i < 4; i++) {
+          const p = selectedProducts[i];
+          const img = loadedImgs[i];
+          const col = i % 2;
+          const row = Math.floor(i / 2);
+          const cx = gridStartX + col * (cardW + gap);
+          const cy = gridStartY + row * (cardH + gap);
+
+          // Fondo de tarjeta
+          ctx.save();
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+          ctx.shadowBlur = 28;
+          ctx.shadowOffsetY = 12;
+          ctx.fillStyle = p ? theme.cardBg : 'rgba(255,255,255,0.22)';
+          drawRoundRect(ctx, cx, cy, cardW, cardH, 38);
+          ctx.fill();
+          ctx.restore();
+
+          if (!p) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.font = '700 28px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`Espacio #${i + 1}`, cx + cardW / 2, cy + cardH / 2);
+            ctx.restore();
+            continue;
+          }
+
+          // Foto con recorte cover
+          const pad = 20;
+          const photoX = cx + pad;
+          const photoY = cy + pad;
+          const photoW = cardW - pad * 2;
+          const photoH = 380;
+
+          if (img) {
+            drawImageCover(ctx, img, photoX, photoY, photoW, photoH, 26);
+          }
+
+          // Código (#01)
+          ctx.save();
+          ctx.fillStyle = theme.codeBg;
+          drawRoundRect(ctx, photoX + 16, photoY + 16, 108, 48, 16);
+          ctx.fill();
+          ctx.fillStyle = theme.codeText;
+          ctx.font = '900 26px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(p.code || '', photoX + 16 + 54, photoY + 16 + 25);
+          ctx.restore();
+
+          // Nombre legible (máx 2 líneas)
+          ctx.save();
+          ctx.fillStyle = theme.cardTitle;
+          ctx.font = '800 30px Inter, sans-serif';
+          drawWrappedText(ctx, p.name, cx + cardW / 2, photoY + photoH + 22, photoW - 12, 38, 2, 'center');
+          ctx.restore();
+
+          // Precio destacado
+          ctx.save();
+          ctx.fillStyle = theme.priceColor;
+          ctx.font = '900 62px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`$${Number(p.price).toLocaleString('es-MX')}`, cx + cardW / 2, cy + cardH - 56);
+          ctx.restore();
+        }
+      }
+
+      // 5. Pie de página con llamada a la acción WhatsApp
+      const footerW = W - 140;
+      const footerH = 186;
+      const footerX = 70;
+      const footerY = H - footerH - 72;
+
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.25)';
+      ctx.shadowBlur = 24;
+      ctx.shadowOffsetY = 8;
+      ctx.fillStyle = theme.footerBg;
+      drawRoundRect(ctx, footerX, footerY, footerW, footerH, 42);
+      ctx.fill();
+
+      ctx.shadowColor = 'transparent';
+      ctx.fillStyle = theme.footerText;
+      ctx.font = '900 48px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const formattedWa = formatWaDisplay(waNumber);
+      if (formattedWa) {
+        ctx.fillText('💬 ¡Pídelo por WhatsApp!', W / 2, footerY + 66);
+        ctx.fillStyle = theme.footerSub;
+        ctx.font = '800 40px Inter, sans-serif';
+        ctx.fillText(formattedWa, W / 2, footerY + 130);
+      } else {
+        ctx.fillText('💬 ¡Pídelo por WhatsApp!', W / 2, footerY + footerH / 2);
+      }
+      ctx.restore();
+    }
+
+    function downloadStatusImage() {
+      try {
+        const canvas = document.getElementById('statusCanvas');
+        const link = document.createElement('a');
+        link.download = `estado_whatsapp_${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Imagen HD (1080×1920) descargada', 'success');
+      } catch (err) {
+        showToast('No se pudo descargar la imagen', 'error');
+      }
+    }
+
+    async function shareStatusImage() {
+      const canvas = document.getElementById('statusCanvas');
+      try {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        if (!blob) throw new Error('Error creando PNG');
+
+        const file = new File([blob], 'estado_catalogo_nancy.png', { type: 'image/png' });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: storeName || 'Catálogo Nancy',
+            text: '¡Disponible hoy! Pídelo por WhatsApp 💬'
+          });
+          showToast('Listo para publicar en WhatsApp', 'success');
+        } else {
+          // Respaldo automático en navegadores de escritorio
+          downloadStatusImage();
+          showToast('Imagen descargada. Súbela directo a tu Estado de WhatsApp.', 'info');
+        }
+      } catch (err) {
+        if (err && err.name !== 'AbortError') {
+          downloadStatusImage();
+        }
+      }
+    }
+
+    // ==================== MODALES AUXILIARES ====================
 
     function openModal(id) {
       const el = document.getElementById(id);
@@ -1447,7 +2244,6 @@
       newModalCompressedPhoto = '';
       document.getElementById('newPhotoPreview').src = 'https://placehold.co/200x200/fdf2f8/db2777?text=Foto';
 
-      // Siguiente código automático (#30, etc.)
       let maxNum = products.length;
       products.forEach(p => {
         const match = String(p.code || '').match(/\d+/);
@@ -1490,11 +2286,11 @@
 
       closeModal('newModal');
       renderAdmin();
-      await syncToFirebase();
-      showToast(`Artículo ${code} publicado en el catálogo`, 'success');
+      await saveToFirebase();
+      showToast(`Artículo ${code} publicado en vivo`, 'success');
     }
 
-    // Subir varias fotos
+    // Carga masiva de fotos
     function openBulkModal() {
       bulkItems = [];
       document.getElementById('bulkInput').value = '';
@@ -1519,7 +2315,7 @@
             targetId: defaultProd ? defaultProd.id : null
           });
         } catch (err) {
-          console.error('Error procesando foto:', err);
+          console.error('Error comprimiendo foto:', err);
         }
       }
 
@@ -1578,24 +2374,21 @@
       });
       closeModal('bulkModal');
       renderAdmin();
-      await syncToFirebase();
-      showToast(`¡${count} foto(s) guardadas en la nube!`, 'success');
+      await saveToFirebase();
+      showToast(`¡${count} foto(s) guardadas en Firebase!`, 'success');
     }
 
-    // Tienda y WhatsApp
-    function openStoreModal() {
-      document.getElementById('storeNameInput').value = storeName || 'Catálogo Nancy';
+    // Número de WhatsApp
+    function openWaModal() {
       document.getElementById('waNumberInput').value = waNumber || '';
-      openModal('storeModal');
+      openModal('waModal');
     }
 
-    async function saveStoreSettings() {
-      storeName = document.getElementById('storeNameInput').value.trim() || 'Catálogo Nancy';
+    async function saveWaSettings() {
       waNumber = document.getElementById('waNumberInput').value.trim();
-      closeModal('storeModal');
-      updateStoreHeader();
-      await syncToFirebase();
-      showToast('Nombre de tienda y WhatsApp guardados', 'success');
+      closeModal('waModal');
+      await saveToFirebase();
+      showToast('Número de WhatsApp guardado en la nube', 'success');
     }
 
     // Código QR y copiar enlace
@@ -1633,7 +2426,7 @@
       }
     }
 
-    // Respaldo JSON (Exportar / Importar con subida automática a Firebase)
+    // Respaldo JSON (Exportar / Importar directo a Firebase)
     function exportBackup() {
       try {
         const payload = {
@@ -1676,10 +2469,10 @@
           if (typeof data.waNumber === 'string') {
             waNumber = data.waNumber;
           }
-          updateStoreHeader();
+          updateHeaderAndStats();
           renderAdmin();
-          await syncToFirebase();
-          showToast(`Respaldo importado y subido a la nube (${products.length} artículos)`, 'success');
+          await saveToFirebase();
+          showToast(`Respaldo cargado y guardado en Firebase (${products.length} artículos)`, 'success');
         } catch (err) {
           showToast('Error al leer el archivo JSON', 'error');
         } finally {
@@ -1689,8 +2482,10 @@
       reader.readAsText(file);
     }
 
-    // Arranque inicial (siempre abre en Vista Pública de Clientes y consulta Firebase)
-    loadFromFirebase(false);
+    // Arrancar conexión en tiempo real al cargar la página
+    window.addEventListener('DOMContentLoaded', () => {
+      initFirebaseRealtime();
+    });
   </script>
 </body>
 </html>
