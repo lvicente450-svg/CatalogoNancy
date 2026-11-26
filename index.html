@@ -415,13 +415,16 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
             <button type="button" onclick="waReset()">Restablecer esta plantilla</button>
           </section>
           <section data-simple-panel="save" hidden>
-            <p class="wa-note">Guarda el proyecto para seguir editando. Incluye tus fotos y las fuentes importadas que utilices.</p>
+            <p class="wa-note">Guarda el proyecto para seguir editando. Incluye tus fotos y todas las fuentes importadas, también las que aún no hayas usado.</p>
             <div class="wa-row"><button type="button" onclick="waSaveLocal()">Guardar aquí</button><button type="button" onclick="waLoadLocal()">Abrir guardado</button><button type="button" onclick="waExportProject()">Descargar proyecto</button><label class="wa-file">Abrir proyecto<input type="file" accept=".json,application/json" onchange="waImportProject(event)"></label></div>
             <label class="wa-file">Añadir mis fuentes<input type="file" accept=".ttf,.otf,.woff,.woff2" multiple onchange="waImportFonts(event)"></label><p class="wa-note">TTF, OTF, WOFF y WOFF2. Hasta 10 MB por archivo.</p>
+            <p id="wa-font-library-note" class="wa-note">Leyendo las fuentes guardadas…</p>
+            <button id="wa-font-cloud-retry" type="button" onclick="waRetryFontCloud()" hidden>Reintentar sincronización de fuentes</button>
           </section>
         </div>
       </section>
       <p id="wa-font-status" class="ws-status" role="status" aria-live="polite"></p>
+      <p id="wa-font-cloud-status" class="ws-status" role="status" aria-live="polite"></p>
       <footer class="ws-footer"><button type="button" onclick="downloadStatusImage()">↓ Descargar PNG</button><button type="button" class="ws-share" onclick="shareStatusImage()">Compartir</button></footer>
     </div>
   </div>
@@ -843,13 +846,16 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
         }
         db = firebase.database();
         bazarRef = db.ref('bazar');
+        if(isAdminMode)waSyncFontLibrary();
 
         // Monitorear estado de conexión en tiempo real
         db.ref('.info/connected').on('value', (snap) => {
           if (snap.val() === true) {
             setSyncBadge('live');
+            waFontCloudConnectionChanged(true);
           } else {
             setSyncBadge('offline');
+            waFontCloudConnectionChanged(false);
           }
         });
 
@@ -1105,6 +1111,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
 
     function enterAdminMode() {
       isAdminMode = true;
+      waSyncFontLibrary();
       document.getElementById('viewClient').classList.add('hidden');
       document.getElementById('viewAdmin').classList.remove('hidden');
       document.getElementById('headerClientControls').classList.add('hidden');
@@ -1635,6 +1642,27 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     function waSetLayerFont(family){return waPickFont(family);}
     function waApplyFont(all){return waPickFont(waNode()?.font||waFontChoice,all);}
 
+    let waFontStorageReport={available:true,loaded:0,failed:0};
+    async function waReadFontLibrary(){
+      const db=await waFontDB();try{return await new Promise((ok,no)=>{const tx=db.transaction('fonts'),request=tx.objectStore('fonts').getAll();let assets=[];request.onsuccess=()=>{assets=request.result||[];};tx.oncomplete=()=>ok(assets);tx.onerror=()=>no(tx.error);tx.onabort=()=>no(tx.error);});}finally{db.close();}
+    }
+    async function waRestoreFontLibrary(){
+      let assets;try{assets=await waReadFontLibrary();}catch(e){waFontStorageReport={available:false,loaded:waFontAssets.size,failed:0};return waFontStorageReport;}
+      let failed=0;for(const asset of assets){try{await waRegisterFont(asset);}catch(e){failed++;}}
+      waFontStorageReport={available:true,loaded:waFontAssets.size,failed};return waFontStorageReport;
+    }
+    function waRefreshFontsUI(){
+      const n=waNode(),select=document.querySelector('#wa-inspector select[aria-label="Fuente del texto"]');if(select&&n?.type==='text')select.innerHTML=waFontOptions(n.font);
+      const note=waEl('wa-font-library-note');if(note){const count=waFontAssets.size;note.textContent=count+' fuente(s) propia(s) disponible(s). '+(!waFontStorageReport.available?'El navegador no permitió leer el guardado. ':waFontStorageReport.failed?'No se pudieron abrir '+waFontStorageReport.failed+' fuente(s) guardada(s). ':'')+'Descargar proyecto incluye toda tu biblioteca de fuentes.';}
+    }
+    // Conservar todas las fuentes, incluidas las que todavía no se han usado.
+    function waProjectFontAssets(drafts){
+      const used=new Set(Object.values(drafts).flatMap(s=>s.layers.filter(n=>n.type==='text').map(n=>n.font)));
+      for(const family of used)if(family?.startsWith('NancyLocal_')&&!waFontAssets.has(family))throw new Error('Falta una fuente del proyecto. Abre su archivo anterior o vuelve a importarla antes de guardar.');
+      return waValidateFontAssets(Array.from(waFontAssets.values()));
+    }
+    window.addEventListener('DOMContentLoaded',()=>{waFontsReady.then(()=>{waRefreshFontsUI();if(waScene)waScheduleAutosave();});});
+
     function waFontDB(){return new Promise((ok,no)=>{if(!window.indexedDB){no(new Error('Almacenamiento no disponible'));return;}const request=indexedDB.open('nancy_fonts_v1',1);request.onupgradeneeded=()=>request.result.createObjectStore('fonts',{keyPath:'family'});request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error);request.onblocked=()=>no(new Error('Almacenamiento ocupado'));});}
     async function waFontStore(asset){const db=await waFontDB();try{await new Promise((ok,no)=>{const tx=db.transaction('fonts','readwrite');tx.objectStore('fonts').put(asset);tx.oncomplete=ok;tx.onerror=()=>no(tx.error);tx.onabort=()=>no(tx.error);});}finally{db.close();}}
     function waValidateFontAssets(assets){
@@ -1645,7 +1673,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       waValidateFontAssets([asset]);const existing=waFontAssets.get(asset.family);if(existing){if(existing.data!==asset.data)throw new Error('Hay otra fuente con el mismo identificador.');return;}
       const face=new FontFace(asset.family,'url("'+asset.data+'")');await waFontTimeout(face.load(),'No se pudo abrir '+asset.label+'.');document.fonts.add(face);waFontAssets.set(asset.family,{family:asset.family,label:asset.label,data:asset.data});
     }
-    const waFontsReady=(async()=>{try{const db=await waFontDB();let assets;try{assets=await new Promise((ok,no)=>{const req=db.transaction('fonts').objectStore('fonts').getAll();req.onsuccess=()=>ok(req.result);req.onerror=()=>no(req.error);});}finally{db.close();}for(const a of assets){try{await waRegisterFont(a);}catch{/* Una fuente dañada no bloquea las demás. */}}}catch{/* Las importaciones siguen disponibles durante la sesión. */}})();
+    const waFontsReady=waRestoreFontLibrary();
     async function waImportFonts(event){
       const files=Array.from(event.target.files||[]);if(!files.length)return;await waFontsReady;let imported=0,last='',sessionOnly=false;const errors=[];
       for(const file of files){try{
@@ -1655,11 +1683,61 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
         const data='data:font/'+ext+';base64,'+base64,duplicate=Array.from(waFontAssets.values()).find(a=>a.data.split(',')[1]===base64);if(duplicate){last=duplicate.family;continue;}
         const asset={family:'NancyLocal_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10),label:file.name.replace(/\.[^.]+$/,'').slice(0,150),data};waValidateFontAssets([...waFontAssets.values(),asset]);await waRegisterFont(asset);try{await waFontStore(asset);}catch{sessionOnly=true;}imported++;last=asset.family;
       }catch(e){errors.push(file.name+': '+e.message);}}
-      event.target.value='';waInspector();if(last&&waNode()?.type==='text')await waPickFont(last);
+      event.target.value='';waInspector();if(last&&waNode()?.type==='text')await waPickFont(last);waRefreshFontsUI();if(imported&&waScene)waScheduleAutosave();if(last)waSyncFontLibrary();
       waFontStatus(imported+' fuente(s) importada(s).'+(sessionOnly?' El navegador no permitió guardarlas; descarga el proyecto JSON para conservarlas.':'')+(errors.length?' '+errors.join(' '):''));
     }
-    function waProjectFontAssets(drafts){const used=new Set(Object.values(drafts).flatMap(s=>s.layers.filter(n=>n.type==='text').map(n=>n.font)));const assets=Array.from(waFontAssets.values()).filter(a=>used.has(a.family));for(const family of used)if(family?.startsWith('NancyLocal_')&&!waFontAssets.has(family))throw new Error('Falta una fuente importada. Impórtala antes de guardar el proyecto.');return assets;}
-    async function waPrepareProjectFonts(project){await waFontsReady;const assets=waValidateFontAssets(project.fontAssets);for(const a of assets)await waRegisterFont(a);for(const a of assets){try{await waFontStore(a);}catch{/* El proyecto JSON conserva una copia. */}}}
+    async function waPrepareProjectFonts(project){await waFontsReady;const assets=waValidateFontAssets(project.fontAssets);for(const a of assets)await waRegisterFont(a);for(const a of assets){try{await waFontStore(a);}catch{/* El proyecto JSON conserva una copia. */}}waRefreshFontsUI();waSyncFontLibrary();}
+
+    // Biblioteca compartida entre equipos, separada del inventario de productos.
+    let waFontCloudRef=null,waFontCloudFirst=null,waFontCloudReady=false,waFontCloudWriting=null,waFontCloudFault='';
+    const waFontCloudPending=new Map(),waFontCloudConfirmed=new Map();
+    function waFontCloudDisabled(){return new URLSearchParams(location.search).get('prueba')==='1';}
+    function waFontCloudMessage(){
+      const status=waEl('wa-font-cloud-status'),retry=waEl('wa-font-cloud-retry');if(!status)return;
+      if(waFontCloudDisabled()){status.textContent='';if(retry)retry.hidden=true;return;}
+      const pending=Array.from(waFontAssets.values()).filter(a=>waFontCloudConfirmed.get(a.family)!==a.data).length;
+      status.textContent=waFontCloudFault||(waFontCloudFirst&&!waFontCloudReady?'Conectando las fuentes con la nube…':pending?(waFontCloudWriting?'Guardando '+pending+' fuente(s) en la nube…':'Hay '+pending+' fuente(s) pendientes de sincronizar.'):waFontCloudReady&&waFontAssets.size?'Fuentes sincronizadas · disponibles en otros equipos.':'');
+      if(retry)retry.hidden=!(waFontCloudFault||pending&&!waFontCloudWriting);
+    }
+    async function waReceiveCloudFont(asset,confirmed=false){
+      waValidateFontAssets([asset]);const plain={family:asset.family,label:asset.label,data:asset.data},existing=waFontAssets.get(plain.family);
+      if(existing&&existing.data!==plain.data)throw new Error('Hay una fuente con un identificador repetido. Vuelve a importarla.');
+      if(!existing){waValidateFontAssets([...waFontAssets.values(),plain]);await waRegisterFont(plain);try{await waFontStore(plain);}catch{/* Sigue disponible y conservada en Firebase. */}}
+      if(confirmed&&!waFontCloudPending.has(plain.family))waFontCloudConfirmed.set(plain.family,plain.data);
+      waRefreshFontsUI();if(!existing&&waScene){const used=waScene.layers.filter(n=>n.type==='text'&&n.font===plain.family);if(used.length){used.forEach(n=>waFitTextBox(n,true));waChanged();}else waScheduleAutosave();}waFontCloudMessage();
+    }
+    function waQueueAllCloudFonts(){
+      if(!isAdminMode||waFontCloudDisabled())return;
+      for(const asset of waFontAssets.values())if(waFontCloudConfirmed.get(asset.family)!==asset.data)waFontCloudPending.set(asset.family,asset);
+      waFontCloudMessage();
+    }
+    function waConnectFontCloud(){
+      if(waFontCloudDisabled())return Promise.resolve(false);
+      if(waFontCloudReady){waQueueAllCloudFonts();return Promise.resolve(true);}
+      if(waFontCloudFirst)return waFontCloudFirst;
+      if(!db){waFontCloudFault='Sin conexión con Firebase. Tus fuentes siguen disponibles aquí; falta sincronizarlas.';waFontCloudMessage();return Promise.resolve(false);}
+      waFontCloudFault='';waFontCloudRef=db.ref('editorFonts');
+      const connect=async()=>{try{
+        await waFontsReady;const snapshot=await waFontTimeout(waFontCloudRef.once('value'),'No se pudo conectar la biblioteca de fuentes. Pulsa Reintentar.',15000),raw=snapshot.val()||{},entries=Object.entries(raw);
+        if(entries.length>100)throw new Error('La biblioteca compartida supera 100 fuentes.');
+        for(const [key,asset]of entries){if(asset?.family!==key)throw new Error('Hay una fuente compartida con formato incorrecto.');await waReceiveCloudFont(asset,false);waFontCloudConfirmed.set(key,asset.data);if(waFontCloudPending.get(key)?.data===asset.data)waFontCloudPending.delete(key);}
+        waFontCloudReady=true;
+        const receive=snap=>{const asset=snap.val();if(!asset||snap.key!==asset.family)return;waReceiveCloudFont(asset,true).catch(e=>{waFontCloudFault=e.message;waFontCloudMessage();});};
+        const failed=()=>{waFontCloudFault='Firebase no permitió leer las fuentes. Tus fuentes locales se conservan.';waFontCloudMessage();};
+        waFontCloudRef.on('child_added',receive,failed);waFontCloudRef.on('child_changed',receive,failed);
+        waQueueAllCloudFonts();waFlushCloudFonts();waFontCloudMessage();return true;
+      }catch(e){waFontCloudFault=/permission|denied/i.test(String(e?.message||e))?'Firebase no permitió leer las fuentes. Tus fuentes locales se conservan.':e.message;waFontCloudMessage();return false;}};
+      waFontCloudFirst=connect().finally(()=>{if(!waFontCloudReady)waFontCloudFirst=null;waFontCloudMessage();});waFontCloudMessage();return waFontCloudFirst;
+    }
+    function waFlushCloudFonts(){
+      if(waFontCloudWriting)return waFontCloudWriting;if(!waFontCloudReady||!waFontCloudRef||!isAdminMode||waFontCloudDisabled())return Promise.resolve(false);
+      const write=async()=>{try{for(const [family,asset]of waFontCloudPending){if(!isAdminMode)break;waValidateFontAssets([asset]);const confirmed=waFontCloudConfirmed.get(family);if(confirmed&&confirmed!==asset.data)throw new Error('Una fuente tiene un identificador repetido. Vuelve a importarla.');if(confirmed!==asset.data)await waFontCloudRef.child(family).set({family:asset.family,label:asset.label,data:asset.data,updatedAt:Date.now()});waFontCloudConfirmed.set(family,asset.data);if(waFontCloudPending.get(family)?.data===asset.data)waFontCloudPending.delete(family);}waFontCloudFault='';return waFontCloudPending.size===0;
+      }catch(e){waFontCloudFault=/permission|denied/i.test(String(e?.message||e))?'Firebase no permitió guardar las fuentes. Aún no están disponibles en otros equipos.':'No se completó la subida de fuentes. Reintenta con conexión a Internet.';return false;}};
+      waFontCloudWriting=write().finally(()=>{waFontCloudWriting=null;waFontCloudMessage();});waFontCloudMessage();return waFontCloudWriting;
+    }
+    async function waSyncFontLibrary(){if(waFontCloudDisabled())return false;waQueueAllCloudFonts();if(!await waConnectFontCloud())return false;return waFlushCloudFonts();}
+    function waRetryFontCloud(){waFontCloudFault='';return waSyncFontLibrary();}
+    function waFontCloudConnectionChanged(online){if(online&&isAdminMode)waSyncFontLibrary();else waFontCloudMessage();}
 
     // Gestos de la vista: no cambian el tamaño de los objetos ni el PNG.
     const waTouchPoints=new Map();
@@ -1904,7 +1982,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       waClearTouches();waFinishInline();waScene=waDrafts[index]||waTemplate(index);waPrepareTextBoxes(waScene);waDrafts[index]=waScene;waHistory=[];waFuture=[];waSelected='';waSlot=0;waRefresh();drawStatusCanvas();waScheduleAutosave();
     }
     async function openStatusModal(id=null){
-      await waRestoreOnce();
+      waSyncFontLibrary();await waRestoreOnce();
       if(!waScene)waChooseTemplate(id===null?1:3);
       if(id!==null){waChooseTemplate(3);const p=products.find(p=>String(p.id)===String(id));if(p)waUseProduct(p.id);}
       openModal('statusModal');waBindCanvas();waRefresh();waSizeCanvas();drawStatusCanvas();
@@ -1946,12 +2024,12 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     async function waSetQr(url){const scene=waScene;scene.qrUrl=url;try{if(url&&!/^https?:\/\//i.test(url))throw new Error('Usa un enlace completo https:// para el QR.');if(!url){waToggleQr(false);return;}if(typeof QRCode==='undefined')throw new Error('El generador QR requiere conexión a Internet. Puedes cargar tu propio QR.');const box=document.createElement('div');new QRCode(box,{text:url,width:280,height:280,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});await new Promise(ok=>setTimeout(ok,40));const c=box.querySelector('canvas');if(!c)throw new Error('No fue posible generar el QR.');if(scene!==waScene)return;waRemember();const n=scene.layers.find(n=>n.role==='qr');if(n){n.src=c.toDataURL('image/png');n.visible=true;scene.qrVisible=true;}waChanged(true);}catch(err){showToast(err.message,'error');}}
     function waToggleQr(on){const n=waScene.layers.find(n=>n.role==='qr');if(!n)return;if(on&&!n.src){waSetQr(waEl('wa-qr-url').value);return;}waRemember();n.visible=on;waScene.qrVisible=on;waChanged(true);}
     function waProject(){waDrafts[waScene.template]=waScene;return {format:'nancy-wa-studio',version:1,active:waScene.template,drafts:waDrafts,fontAssets:waProjectFontAssets(waDrafts)};}
-    function waSaveLocal(){try{localStorage.setItem('nancy_wa_projects_v1',JSON.stringify(waProject()));showToast('Proyecto guardado solo en este navegador.');}catch(e){showToast('No hay espacio local. Descarga el proyecto JSON para conservar las fotos.','error');}}
+    async function waSaveLocal(){try{await waFontsReady;await waWaitFontActions();localStorage.setItem('nancy_wa_projects_v1',JSON.stringify(waProject()));showToast('Proyecto guardado solo en este navegador.');}catch(e){showToast('No hay espacio local. Descarga el proyecto JSON para conservar las fotos.','error');}}
     function waValidateProject(p){if(p?.format!=='nancy-wa-studio'||p.version!==1||!p.drafts||typeof p.drafts!=='object')throw new Error('Proyecto no compatible.');for(const [key,s]of Object.entries(p.drafts)){const t=WA_TEMPLATES[Number(key)-1];if(!t||s.template!==Number(key)||s.count<t[1]||s.count>t[2]||!Array.isArray(s.layers)||s.layers.length>600||!Array.isArray(s.slots)||s.slots.length!==s.count||!s.palette)throw new Error('Estructura de proyecto inválida.');for(const c of Object.values(s.palette))if(typeof c!=='string'||!/^#[0-9a-f]{6}$/i.test(c))throw new Error('Paleta inválida.');for(const n of s.layers){if(!['rect','ellipse','poly','text','image','pattern'].includes(n.type)||typeof n.id!=='string'||!['x','y','w','h','scale','opacity','rotation'].every(k=>Number.isFinite(n[k]))||n.w<=0||n.w>5000||n.h<=0||n.h>5000||n.scale<=0||n.scale>10)throw new Error('Capa inválida.');if(n.src&&!/^(data:image\/(png|jpeg|webp|gif);base64,|https?:\/\/)/i.test(n.src))throw new Error('Origen de foto no permitido.');if(n.type==='poly'&&(!Array.isArray(n.points)||n.points.length>100))throw new Error('Forma inválida.');}}if(!p.drafts[p.active])throw new Error('No se encontró el diseño activo.');return p;}
     async function waOpenProject(p){waValidateProject(p);await waPrepareProjectFonts(p);waFinishInline();waDrafts=waClone(p.drafts);for(const s of Object.values(waDrafts)){for(const n of s.layers)if(n.type==='text'&&!n.font?.startsWith('NancyLocal_')&&!WA_SYSTEM_FONTS.includes(n.font))n.font='Arial';waPrepareTextBoxes(s);}waScene=waDrafts[p.active];waSerial=Math.max(waSerial,...Object.values(waDrafts).flatMap(s=>s.layers.map(n=>Number(n.id.replace(/^wa/,''))||0)));waSelected='';waSlot=0;waHistory=[];waFuture=[];waRefresh();drawStatusCanvas();waScheduleAutosave();}
     async function waLoadLocal(){try{const p=localStorage.getItem('nancy_wa_projects_v1');if(!p)throw new Error('Todavía no hay un proyecto guardado en este navegador.');await waOpenProject(JSON.parse(p));showToast('Proyecto recuperado.');}catch(e){showToast(e.message,'error');}}
     function waDownloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
-    function waExportProject(){try{waDownloadBlob(new Blob([JSON.stringify(waProject())],{type:'application/json'}),'catalogo-nancy-proyecto.json');}catch(e){showToast(e.message,'error');}}
+    async function waExportProject(){try{await waFontsReady;await waWaitFontActions();waDownloadBlob(new Blob([JSON.stringify(waProject())],{type:'application/json'}),'catalogo-nancy-proyecto.json');}catch(e){showToast(e.message,'error');}}
     async function waImportProject(e){try{const f=e.target.files[0];if(!f)return;if(f.size>60*1024*1024)throw new Error('El proyecto supera 60 MB.');await waOpenProject(JSON.parse(await f.text()));showToast('Proyecto abierto sin modificar el inventario.');}catch(err){showToast(err.message,'error');}finally{e.target.value='';}}
     function waLoadImage(src){if(!src)return Promise.resolve(null);if(waImages.has(src))return waImages.get(src);const promise=new Promise(ok=>{const im=new Image();let done=false;const finish=v=>{if(done)return;done=true;clearTimeout(timer);ok(v);};const timer=setTimeout(()=>finish(null),12000);im.crossOrigin='anonymous';im.onload=()=>finish(im);im.onerror=()=>finish(null);im.src=src;});waImages.set(src,promise);promise.then(im=>{if(!im)waImages.delete(src);});return promise;}
     function waPath(c,n){c.beginPath();if(n.type==='ellipse')c.ellipse(n.w/2,n.h/2,n.w/2,n.h/2,0,(n.arcStart||0)*Math.PI/180,(n.arcEnd??360)*Math.PI/180);else if(n.type==='poly'){n.points.forEach((p,i)=>i?c.lineTo(p[0]*n.w,p[1]*n.h):c.moveTo(p[0]*n.w,p[1]*n.h));if(n.color)c.closePath();}else if(c.roundRect)c.roundRect(0,0,n.w,n.h,Math.min(n.radius||0,n.w/2,n.h/2));else c.rect(0,0,n.w,n.h);}
