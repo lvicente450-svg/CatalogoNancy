@@ -47,6 +47,73 @@
 #toastContainer{z-index:80}
 
 </style>
+<style>
+.wa-font-list{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:310px;overflow:auto;padding:3px}
+.wa-font-item{display:flex;min-width:0;border:1px solid #ddd3e3;border-radius:9px;background:#fff;overflow:hidden}
+.wa-modal .wa-font-pick{flex:1;text-align:left;border:0;border-radius:0;min-width:0;overflow-wrap:anywhere;font-weight:500}
+.wa-modal .wa-font-pick[aria-pressed=true]{background:#eaddf2;color:#47225b;box-shadow:inset 3px 0 #8c45ad}
+.wa-font-pick small{display:block;font:11px Inter,system-ui,sans-serif;color:#776980;margin-top:4px}
+.wa-modal .wa-font-star{padding:7px;border:0;border-left:1px solid #eee6f2;border-radius:0;min-width:34px;color:#825b06}
+.wa-font-sample{font-size:26px;line-height:1.5;background:#f2ebf6;padding:14px;border-radius:12px;overflow-wrap:anywhere;min-height:68px}
+.wa-modal button:disabled{opacity:.45;cursor:default}
+.wa-modal [hidden]{display:none!important}
+@media(max-width:400px){.wa-font-list{grid-template-columns:1fr}}
+
+</style>
+<style>
+.wa-mobile-tabs,.wa-mobile-footer,.wa-preview-toggle,.wa-quick-text{display:none}
+@media(max-width:850px){
+ .wa-modal{padding:0;background:#faf8fc}
+ .wa-shell{height:100dvh;max-height:none;width:100%;border-radius:0}
+ .wa-top{padding:9px 12px;flex:none;gap:8px}
+ .wa-top b{font-size:14px}
+ .wa-top small{font-size:10px;margin-top:2px}
+ .wa-top button{min-width:44px;min-height:44px}
+ .wa-body{display:flex;flex-direction:column;overflow:hidden;min-height:0}
+ .wa-preview{order:0;flex:none;padding:6px 12px;background:#ece6f0;overflow:hidden;display:grid;grid-template-columns:1fr auto 1fr;gap:4px 10px;align-items:center;justify-items:center}
+ .wa-preview-label,.wa-preview>.wa-note,.wa-preview>.wa-row{display:none}
+ .wa-preview canvas{grid-column:2;width:auto;height:clamp(115px,21dvh,180px);max-width:100%;aspect-ratio:9/16;box-shadow:0 3px 12px #30213f25}
+ .wa-preview-toggle{display:block;grid-column:3;grid-row:1;justify-self:start;max-width:110px;font-size:12px!important;min-height:44px}
+ .wa-preview::before{content:'Toca el texto o la foto para editar';grid-column:1;grid-row:1;font-size:11px;line-height:1.5;color:#63536e;max-width:100px;text-align:center}
+ #wa-render-info{grid-column:1/-1;margin:0;min-height:16px;max-width:100%;width:100%;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+ .wa-shell.wa-preview-large .wa-preview canvas{grid-column:1;height:min(47dvh,440px,calc((100vw - 154px)*16/9))}
+ .wa-shell.wa-preview-large .wa-preview{grid-template-columns:minmax(0,1fr) 110px}
+ .wa-shell.wa-preview-large .wa-preview::before{display:none}
+ .wa-shell.wa-preview-large .wa-preview-toggle{grid-column:2}
+ .wa-mobile-tabs{order:1;display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:#fff;border-bottom:1px solid #ded3e5;flex:none}
+ .wa-modal .wa-mobile-tabs button{border:0;border-radius:0;min-height:48px;padding:10px 3px;font-size:12px;background:#fff}
+ .wa-modal .wa-mobile-tabs button[aria-selected=true]{background:#f1e7f7;color:#6f2a91;box-shadow:inset 0 -3px #8c45ad}
+ .wa-controls{order:2;overflow-y:auto;min-height:0;flex:1;padding:12px 13px 24px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-padding:10px}
+ .wa-controls [data-wa-tab]{display:none}
+ .wa-controls [data-wa-tab].wa-active-tab{display:block}
+ .wa-controls details{margin:0 0 12px;border-radius:12px;padding:12px}
+ .wa-controls [data-wa-tab] > summary{font-size:14px;padding-bottom:10px}
+ .wa-controls .wa-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .wa-modal input:not([type=checkbox]):not([type=color]):not([type=file]),.wa-modal textarea,.wa-modal select{font-size:16px!important;min-height:46px;padding:10px 12px}
+ .wa-modal textarea{min-height:90px}
+ .wa-modal button,.wa-file{min-height:44px;touch-action:manipulation}
+ .wa-modal input[type=checkbox]{width:21px;height:21px;accent-color:#8c45ad}
+ .wa-modal input[type=color]{height:44px}
+ .wa-mobile-footer{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 12px max(8px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid #ded3e5;flex:none}
+ .wa-mobile-footer button{min-height:48px!important;color:#fff;background:#49265d;border-color:#49265d;font-size:13px}
+ .wa-mobile-footer .wa-share{background:#147a55;border-color:#147a55}
+ .wa-font-list{max-height:230px}
+ .wa-font-sample{font-size:23px}
+ .wa-font-star{min-width:44px!important}
+ .wa-picker{max-height:190px}
+ .wa-picker button{padding:7px;min-height:60px}
+ .wa-quick-text{display:block;background:#fff;border:1px solid #e3dbe9;border-radius:12px;padding:12px;margin-bottom:12px}
+ .wa-quick-text .wa-row{align-items:end}
+ .wa-quick-text label{font-size:13px}
+ .wa-quick-text .wa-note{margin-bottom:0}
+ .wa-controls #wa-font-panel > summary{pointer-events:none;list-style:none}
+ .wa-controls #wa-font-panel > summary::-webkit-details-marker{display:none}
+ .wa-shell.wa-keyboard .wa-preview canvas{height:72px!important}
+ .wa-shell.wa-keyboard .wa-preview::before{font-size:10px}
+}
+@media(max-height:620px) and (max-width:850px){.wa-preview canvas{height:82px}.wa-top small{display:none}.wa-mobile-tabs button{min-height:42px!important}.wa-mobile-footer button{min-height:44px!important}}
+
+</style>
 </head>
 <body class="text-slate-800 antialiased pb-28 overflow-x-hidden">
 
@@ -353,7 +420,7 @@
 
   <div id="statusModal" class="hidden wa-modal" role="dialog" aria-modal="true" aria-labelledby="wa-heading">
     <div class="wa-shell">
-      <header class="wa-top"><div><b id="wa-heading">Estudio de estados · Catálogo Nancy</b><small>Revisión 2 · 16 diseños · tamaño de fotos por arrastre</small></div><button type="button" onclick="closeModal('statusModal')" aria-label="Cerrar editor">✕</button></header>
+      <header class="wa-top"><div><b id="wa-heading">Estudio de estados · Catálogo Nancy</b><small>16 diseños · 150 tipografías · fuentes propias</small></div><button type="button" onclick="closeModal('statusModal')" aria-label="Cerrar editor">✕</button></header>
       <div class="wa-body">
         <section class="wa-controls">
           <label>Diseño<select id="wa-template" onchange="waChooseTemplate(Number(this.value))"></select></label>
@@ -372,6 +439,25 @@
             <label class="wa-check"><input id="wa-qr-on" type="checkbox" onchange="waToggleQr(this.checked)"> Mostrar QR</label>
             <p class="wa-note">El QR se genera con el enlace indicado. Puedes editar o reemplazar su imagen en Capas.</p>
           </details>
+          <details id="wa-font-panel" open>
+            <summary>Tipografías · 150 Google Fonts</summary>
+            <p class="wa-note">Elige una capa de texto o aplica una fuente a todos los textos del diseño actual, incluidos precios, códigos y contacto.</p>
+            <label>Buscar tipografía<input id="wa-font-search" type="search" placeholder="Nombre de la fuente…" oninput="waFontList()"></label>
+            <div class="wa-row">
+              <label>Categoría<select id="wa-font-category" onchange="waFontList()"></select></label>
+              <label>Mostrar<select id="wa-font-filter" onchange="waFontList()"><option value="all">Todas</option><option value="favorites">★ Favoritas</option><option value="recent">Recientes</option><option value="custom">Importadas</option></select></label>
+            </div>
+            <p id="wa-font-target" class="wa-note"></p>
+            <div id="wa-font-list" class="wa-font-list" role="group" aria-label="Biblioteca de tipografías"></div>
+            <p id="wa-font-count" class="wa-note"></p>
+            <div class="wa-row"><button id="wa-font-more" type="button" onclick="waFontMore()" hidden>Mostrar más</button></div>
+            <div class="wa-row"><label class="wa-file">Importar fuentes<input id="wa-font-import" type="file" accept=".ttf,.otf,.woff,.woff2" multiple onchange="waImportFonts(event)"></label></div>
+            <p class="wa-note">TTF, OTF, WOFF o WOFF2 · máximo 10 MB por archivo. Las fuentes importadas se conservan en este navegador y se incluyen en el proyecto JSON. Las fuentes de Google requieren Internet al cargarse por primera vez.</p>
+            <div id="wa-font-sample" class="wa-font-sample">Catálogo Nancy · ¡Novedades! $199</div>
+            <div class="wa-row"><button id="wa-font-apply-one" type="button" onclick="waApplyFont(false)">Aplicar al texto seleccionado</button><button id="wa-font-apply-all" type="button" onclick="waApplyFont(true)">Aplicar a todos los textos</button></div>
+            <p id="wa-font-status" class="wa-note" role="status" aria-live="polite"></p>
+          </details>
+
           <details open><summary>Capas y edición de cada elemento</summary>
             <label>Elemento<select id="wa-layer" onchange="waSelect(this.value)"></select></label>
             <div id="wa-inspector"></div>
@@ -1558,6 +1644,329 @@
       }
     });
 
+    // Biblioteca tipográfica local al editor; nunca escribe en Firebase.
+    const WA_FONT_CATEGORIES = {
+  "Modernas": [
+    "Inter",
+    "Roboto",
+    "Open Sans",
+    "Lato",
+    "Montserrat",
+    "Poppins",
+    "Raleway",
+    "Nunito Sans",
+    "Work Sans",
+    "DM Sans",
+    "Manrope",
+    "Outfit",
+    "Plus Jakarta Sans",
+    "Urbanist",
+    "Figtree",
+    "Mulish",
+    "Rubik",
+    "Karla",
+    "Barlow",
+    "Quicksand"
+  ],
+  "Elegantes": [
+    "Playfair Display",
+    "Lora",
+    "Merriweather",
+    "Cormorant Garamond",
+    "Libre Baskerville",
+    "Bodoni Moda",
+    "DM Serif Display",
+    "DM Serif Text",
+    "Crimson Text",
+    "EB Garamond",
+    "Cinzel",
+    "Prata",
+    "Italiana",
+    "Marcellus",
+    "Cardo",
+    "Spectral",
+    "Vollkorn",
+    "Alegreya",
+    "Bitter",
+    "Libre Caslon Text"
+  ],
+  "Caligrafía": [
+    "Dancing Script",
+    "Great Vibes",
+    "Pacifico",
+    "Allura",
+    "Alex Brush",
+    "Sacramento",
+    "Parisienne",
+    "Satisfy",
+    "Kaushan Script",
+    "Courgette",
+    "Cookie",
+    "Yellowtail",
+    "Damion",
+    "Lobster",
+    "Lobster Two",
+    "Oleo Script",
+    "Pinyon Script",
+    "Tangerine",
+    "Rouge Script",
+    "Petit Formal Script"
+  ],
+  "Manuscritas": [
+    "Caveat",
+    "Kalam",
+    "Patrick Hand",
+    "Indie Flower",
+    "Shadows Into Light",
+    "Amatic SC",
+    "Architects Daughter",
+    "Handlee",
+    "Neucha",
+    "Permanent Marker",
+    "Rock Salt",
+    "Gloria Hallelujah",
+    "Coming Soon",
+    "Covered By Your Grace",
+    "Nothing You Could Do",
+    "Reenie Beanie",
+    "Just Another Hand",
+    "Schoolbell",
+    "Gochi Hand",
+    "Nanum Pen Script"
+  ],
+  "Impacto": [
+    "Anton",
+    "Bebas Neue",
+    "Oswald",
+    "Archivo Black",
+    "Black Ops One",
+    "Russo One",
+    "Bungee",
+    "Bungee Shade",
+    "Fjalla One",
+    "Titan One",
+    "Righteous",
+    "Passion One",
+    "Changa One",
+    "Sigmar One",
+    "Alfa Slab One",
+    "Luckiest Guy",
+    "Ultra",
+    "Fugaz One",
+    "Patua One",
+    "Staatliches"
+  ],
+  "Condensadas": [
+    "Roboto Condensed",
+    "Barlow Condensed",
+    "Barlow Semi Condensed",
+    "Saira Condensed",
+    "Saira Extra Condensed",
+    "Teko",
+    "Rajdhani",
+    "Abel",
+    "Economica",
+    "PT Sans Narrow",
+    "Yanone Kaffeesatz",
+    "BenchNine",
+    "Six Caps",
+    "Wire One",
+    "Antonio"
+  ],
+  "Redondeadas": [
+    "Nunito",
+    "Comfortaa",
+    "Fredoka",
+    "Baloo 2",
+    "Varela Round",
+    "M PLUS Rounded 1c",
+    "Dosis",
+    "Sniglet",
+    "Chewy",
+    "Bubblegum Sans",
+    "Boogaloo",
+    "Mali",
+    "Itim",
+    "Grandstander",
+    "Concert One"
+  ],
+  "Monoespaciadas": [
+    "Roboto Mono",
+    "Space Mono",
+    "IBM Plex Mono",
+    "Source Code Pro",
+    "Fira Code",
+    "Inconsolata",
+    "JetBrains Mono",
+    "Ubuntu Mono",
+    "Courier Prime",
+    "Cutive Mono"
+  ],
+  "Retro y decorativas": [
+    "Abril Fatface",
+    "Bevan",
+    "Yeseva One",
+    "Monoton",
+    "Press Start 2P",
+    "VT323",
+    "Special Elite",
+    "Rye",
+    "Limelight",
+    "Fascinate Inline"
+  ]
+};
+    const WA_SYSTEM_FONTS = ['Arial','Arial Rounded MT Bold','Arial Black','Georgia','Courier New','Impact','Trebuchet MS'];
+    const WA_GOOGLE_FONTS = Object.entries(WA_FONT_CATEGORIES).flatMap(([category,names])=>names.map(family=>({family,label:family,category,source:'google'})));
+    const waFontAssets = new Map(), waFontSheets = new Map();
+    let waFontChoice='Inter', waFontPage=30, waFontListKey='', waFontAction=0, waFontBusy=false, waFontPending=Promise.resolve();
+    async function waWaitFontActions(){let pending;do{pending=waFontPending;await pending;}while(pending!==waFontPending);}
+    function waFontReadList(key){try{const a=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(a)?a.filter(x=>typeof x==='string').slice(0,200):[];}catch{return [];}}
+    let waFontFavorites=waFontReadList('nancy_font_favorites_v1'), waFontRecent=waFontReadList('nancy_font_recent_v1');
+    function waFontSaveList(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{/* La sesión sigue funcionando si el almacenamiento está bloqueado. */}}
+    function waFontCatalog(){return [...WA_GOOGLE_FONTS,...WA_SYSTEM_FONTS.map(family=>({family,label:family,category:'Del dispositivo',source:'system'})),...Array.from(waFontAssets.values(),a=>({family:a.family,label:a.label,category:'Importadas',source:'custom'}))];}
+    function waFontRecord(family){return waFontCatalog().find(f=>f.family===family);}
+    function waFontLabel(family){return waFontRecord(family)?.label||family;}
+    function waFontCss(family){return '"'+String(family).replace(/[\\"\r\n]/g,'')+'"';}
+    function waFontTimeout(promise,message,ms=20000){let timer;return Promise.race([promise,new Promise((_,no)=>{timer=setTimeout(()=>no(new Error(message)),ms);})]).finally(()=>clearTimeout(timer));}
+    function waFontSheet(family){
+      if(waFontSheets.has(family))return waFontSheets.get(family);
+      const link=document.createElement('link');link.rel='stylesheet';
+      // La variante normal existe en las 150 familias; el navegador conserva peso y cursiva por síntesis cuando corresponde.
+      link.href='https://fonts.googleapis.com/css2?family='+encodeURIComponent(family).replace(/%20/g,'+')+'&display=swap';
+      const pending=waFontTimeout(new Promise((ok,no)=>{link.onload=ok;link.onerror=()=>no(new Error('No se pudo cargar '+family+'. Revisa tu conexión.'));document.head.appendChild(link);}), 'La fuente '+family+' tardó demasiado. Revisa tu conexión.');
+      const ready=pending.catch(e=>{link.remove();waFontSheets.delete(family);throw e;});waFontSheets.set(family,ready);return ready;
+    }
+    async function waEnsureFont(family,weight='400',italic=false,text='Catálogo Nancy ¡ÁÉÍÓÚ áéíóú ñÑ! $0123456789'){
+      await waFontsReady;
+      const record=waFontRecord(family);
+      if(!record)throw new Error('Falta la fuente '+family+'. Impórtala o elige otra tipografía.');
+      if(!document.fonts||typeof FontFace==='undefined')throw new Error('Este navegador no admite la carga de fuentes. Usa una versión reciente de Chrome, Edge o Safari.');
+      if(record.source==='google')await waFontSheet(family);
+      const style=(italic?'italic ':'')+(Number(weight)||400)+' 32px '+waFontCss(family);
+      const faces=await waFontTimeout(document.fonts.load(style,String(text||' ')), 'No terminó de cargar la fuente '+record.label+'.');
+      if(record.source!=='system'&&!faces.length)throw new Error('No se pudo confirmar la carga de '+record.label+'. Intenta otra vez.');
+      return record;
+    }
+    async function waWaitSceneFonts(scene){
+      const groups=new Map();
+      for(const n of scene.layers.filter(n=>n.visible&&n.type==='text')){const family=n.font||'Arial',key=JSON.stringify([family,n.weight||700,!!n.italic]);if(!groups.has(key))groups.set(key,{family,weight:n.weight||700,italic:!!n.italic,text:''});groups.get(key).text+=String(n.text||' ')+' ';}
+      await Promise.all(Array.from(groups.values(),n=>waEnsureFont(n.family,n.weight,n.italic,n.text)));
+      if(document.fonts)await waFontTimeout(document.fonts.ready,'Las fuentes todavía no están listas. Intenta de nuevo.');
+    }
+    function waFontStatus(message){const el=waEl('wa-font-status');if(el)el.textContent=message;}
+    function waFontSync(){
+      const n=waNode(),target=waEl('wa-font-target');if(!target)return;
+      target.textContent=n?.type==='text'?'Texto seleccionado: '+n.label+' · '+waFontLabel(n.font||'Arial'):'Selecciona una capa de texto para cambiar solo esa capa.';
+      waEl('wa-font-apply-one').disabled=waFontBusy||n?.type!=='text';waEl('wa-font-apply-all').disabled=waFontBusy||!waScene;
+    }
+    function waFontList(){
+      const host=waEl('wa-font-list');if(!host)return;
+      const normalize=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+      const search=normalize(waEl('wa-font-search').value.trim()),category=waEl('wa-font-category').value,filter=waEl('wa-font-filter').value,key=JSON.stringify([search,category,filter]);
+      if(key!==waFontListKey){waFontPage=30;waFontListKey=key;host.scrollTop=0;}
+      let list=waFontCatalog().filter(f=>(!search||normalize(f.label).includes(search))&&(!category||category===f.category)&&(filter!=='favorites'||waFontFavorites.includes(f.family))&&(filter!=='recent'||waFontRecent.includes(f.family))&&(filter!=='custom'||f.source==='custom'));
+      if(filter==='recent')list.sort((a,b)=>waFontRecent.indexOf(a.family)-waFontRecent.indexOf(b.family));
+      host.replaceChildren();
+      for(const f of list.slice(0,waFontPage)){
+        const row=document.createElement('div');row.className='wa-font-item';
+        const choose=document.createElement('button');choose.type='button';choose.className='wa-font-pick';choose.setAttribute('aria-pressed',String(f.family===waFontChoice));choose.textContent=f.label;
+        const meta=document.createElement('small');meta.textContent=f.category;choose.append(meta);choose.onclick=()=>waPickFont(f.family);
+        const star=document.createElement('button');star.type='button';star.className='wa-font-star';const favorite=waFontFavorites.includes(f.family);star.textContent=favorite?'★':'☆';star.setAttribute('aria-pressed',String(favorite));star.setAttribute('aria-label',(favorite?'Quitar de favoritas: ':'Agregar a favoritas: ')+f.label);star.onclick=()=>waFontFavorite(f.family);
+        row.append(choose,star);host.append(row);
+      }
+      if(!list.length)host.textContent='No hay fuentes que coincidan.';
+      waEl('wa-font-count').textContent=Math.min(waFontPage,list.length)+' de '+list.length+' fuentes · 150 de Google en 9 categorías';waEl('wa-font-more').hidden=list.length<=waFontPage;waFontSync();
+    }
+    function waFontMore(){waFontPage+=30;waFontList();}
+    function waFontFavorite(family){waFontFavorites=waFontFavorites.includes(family)?waFontFavorites.filter(f=>f!==family):[...waFontFavorites,family];waFontSaveList('nancy_font_favorites_v1',waFontFavorites);waFontList();}
+    function waFontRemember(family){waFontRecent=[family,...waFontRecent.filter(f=>f!==family)].slice(0,20);waFontSaveList('nancy_font_recent_v1',waFontRecent);}
+    function waPickFont(family){waFontPending=waPickFontLoad(family);return waFontPending;}
+    async function waPickFontLoad(family){
+      const token=++waFontAction,scene=waScene,node=waNode(),id=node?.type==='text'?node.id:null;waFontChoice=family;waFontStatus('Cargando '+waFontLabel(family)+'…');waFontList();
+      try{await waEnsureFont(family,node?.weight,node?.italic);if(token!==waFontAction)return;
+        const sample=waEl('wa-font-sample');sample.style.fontFamily=waFontCss(family);waFontRemember(family);
+        if(scene===waScene&&id&&waSelected===id){waRemember();node.font=family;waChanged();waInspector();waFontStatus(waFontLabel(family)+' aplicada al texto seleccionado.');}else waFontStatus(waFontLabel(family)+' lista. Elige dónde aplicarla.');waFontList();
+      }catch(e){if(token===waFontAction)waFontStatus(e.message);}
+    }
+    function waApplyFont(all){waFontPending=waApplyFontLoad(all);return waFontPending;}
+    async function waApplyFontLoad(all){
+      const scene=waScene,family=waFontChoice,n=waNode();if(!scene||(!all&&n?.type!=='text'))return;
+      const nodes=all?scene.layers.filter(n=>n.type==='text'):[n];waFontBusy=true;waFontSync();waFontStatus('Cargando '+waFontLabel(family)+'…');
+      try{await Promise.all(nodes.map(n=>waEnsureFont(family,n.weight,n.italic,n.text)));if(scene!==waScene||(!all&&waSelected!==n.id))throw new Error('Cambió el diseño o la selección. Vuelve a aplicar la fuente.');
+        waRemember();nodes.forEach(n=>n.font=family);waFontRemember(family);waChanged(true);waEl('wa-font-sample').style.fontFamily=waFontCss(family);waFontStatus(waFontLabel(family)+' aplicada a '+nodes.length+' texto(s).');waFontList();
+      }catch(e){waFontStatus(e.message);}finally{waFontBusy=false;waFontSync();}
+    }
+    function waFontOptions(current){return waFontCatalog().map(f=>'<option value="'+waEscape(f.family)+'" '+(f.family===current?'selected':'')+'>'+waEscape(f.label)+'</option>').join('');}
+    async function waSetLayerFont(family){const n=waNode();if(n?.type==='text')await waPickFont(family);}
+    function waFontDB(){return new Promise((ok,no)=>{if(!window.indexedDB){no(new Error('Almacenamiento no disponible'));return;}const request=indexedDB.open('nancy_fonts_v1',1);request.onupgradeneeded=()=>request.result.createObjectStore('fonts',{keyPath:'family'});request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error);request.onblocked=()=>no(new Error('Almacenamiento ocupado'));});}
+    async function waFontStore(asset){const db=await waFontDB();try{await new Promise((ok,no)=>{const tx=db.transaction('fonts','readwrite');tx.objectStore('fonts').put(asset);tx.oncomplete=ok;tx.onerror=()=>no(tx.error);tx.onabort=()=>no(tx.error);});}finally{db.close();}}
+    function waValidateFontAssets(assets){
+      if(assets===undefined)return [];if(!Array.isArray(assets)||assets.length>100)throw new Error('Biblioteca de fuentes inválida.');let total=0;const seen=new Set();
+      for(const a of assets){if(!a||typeof a.family!=='string'||!/^NancyLocal_[a-z0-9_]+$/i.test(a.family)||seen.has(a.family)||typeof a.label!=='string'||a.label.length>160||typeof a.data!=='string'||!/^data:(?:font\/(?:ttf|otf|woff|woff2)|application\/octet-stream);base64,[A-Za-z0-9+/=]+$/.test(a.data)||a.data.length>14*1024*1024)throw new Error('Fuente importada inválida.');seen.add(a.family);total+=a.data.length;}if(total>48*1024*1024)throw new Error('Las fuentes superan el límite del proyecto.');return assets;
+    }
+    async function waRegisterFont(asset){
+      waValidateFontAssets([asset]);const existing=waFontAssets.get(asset.family);if(existing){if(existing.data!==asset.data)throw new Error('Hay otra fuente con el mismo identificador.');return;}
+      const face=new FontFace(asset.family,'url("'+asset.data+'")');await waFontTimeout(face.load(),'No se pudo abrir '+asset.label+'.');document.fonts.add(face);waFontAssets.set(asset.family,{family:asset.family,label:asset.label,data:asset.data});
+    }
+    const waFontsReady=(async()=>{try{const db=await waFontDB();let assets;try{assets=await new Promise((ok,no)=>{const req=db.transaction('fonts').objectStore('fonts').getAll();req.onsuccess=()=>ok(req.result);req.onerror=()=>no(req.error);});}finally{db.close();}for(const a of assets){try{await waRegisterFont(a);}catch{/* Una fuente dañada no bloquea las demás. */}}}catch{/* Las importaciones siguen disponibles durante la sesión. */}})();
+    async function waImportFonts(event){
+      const files=Array.from(event.target.files||[]);if(!files.length)return;await waFontsReady;let imported=0,last='',sessionOnly=false;const errors=[];
+      for(const file of files){try{
+        const ext=file.name.split('.').pop().toLowerCase();if(!['ttf','otf','woff','woff2'].includes(ext))throw new Error('Formato no admitido.');if(file.size>10*1024*1024||!file.size)throw new Error('El archivo debe medir entre 1 byte y 10 MB.');
+        const bytes=await file.arrayBuffer(),u=new Uint8Array(bytes),magic=String.fromCharCode(...u.slice(0,4));if(!['OTTO','wOFF','wOF2','true'].includes(magic)&&!(u[0]===0&&u[1]===1&&u[2]===0&&u[3]===0))throw new Error('El archivo no contiene una fuente válida.');
+        const base64=await new Promise((ok,no)=>{const reader=new FileReader();reader.onload=()=>ok(String(reader.result).split(',')[1]);reader.onerror=()=>no(new Error('No se pudo leer el archivo.'));reader.readAsDataURL(new Blob([bytes]));});
+        const data='data:font/'+ext+';base64,'+base64,duplicate=Array.from(waFontAssets.values()).find(a=>a.data.split(',')[1]===base64);if(duplicate){last=duplicate.family;continue;}
+        const asset={family:'NancyLocal_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10),label:file.name.replace(/\.[^.]+$/,'').slice(0,150),data};waValidateFontAssets([...waFontAssets.values(),asset]);await waRegisterFont(asset);try{await waFontStore(asset);}catch{sessionOnly=true;}imported++;last=asset.family;
+      }catch(e){errors.push(file.name+': '+e.message);}}
+      event.target.value='';waEl('wa-font-category').value='';waEl('wa-font-filter').value='custom';waEl('wa-font-search').value='';waFontList();waInspector();if(last)await waPickFont(last);
+      waFontStatus(imported+' fuente(s) importada(s).'+(sessionOnly?' El navegador no permitió guardarlas; descarga el proyecto JSON para conservarlas.':'')+(errors.length?' '+errors.join(' '):''));
+    }
+    function waProjectFontAssets(drafts){const used=new Set(Object.values(drafts).flatMap(s=>s.layers.filter(n=>n.type==='text').map(n=>n.font)));const assets=Array.from(waFontAssets.values()).filter(a=>used.has(a.family));for(const family of used)if(family?.startsWith('NancyLocal_')&&!waFontAssets.has(family))throw new Error('Falta una fuente importada. Impórtala antes de guardar el proyecto.');return assets;}
+    async function waPrepareProjectFonts(project){await waFontsReady;const assets=waValidateFontAssets(project.fontAssets);for(const a of assets)await waRegisterFont(a);for(const a of assets){try{await waFontStore(a);}catch{/* El proyecto JSON conserva una copia. */}}}
+    window.addEventListener('DOMContentLoaded',()=>{waEl('wa-font-category').innerHTML='<option value="">Todas las categorías</option>'+[...Object.keys(WA_FONT_CATEGORIES),'Del dispositivo','Importadas'].map(c=>'<option>'+waEscape(c)+'</option>').join('');waFontList();waFontsReady.then(()=>waFontList());});
+
+    // Flujo móvil: vista previa visible, cuatro secciones y exportación a mano.
+    let waMobileTab='design';
+    function waIsMobile(){return window.matchMedia('(max-width:850px)').matches;}
+    function waMobileGo(tab){
+      waMobileTab=tab;for(const el of document.querySelectorAll('[data-wa-tab]')){const active=el.dataset.waTab===tab;el.classList.toggle('wa-active-tab',active);if(active&&el.tagName==='DETAILS'&&el.id!=='wa-advanced-layers')el.open=true;}
+      for(const button of document.querySelectorAll('.wa-mobile-tabs button'))button.setAttribute('aria-selected',String(button.dataset.tab===tab));
+      const controls=document.querySelector('.wa-controls');if(waIsMobile()&&controls)controls.scrollTop=0;
+      if(tab==='text')waQuickTextSync();
+    }
+    function waMobileSelect(){
+      if(!waIsMobile())return;const n=waNode();if(n?.type==='text')waMobileGo('text');else if(n?.type==='image'&&n.slot!==undefined){waSlot=n.slot;waEl('wa-slot').value=waSlot;waProductForm();waMobileGo('products');}
+    }
+    function waQuickTextSync(){
+      const select=waEl('wa-quick-layer');if(!select||!waScene)return;const n=waNode();
+      select.innerHTML='<option value="">Elige un texto…</option>'+waScene.layers.filter(n=>n.type==='text').map(n=>'<option value="'+waEscape(n.id)+'">'+waEscape(n.label)+(n.visible?'':' · oculto')+'</option>').join('');select.value=n?.type==='text'?n.id:'';
+      const hasText=n?.type==='text';waEl('wa-quick-fields').hidden=!hasText;waEl('wa-quick-hint').hidden=hasText;
+      if(hasText){waEl('wa-quick-value').value=n.text||'';waEl('wa-quick-size').value=n.fontSize||36;waEl('wa-quick-weight').value=n.weight||700;waEl('wa-quick-align').value=n.align||'left';waEl('wa-quick-italic').checked=!!n.italic;waEl('wa-quick-color').value=/^#[0-9a-f]{6}$/i.test(waColor(waScene,n.color))?waColor(waScene,n.color):'#000000';}
+    }
+    function waTogglePreview(){const shell=document.querySelector('.wa-shell'),large=shell.classList.toggle('wa-preview-large'),button=waEl('wa-preview-toggle');button.textContent=large?'Reducir vista':'Ampliar vista';button.setAttribute('aria-expanded',String(large));}
+    function waSetupMobile(){
+      const controls=document.querySelector('.wa-controls'),body=document.querySelector('.wa-body'),shell=document.querySelector('.wa-shell');
+      const design=document.createElement('div');design.dataset.waTab='design';design.className='wa-active-tab';controls.prepend(design);
+      // Los tres primeros controles originales: plantilla, cantidad/destacado y deshacer/rehacer.
+      for(let i=0;i<3;i++)design.append(design.nextElementSibling);
+      const product=Array.from(controls.querySelectorAll(':scope > details')).find(d=>d.querySelector('#wa-product-form'));product.dataset.waTab='products';
+      const palette=Array.from(controls.querySelectorAll(':scope > details')).find(d=>d.querySelector('#wa-palette'));palette.dataset.waTab='settings';
+      const fonts=waEl('wa-font-panel');fonts.dataset.waTab='text';
+      const layers=Array.from(controls.querySelectorAll(':scope > details')).find(d=>d.querySelector('#wa-inspector'));layers.dataset.waTab='settings';layers.id='wa-advanced-layers';if(waIsMobile())layers.open=false;layers.querySelector('summary').textContent='Edición avanzada · capas y posiciones';
+      const saved=Array.from(controls.querySelectorAll(':scope > details')).find(d=>d.textContent.includes('Guardar proyecto editable'));saved.dataset.waTab='settings';
+      const quick=document.createElement('section');quick.className='wa-quick-text';quick.dataset.waTab='text';quick.innerHTML=`<label>Texto a editar<select id="wa-quick-layer" onchange="waSelect(this.value)"></select></label><p id="wa-quick-hint" class="wa-note">Elige un texto de la lista o tócalo en la vista previa. Puedes ampliarla para seleccionar con más precisión.</p><div id="wa-quick-fields" hidden><label>Contenido<textarea id="wa-quick-value" oninput="waEdit('text',this.value)"></textarea></label><div class="wa-row"><label>Tamaño<input id="wa-quick-size" type="number" min="8" max="500" onchange="waEdit('fontSize',Number(this.value));waQuickTextSync()"></label><label>Color<input id="wa-quick-color" type="color" oninput="waEdit('color',this.value)"></label></div><div class="wa-row"><label>Grosor<select id="wa-quick-weight" onchange="waEdit('weight',this.value)"><option value="400">Normal</option><option value="600">Seminegrita</option><option value="700">Negrita</option><option value="900">Extra negrita</option></select></label><label>Alineación<select id="wa-quick-align" onchange="waEdit('align',this.value)"><option value="left">Izquierda</option><option value="center">Centro</option><option value="right">Derecha</option></select></label></div><label class="wa-check"><input id="wa-quick-italic" type="checkbox" onchange="waEdit('italic',this.checked)"> Cursiva</label><div class="wa-row"><button type="button" onclick="waUndo()">Deshacer</button><button type="button" onclick="waRedo()">Rehacer</button></div></div>`;controls.insertBefore(quick,fonts);
+      const nav=document.createElement('nav');nav.className='wa-mobile-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Secciones del editor');
+      for(const [key,label]of [['design','Diseño'],['products','Productos'],['text','Textos'],['settings','Ajustes']]){const b=document.createElement('button');b.type='button';b.dataset.tab=key;b.textContent=label;b.setAttribute('role','tab');b.onclick=()=>waMobileGo(key);nav.append(b);}body.append(nav);
+      const toggle=document.createElement('button');toggle.id='wa-preview-toggle';toggle.className='wa-preview-toggle';toggle.type='button';toggle.textContent='Ampliar vista';toggle.setAttribute('aria-expanded','false');toggle.onclick=waTogglePreview;document.querySelector('.wa-preview').append(toggle);
+      const footer=document.createElement('footer');footer.className='wa-mobile-footer';footer.innerHTML='<button type="button" onclick="downloadStatusImage()">↓ Descargar PNG</button><button type="button" class="wa-share" onclick="shareStatusImage()">Compartir imagen</button>';shell.append(footer);
+      waMobileGo(waMobileTab);waQuickTextSync();
+      // Recalcular los controles del lienzo al ampliar la vista o girar el teléfono.
+      if(window.ResizeObserver)new ResizeObserver(()=>{if(waArtwork)waPreviewSelection();}).observe(waEl('statusCanvas'));
+      shell.addEventListener('focusin',e=>{if(waIsMobile()&&e.target.matches('textarea,input[type=text],input[type=search],input[type=number],input[type=url]'))shell.classList.add('wa-keyboard');});
+      shell.addEventListener('focusout',()=>{requestAnimationFrame(()=>{if(!shell.contains(document.activeElement)||!document.activeElement.matches('textarea,input[type=text],input[type=search],input[type=number],input[type=url]'))shell.classList.remove('wa-keyboard');});});
+    }
+    window.addEventListener('DOMContentLoaded',waSetupMobile);
+
     // Editor publicitario aislado: nunca llama a saveToFirebase ni modifica products.
     const WA_TEMPLATES = [
       ['Catálogo elegante',4,4,'#f6e9df','#bd8d96','#b58a49','#563c3e','Pequeños detalles,\ngrandes favoritos.','Una selección especial para ti.'],
@@ -1620,7 +2029,7 @@
       waLayerList();waProductForm();renderStatusProductPicker();waInspector();
     }
     function waLayerList(){waEl('wa-layer').innerHTML='<option value="">Selecciona una capa…</option>'+waScene.layers.slice().reverse().map(n=>`<option value="${n.id}">${n.visible?'':'○ '}${waEscape(n.label)}${n.locked?' · fija':''}</option>`).join('');waEl('wa-layer').value=waSelected;}
-    function waSelect(id){waSelected=id;waEl('wa-layer').value=id;waInspector();waPreviewSelection();}
+    function waSelect(id){waSelected=id;waEl('wa-layer').value=id;waInspector();waPreviewSelection();waMobileSelect();}
     function waNode(){return waScene?.layers.find(n=>n.id===waSelected);}
     function waPalette(k,v){waRemember();waScene.palette[k]=v;waChanged();waInspector();}
     function waProductForm(){if(!waScene)return;const p=waScene.slots[waSlot];if(!p)return;
@@ -1638,11 +2047,11 @@
       const src=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(file);});const img=await waLoadImage(src);if(!img)throw new Error('No se pudo abrir la foto. Prueba PNG, JPG o WebP.');const scale=Math.min(1,2000/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/webp',.93);
     }
     async function waUploadProduct(e,second){const file=e.target.files[0],scene=waScene,slot=waSlot;if(!file)return;try{const src=await waReadFile(file);if(scene!==waScene)return;waRemember();scene.slots[slot][second?'photo2':'photo']=src;waApplySlot(slot);waChanged(true);}catch(err){showToast(err.message,'error');}finally{e.target.value='';}}
-    function waInspector(){const n=waNode(),host=waEl('wa-inspector');if(!n){host.innerHTML='<p class="wa-note">Selecciona cualquier elemento. También puedes seleccionar fondos y capas ocultas en la lista.</p>';return;}
+    function waInspector(){waFontSync();waQuickTextSync();const n=waNode(),host=waEl('wa-inspector');if(!n){host.innerHTML='<p class="wa-note">Selecciona cualquier elemento. También puedes seleccionar fondos y capas ocultas en la lista.</p>';return;}
       const num=(k,l,min,max,step=1)=>`<label>${l}<input type="number" value="${n[k]??(k==='arcEnd'?360:0)}" min="${min}" max="${max}" step="${step}" onchange="waEdit('${k}',Number(this.value))"></label>`;
       host.innerHTML=`<label>Nombre de capa<input value="${waEscape(n.label)}" onchange="waEdit('label',this.value)"></label><div class="wa-row"><label class="wa-check"><input type="checkbox" ${n.visible?'checked':''} onchange="waEdit('visible',this.checked)"> Visible</label><label class="wa-check"><input type="checkbox" ${n.locked?'checked':''} onchange="waEdit('locked',this.checked)"> Fijar posición</label>${n.type==='text'?`<label class="wa-check"><input type="checkbox" ${n.autoFit!==false?'checked':''} onchange="waEdit('autoFit',this.checked)"> Ajustar texto al espacio</label>`:''}</div>`+
       `<div class="wa-grid">${num('x','X',-3000,3000)}${num('y','Y',-3000,4000)}${num('rotation','Giro °',-360,360)}${num('w','Ancho',1,5000)}${num('h','Alto',1,5000)}${num('scale','Escala',.05,10,.05)}${num('opacity','Opacidad',0,1,.05)}${num('radius','Redondeo',0,1000)}${num('lineWidth','Borde',0,100)}${num('glow','Resplandor',0,100)}</div>`+
-      (n.type==='text'?`<label>Texto<textarea onchange="waEdit('text',this.value)">${waEscape(n.text)}</textarea></label><div class="wa-row"><label>Tipografía<select onchange="waEdit('font',this.value)">${['Arial','Arial Rounded MT Bold','Arial Black','Georgia','Courier New','Inter','Impact','Trebuchet MS'].map(f=>`<option ${n.font===f?'selected':''}>${f}</option>`).join('')}</select></label>${num('fontSize','Tamaño',8,500)}<label>Peso<select onchange="waEdit('weight',this.value)">${['400','600','700','900'].map(w=>`<option ${n.weight===w?'selected':''}>${w}</option>`).join('')}</select></label><label>Alineación<select onchange="waEdit('align',this.value)">${['left','center','right'].map((v,i)=>`<option value="${v}" ${n.align===v?'selected':''}>${['Izquierda','Centro','Derecha'][i]}</option>`).join('')}</select></label></div>`:'')+
+      (n.type==='text'?`<label>Texto<textarea onchange="waEdit('text',this.value)">${waEscape(n.text)}</textarea></label><div class="wa-row"><label>Tipografía<select onchange="waSetLayerFont(this.value)">${waFontOptions(n.font)}</select></label>${num('fontSize','Tamaño',8,500)}<label>Peso<select onchange="waEdit('weight',this.value)">${['400','600','700','900'].map(w=>`<option ${n.weight===w?'selected':''}>${w}</option>`).join('')}</select></label><label>Alineación<select onchange="waEdit('align',this.value)">${['left','center','right'].map((v,i)=>`<option value="${v}" ${n.align===v?'selected':''}>${['Izquierda','Centro','Derecha'][i]}</option>`).join('')}</select></label></div>`:'')+
       `<div class="wa-row">${['color','stroke','gradient'].map((k,i)=>`<label>${['Color / relleno','Borde / línea','Degradado final'][i]}<input value="${waEscape(n[k]||'')}" list="wa-colors" onchange="waEdit('${k}',this.value)" placeholder="#hex o nombre de paleta"><input type="color" value="${/^#[0-9a-f]{6}$/i.test(waColor(waScene,n[k]))?waColor(waScene,n[k]):'#ffffff'}" aria-label="Elegir color" onchange="waEdit('${k}',this.value)"></label>`).join('')}</div><datalist id="wa-colors"><option>bg</option><option>accent</option><option>secondary</option><option>ink</option><option>transparent</option></datalist>`+
       (n.type==='pattern'?`<label>Textura<select onchange="waEdit('kind',this.value)">${['grid','dots','halftone','noise','topo','brick','confetti','stars'].map(v=>`<option ${v===n.kind?'selected':''}>${v}</option>`).join('')}</select></label>${num('spacing','Separación de textura',12,250)}`:'')+
       (n.type==='text'?`<label class="wa-check"><input type="checkbox" ${n.italic?'checked':''} onchange="waEdit('italic',this.checked)"> Letra inclinada</label>`:'')+
@@ -1663,14 +2072,14 @@
     function waSyncContact(){waRemember();const n=waScene.layers.find(n=>n.role==='contact');if(n)n.text=waNumber||'Configura tu WhatsApp en el catálogo';waChanged(true);}
     async function waSetQr(url){const scene=waScene;scene.qrUrl=url;try{if(url&&!/^https?:\/\//i.test(url))throw new Error('Usa un enlace completo https:// para el QR.');if(!url){waToggleQr(false);return;}if(typeof QRCode==='undefined')throw new Error('El generador QR requiere conexión a Internet. Puedes cargar tu propio QR.');const box=document.createElement('div');new QRCode(box,{text:url,width:280,height:280,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});await new Promise(ok=>setTimeout(ok,40));const c=box.querySelector('canvas');if(!c)throw new Error('No fue posible generar el QR.');if(scene!==waScene)return;waRemember();const n=scene.layers.find(n=>n.role==='qr');if(n){n.src=c.toDataURL('image/png');n.visible=true;scene.qrVisible=true;}waChanged(true);}catch(err){showToast(err.message,'error');}}
     function waToggleQr(on){const n=waScene.layers.find(n=>n.role==='qr');if(!n)return;if(on&&!n.src){waSetQr(waEl('wa-qr-url').value);return;}waRemember();n.visible=on;waScene.qrVisible=on;waChanged(true);}
-    function waProject(){waDrafts[waScene.template]=waScene;return {format:'nancy-wa-studio',version:1,active:waScene.template,drafts:waDrafts};}
+    function waProject(){waDrafts[waScene.template]=waScene;return {format:'nancy-wa-studio',version:1,active:waScene.template,drafts:waDrafts,fontAssets:waProjectFontAssets(waDrafts)};}
     function waSaveLocal(){try{localStorage.setItem('nancy_wa_projects_v1',JSON.stringify(waProject()));showToast('Proyecto guardado solo en este navegador.');}catch(e){showToast('No hay espacio local. Descarga el proyecto JSON para conservar las fotos.','error');}}
     function waValidateProject(p){if(p?.format!=='nancy-wa-studio'||p.version!==1||!p.drafts||typeof p.drafts!=='object')throw new Error('Proyecto no compatible.');for(const [key,s]of Object.entries(p.drafts)){const t=WA_TEMPLATES[Number(key)-1];if(!t||s.template!==Number(key)||s.count<t[1]||s.count>t[2]||!Array.isArray(s.layers)||s.layers.length>600||!Array.isArray(s.slots)||s.slots.length!==s.count||!s.palette)throw new Error('Estructura de proyecto inválida.');for(const c of Object.values(s.palette))if(typeof c!=='string'||!/^#[0-9a-f]{6}$/i.test(c))throw new Error('Paleta inválida.');for(const n of s.layers){if(!['rect','ellipse','poly','text','image','pattern'].includes(n.type)||typeof n.id!=='string'||!['x','y','w','h','scale','opacity','rotation'].every(k=>Number.isFinite(n[k]))||n.w<=0||n.w>5000||n.h<=0||n.h>5000||n.scale<=0||n.scale>10)throw new Error('Capa inválida.');if(n.src&&!/^(data:image\/(png|jpeg|webp|gif);base64,|https?:\/\/)/i.test(n.src))throw new Error('Origen de foto no permitido.');if(n.type==='poly'&&(!Array.isArray(n.points)||n.points.length>100))throw new Error('Forma inválida.');}}if(!p.drafts[p.active])throw new Error('No se encontró el diseño activo.');return p;}
-    function waOpenProject(p){waValidateProject(p);waDrafts=waClone(p.drafts);waScene=waDrafts[p.active];waSerial=Math.max(waSerial,...Object.values(waDrafts).flatMap(s=>s.layers.map(n=>Number(n.id.replace(/^wa/,''))||0)));waSelected='';waSlot=0;waHistory=[];waFuture=[];waRefresh();drawStatusCanvas();}
-    function waLoadLocal(){try{const p=localStorage.getItem('nancy_wa_projects_v1');if(!p)throw new Error('Todavía no hay un proyecto guardado en este navegador.');waOpenProject(JSON.parse(p));showToast('Proyecto recuperado.');}catch(e){showToast(e.message,'error');}}
+    async function waOpenProject(p){waValidateProject(p);await waPrepareProjectFonts(p);waDrafts=waClone(p.drafts);waScene=waDrafts[p.active];waSerial=Math.max(waSerial,...Object.values(waDrafts).flatMap(s=>s.layers.map(n=>Number(n.id.replace(/^wa/,''))||0)));waSelected='';waSlot=0;waHistory=[];waFuture=[];waRefresh();drawStatusCanvas();}
+    async function waLoadLocal(){try{const p=localStorage.getItem('nancy_wa_projects_v1');if(!p)throw new Error('Todavía no hay un proyecto guardado en este navegador.');await waOpenProject(JSON.parse(p));showToast('Proyecto recuperado.');}catch(e){showToast(e.message,'error');}}
     function waDownloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
-    function waExportProject(){waDownloadBlob(new Blob([JSON.stringify(waProject())],{type:'application/json'}),'catalogo-nancy-proyecto.json');}
-    async function waImportProject(e){try{const f=e.target.files[0];if(!f)return;if(f.size>60*1024*1024)throw new Error('El proyecto supera 60 MB.');waOpenProject(JSON.parse(await f.text()));showToast('Proyecto abierto sin modificar el inventario.');}catch(err){showToast(err.message,'error');}finally{e.target.value='';}}
+    function waExportProject(){try{waDownloadBlob(new Blob([JSON.stringify(waProject())],{type:'application/json'}),'catalogo-nancy-proyecto.json');}catch(e){showToast(e.message,'error');}}
+    async function waImportProject(e){try{const f=e.target.files[0];if(!f)return;if(f.size>60*1024*1024)throw new Error('El proyecto supera 60 MB.');await waOpenProject(JSON.parse(await f.text()));showToast('Proyecto abierto sin modificar el inventario.');}catch(err){showToast(err.message,'error');}finally{e.target.value='';}}
     function waLoadImage(src){if(!src)return Promise.resolve(null);if(waImages.has(src))return waImages.get(src);const promise=new Promise(ok=>{const im=new Image();let done=false;const finish=v=>{if(done)return;done=true;clearTimeout(timer);ok(v);};const timer=setTimeout(()=>finish(null),12000);im.crossOrigin='anonymous';im.onload=()=>finish(im);im.onerror=()=>finish(null);im.src=src;});waImages.set(src,promise);promise.then(im=>{if(!im)waImages.delete(src);});return promise;}
     function waPath(c,n){c.beginPath();if(n.type==='ellipse')c.ellipse(n.w/2,n.h/2,n.w/2,n.h/2,0,(n.arcStart||0)*Math.PI/180,(n.arcEnd??360)*Math.PI/180);else if(n.type==='poly'){n.points.forEach((p,i)=>i?c.lineTo(p[0]*n.w,p[1]*n.h):c.moveTo(p[0]*n.w,p[1]*n.h));if(n.color)c.closePath();}else if(c.roundRect)c.roundRect(0,0,n.w,n.h,Math.min(n.radius||0,n.w/2,n.h/2));else c.rect(0,0,n.w,n.h);}
     function waDrawPattern(c,n){const st=Math.max(12,n.spacing||44),w=n.w,h=n.h;c.lineWidth=n.lineWidth||2;c.strokeStyle=c.fillStyle;
@@ -1683,8 +2092,8 @@
       if(n.kind==='noise'||n.kind==='confetti'||n.kind==='stars'){let seed=293;const rand=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;};const num=n.kind==='noise'?2300:n.kind==='stars'?40:100;for(let i=0;i<num;i++){const x=rand()*w,y=rand()*h,r=n.kind==='noise'?1+rand()*2:4+rand()*9;if(n.kind==='stars'){c.beginPath();c.moveTo(x-r,y);c.lineTo(x+r,y);c.moveTo(x,y-r);c.lineTo(x,y+r);c.stroke();}else{c.save();c.translate(x,y);c.rotate(rand()*6);c.fillRect(0,0,r,n.kind==='confetti'?r*2:r);c.restore();}}}
     }
     function waTextLines(c,text,w){const lines=[];for(const part of String(text||'').split('\n')){let line='';for(const word of part.split(/\s+/)){if(c.measureText(line?(line+' '+word):word).width>w&&line){lines.push(line);line='';}if(c.measureText(word).width>w){for(const ch of word){if(c.measureText(line+ch).width>w&&line){lines.push(line);line='';}line+=ch;}}else line+=(line?' ':'')+word;}lines.push(line);}return lines;}
-    function waTextLayout(c,n){let size=n.fontSize||36,lines;do{c.font=`${n.italic?'italic ':''}${n.weight||700} ${size}px "${n.font||'Arial'}"`;lines=waTextLines(c,n.text,n.w);if(n.autoFit===false||lines.length*size*1.16<=n.h||size<=8)break;size--;}while(size>=8);return {lines,size,lineHeight:size*1.16};}
-    async function waRenderScene(s){const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;const c=canvas.getContext('2d'),failures=[];
+    function waTextLayout(c,n){let size=n.fontSize||36,lines;do{c.font=`${n.italic?'italic ':''}${n.weight||700} ${size}px ${waFontCss(n.font||'Arial')}`;lines=waTextLines(c,n.text,n.w);if(n.autoFit===false||lines.length*size*1.16<=n.h||size<=8)break;size--;}while(size>=8);return {lines,size,lineHeight:size*1.16};}
+    async function waRenderScene(s){await waWaitSceneFonts(s);const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;const c=canvas.getContext('2d'),failures=[];
       const loaded=new Map(await Promise.all(s.layers.filter(n=>n.visible&&n.type==='image'&&n.src).map(async n=>[n.id,await waLoadImage(n.src)])));
       for(const n of s.layers){if(!n.visible)continue;c.save();c.globalAlpha=n.opacity;c.translate(n.x+n.w/2,n.y+n.h/2);c.rotate(n.rotation*Math.PI/180);c.scale(n.scale,n.scale);c.translate(-n.w/2,-n.h/2);c.fillStyle=waColor(s,n.color);c.strokeStyle=waColor(s,n.stroke);c.lineWidth=n.lineWidth||0;c.setLineDash(n.dash||[]);if(n.glow){c.shadowColor=waColor(s,n.stroke||n.color);c.shadowBlur=n.glow;}
         if(n.gradient){const g=n.gradientType==='radial'?c.createRadialGradient(n.w/2,n.h/2,0,n.w/2,n.h/2,Math.max(n.w,n.h)/2):c.createLinearGradient(0,0,n.w,n.h);g.addColorStop(0,waColor(s,n.color));g.addColorStop(1,waColor(s,n.gradient));c.fillStyle=g;}
@@ -1694,7 +2103,10 @@
         else{waPath(c,n);if(n.color)c.fill();if(n.stroke&&n.lineWidth)c.stroke();}c.restore();
       }return {canvas,failures};
     }
-    function drawStatusCanvas(){if(!waScene)return Promise.resolve();const token=++waToken,s=waClone(waScene);waEl('wa-render-info').textContent='Actualizando vista previa…';waRenderPromise=(async()=>{if(document.fonts)await document.fonts.ready;const r=await waRenderScene(s);if(token!==waToken)return;waArtwork=r.canvas;waFailures=r.failures;waPreviewSelection();const empty=s.layers.filter(n=>n.visible&&n.type==='image'&&!n.src&&n.role!=='qr').length;waEl('wa-render-info').textContent=r.failures.length?'No se pudieron cargar: '+r.failures.join(', ')+'. Reemplázalas con fotos locales.':empty?`1080 × 1920 · ${empty} espacios de foto por completar.`:'1080 × 1920 · Vista previa lista.';})();return waRenderPromise;}
+    function drawStatusCanvas(){
+      if(!waScene)return Promise.resolve();const token=++waToken,s=waClone(waScene);waEl('wa-render-info').textContent='Cargando fuentes y actualizando vista previa…';
+      waRenderPromise=(async()=>{try{const r=await waRenderScene(s);if(token!==waToken)return;waArtwork=r.canvas;waFailures=r.failures;waPreviewSelection();const empty=s.layers.filter(n=>n.visible&&n.type==='image'&&!n.src&&n.role!=='qr').length;waEl('wa-render-info').textContent=r.failures.length?'No se pudieron cargar: '+r.failures.join(', ')+'. Reemplázalas con fotos locales.':empty?`1080 × 1920 · ${empty} espacios de foto por completar.`:'1080 × 1920 · Vista previa lista.';}catch(e){if(token!==waToken)return;waArtwork=null;const canvas=waEl('statusCanvas');canvas.getContext('2d').clearRect(0,0,1080,1920);waEl('wa-render-info').textContent=e.message;}})();return waRenderPromise;
+    }
     function waCorner(n,sx,sy){const a=n.rotation*Math.PI/180,dx=sx*n.w*n.scale/2,dy=sy*n.h*n.scale/2;return {x:n.x+n.w/2+dx*Math.cos(a)-dy*Math.sin(a),y:n.y+n.h/2+dx*Math.sin(a)+dy*Math.cos(a),sx,sy};}
     function waResizeFromCorner(n,corner,p){
       const anchor=waCorner(n,-corner.sx,-corner.sy),start=waCorner(n,corner.sx,corner.sy),dx=start.x-anchor.x,dy=start.y-anchor.y;
@@ -1722,7 +2134,7 @@
       c.addEventListener('pointerup',finish);c.addEventListener('pointercancel',finish);c.addEventListener('lostpointercapture',finish);
     }
     async function waPng(){// Always render a fresh, selection-free snapshot; never export a stale preview.
-      if(document.fonts)await document.fonts.ready;const r=await waRenderScene(waClone(waScene));if(r.failures.length)throw new Error('Reemplaza las fotos que no cargaron: '+r.failures.join(', '));return new Promise((ok,no)=>{try{r.canvas.toBlob(b=>b?ok(b):no(new Error('No se pudo crear el PNG.')),'image/png');}catch(e){no(new Error('Una foto externa bloquea la descarga. Cárgala desde tu dispositivo.'));}});
+      await waWaitFontActions();const r=await waRenderScene(waClone(waScene));if(r.failures.length)throw new Error('Reemplaza las fotos que no cargaron: '+r.failures.join(', '));return new Promise((ok,no)=>{try{r.canvas.toBlob(b=>b?ok(b):no(new Error('No se pudo crear el PNG.')),'image/png');}catch(e){no(new Error('Una foto externa bloquea la descarga. Cárgala desde tu dispositivo.'));}});
     }
     async function downloadStatusImage(){try{const b=await waPng();waDownloadBlob(b,`nancy-diseno-${String(waScene.template).padStart(2,'0')}-1080x1920.png`);showToast('PNG 1080 × 1920 descargado.');}catch(e){showToast(e.message,'error');}}
     async function shareStatusImage(){try{const b=await waPng(),file=new File([b],'catalogo-nancy.png',{type:'image/png'});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:storeName||'Catálogo Nancy'});showToast('Imagen compartida.');}else{waDownloadBlob(b,'catalogo-nancy-1080x1920.png');showToast('PNG descargado. Súbelo a tu estado de WhatsApp.','info');}}catch(e){if(e.name!=='AbortError')showToast(e.message,'error');}}
