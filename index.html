@@ -56,7 +56,7 @@
 .ws-toolbar{display:flex;gap:6px;padding:6px 10px;background:#fff;border-bottom:1px solid #e0d7e5;flex:none}
 .ws-toolbar button:first-child,.ws-toolbar button:last-child{flex:1}
 .ws-toolbar button{padding:7px 10px}
-.ws-stage{min-height:100px;min-width:0;overflow:auto;flex:1;display:flex;padding:8px;background:#e8e1ed;overscroll-behavior:contain;position:relative}
+.ws-stage{min-height:100px;min-width:0;overflow:auto;flex:1;display:flex;padding:8px;background:#e8e1ed;overscroll-behavior:contain;position:relative;touch-action:none}
 .ws-artboard{position:relative;flex:none;margin:auto;box-shadow:0 5px 20px #30213f30;background:white}
 .ws-artboard canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
 .wa-simple #wa-inline{position:absolute;margin:0;padding:0!important;min-height:0!important;border:0!important;outline:2px solid #b52679;border-radius:0;background:transparent!important;color:transparent!important;-webkit-text-fill-color:transparent;caret-color:#b52679;resize:none;box-shadow:none;overflow:hidden;transform-origin:center;white-space:pre-wrap}
@@ -391,7 +391,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
 
   <div id="statusModal" class="hidden wa-modal wa-simple" role="dialog" aria-modal="true" aria-labelledby="wa-heading">
     <div class="wa-shell">
-      <header class="wa-top"><div><b id="wa-heading">Tu diseño</b><small>Toca para editar · arrastra para mover</small></div><button type="button" onclick="closeModal('statusModal')" aria-label="Cerrar editor">✕</button></header>
+      <header class="wa-top"><div><b id="wa-heading">Tu diseño</b><small id="wa-auto-status" role="status" aria-live="polite">Guardado automático en este dispositivo</small></div><button type="button" onclick="closeModal('statusModal')" aria-label="Cerrar editor">✕</button></header>
       <nav class="ws-toolbar" aria-label="Herramientas del diseño">
         <button type="button" onclick="waPanel('design')">Diseño</button>
         <button type="button" onclick="waAdd('text');waPanel('selection');waStartInline()">+ Texto</button>
@@ -1661,21 +1661,163 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     function waProjectFontAssets(drafts){const used=new Set(Object.values(drafts).flatMap(s=>s.layers.filter(n=>n.type==='text').map(n=>n.font)));const assets=Array.from(waFontAssets.values()).filter(a=>used.has(a.family));for(const family of used)if(family?.startsWith('NancyLocal_')&&!waFontAssets.has(family))throw new Error('Falta una fuente importada. Impórtala antes de guardar el proyecto.');return assets;}
     async function waPrepareProjectFonts(project){await waFontsReady;const assets=waValidateFontAssets(project.fontAssets);for(const a of assets)await waRegisterFont(a);for(const a of assets){try{await waFontStore(a);}catch{/* El proyecto JSON conserva una copia. */}}}
 
+    // Gestos de la vista: no cambian el tamaño de los objetos ni el PNG.
+    const waTouchPoints=new Map();
+    let waPinch=null,waTouchBlocked=false,waCanvasPan=null,waGuides=[];
+    const waClampZoom=value=>Math.min(4,Math.max(1,Number(value)||1));
+    function waZoomAnchor(clientX,clientY){const r=waEl('wa-artboard').getBoundingClientRect();return {x:r.width?(clientX-r.left)/r.width:.5,y:r.height?(clientY-r.top)/r.height:.5,clientX,clientY};}
+    function waSetCanvasZoom(value,anchor=null){
+      const stage=waEl('wa-stage');waCanvasZoom=waClampZoom(value);waSizeCanvas();
+      if(anchor){const r=waEl('wa-artboard').getBoundingClientRect();stage.scrollLeft+=r.left+anchor.x*r.width-anchor.clientX;stage.scrollTop+=r.top+anchor.y*r.height-anchor.clientY;}
+      const button=waEl('wa-zoom');button.textContent=waCanvasZoom>1.01?'Ver completo':'Acercar';button.setAttribute('aria-label',(waCanvasZoom>1.01?'Ver diseño completo':'Acercar el diseño')+' · '+Math.round(waCanvasZoom*100)+'%');
+    }
+    function waZoomCanvas(){const r=waEl('wa-stage').getBoundingClientRect();waSetCanvasZoom(waCanvasZoom>1.01?1:1.8,waZoomAnchor(r.left+r.width/2,r.top+r.height/2));}
+    function waCancelObjectDrag(restore=false){
+      if(waDrag?.changed){if(restore){const n=waScene?.layers.find(n=>n.id===waDrag.id);if(n)Object.assign(n,waDrag.start);waHistory.pop();waFuture=waDrag.future||[];waChanged();}else waChanged();}
+      waDrag=null;waCanvasPan=null;waGuides=[];waPreviewSelection();
+    }
+    function waStartPinch(){
+      const points=Array.from(waTouchPoints.entries()).slice(0,2);if(points.length<2)return;
+      waFinishInline();waCancelObjectDrag(true);const [a,b]=points.map(p=>p[1]),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+      waPinch={ids:points.map(p=>p[0]),distance:Math.max(12,Math.hypot(b.x-a.x,b.y-a.y)),zoom:waCanvasZoom,anchor:waZoomAnchor(mid.x,mid.y)};waTouchBlocked=true;
+    }
+    function waBindGestures(){
+      const stage=waEl('wa-stage');if(stage.dataset.gestures)return;stage.dataset.gestures='1';
+      stage.addEventListener('pointerdown',e=>{
+        if(e.pointerType!=='touch')return;waTouchPoints.set(e.pointerId,{x:e.clientX,y:e.clientY});
+        if(waTouchPoints.size>=2){e.preventDefault();e.stopImmediatePropagation();stage.setPointerCapture(e.pointerId);if(!waPinch)waStartPinch();}
+        else if(waTouchBlocked){e.preventDefault();e.stopImmediatePropagation();}
+        else if(e.target===stage&&waCanvasZoom>1){waCanvasPan={x:e.clientX,y:e.clientY,left:stage.scrollLeft,top:stage.scrollTop};stage.setPointerCapture(e.pointerId);}
+      },{capture:true,passive:false});
+      stage.addEventListener('pointermove',e=>{
+        if(!waTouchPoints.has(e.pointerId))return;waTouchPoints.set(e.pointerId,{x:e.clientX,y:e.clientY});
+        if(waPinch){e.preventDefault();e.stopImmediatePropagation();const a=waTouchPoints.get(waPinch.ids[0]),b=waTouchPoints.get(waPinch.ids[1]);if(!a||!b)return;const distance=Math.hypot(b.x-a.x,b.y-a.y),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};waSetCanvasZoom(waPinch.zoom*distance/waPinch.distance,{...waPinch.anchor,clientX:mid.x,clientY:mid.y});}
+        else if(waTouchBlocked){e.preventDefault();e.stopImmediatePropagation();}
+        else if(waCanvasPan&&!waDrag){e.preventDefault();stage.scrollLeft=waCanvasPan.left-(e.clientX-waCanvasPan.x);stage.scrollTop=waCanvasPan.top-(e.clientY-waCanvasPan.y);}
+      },{capture:true,passive:false});
+      const end=e=>{
+        if(!waTouchPoints.has(e.pointerId))return;const gesture=!!waPinch||waTouchBlocked;waTouchPoints.delete(e.pointerId);
+        if(gesture){e.preventDefault();e.stopImmediatePropagation();waPinch=null;if(waTouchPoints.size>=2)waStartPinch();waTouchBlocked=waTouchPoints.size>0;waCanvasPan=null;if(stage.hasPointerCapture(e.pointerId))stage.releasePointerCapture(e.pointerId);}
+        else if(!waTouchPoints.size)waCanvasPan=null;
+      };
+      stage.addEventListener('pointerup',end,{capture:true,passive:false});stage.addEventListener('pointercancel',end,{capture:true,passive:false});
+      stage.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();waFinishInline();waSetCanvasZoom(waCanvasZoom*Math.exp(-e.deltaY*.01),waZoomAnchor(e.clientX,e.clientY));},{passive:false});
+    }
+    function waClearTouches(){waTouchPoints.clear();waPinch=null;waTouchBlocked=false;waCancelObjectDrag(false);}
+    // Las guías usan los bordes reales, incluso con giro y escala.
+    function waObjectBounds(n){const a=(n.rotation||0)*Math.PI/180,scale=n.scale||1,cx=n.x+n.w/2,cy=n.y+n.h/2,hw=(Math.abs(Math.cos(a))*n.w+Math.abs(Math.sin(a))*n.h)*scale/2,hh=(Math.abs(Math.sin(a))*n.w+Math.abs(Math.cos(a))*n.h)*scale/2;return {left:cx-hw,right:cx+hw,top:cy-hh,bottom:cy+hh,cx,cy};}
+    function waSnapMove(n,x,y){
+      const box=waObjectBounds({...n,x,y}),threshold=6*1080/Math.max(1,waEl('statusCanvas').getBoundingClientRect().width);
+      const targets={x:[{value:0,from:0,to:1920},{value:540,from:0,to:1920},{value:1080,from:0,to:1920}],y:[{value:0,from:0,to:1080},{value:960,from:0,to:1080},{value:1920,from:0,to:1080}]};
+      for(const other of waScene.layers){if(other===n||!other.visible||!['text','image'].includes(other.type))continue;const b=waObjectBounds(other);if(b.right-b.left>1080||b.bottom-b.top>1920)continue;for(const value of [b.left,b.cx,b.right])targets.x.push({value,from:b.top,to:b.bottom});for(const value of [b.top,b.cy,b.bottom])targets.y.push({value,from:b.left,to:b.right});}
+      const best=(axis,edges)=>{let match=null;for(const target of targets[axis])for(const value of edges){const delta=target.value-value;if(Math.abs(delta)<=threshold&&(!match||Math.abs(delta)<Math.abs(match.delta)))match={...target,delta,axis};}return match;};
+      const vertical=best('x',[box.left,box.cx,box.right]),horizontal=best('y',[box.top,box.cy,box.bottom]);waGuides=[];
+      if(vertical)waGuides.push({axis:'x',value:vertical.value,from:Math.min(vertical.from,box.top+(horizontal?.delta||0))-18,to:Math.max(vertical.to,box.bottom+(horizontal?.delta||0))+18});
+      if(horizontal)waGuides.push({axis:'y',value:horizontal.value,from:Math.min(horizontal.from,box.left+(vertical?.delta||0))-18,to:Math.max(horizontal.to,box.right+(vertical?.delta||0))+18});
+      return {x:x+(vertical?.delta||0),y:y+(horizontal?.delta||0)};
+    }
+    function waDrawGuides(c,ratio){if(!waGuides.length)return;c.save();c.strokeStyle='#d92283';c.lineWidth=1.2*ratio;c.setLineDash([5*ratio,3*ratio]);for(const g of waGuides){c.beginPath();if(g.axis==='x'){c.moveTo(g.value,Math.max(0,g.from));c.lineTo(g.value,Math.min(1920,g.to));}else{c.moveTo(Math.max(0,g.from),g.value);c.lineTo(Math.min(1080,g.to),g.value);}c.stroke();}c.restore();}
+
+    // Los borradores publicitarios se guardan solo en este dispositivo.
+    let waAutoRevision=0,waAutoSavedRevision=0,waAutoTimer=null,waAutoWriting=null,waAutoRestoreTask=null,waAutoRestoring=false;
+    function waAutoStatus(text){const el=waEl('wa-auto-status');if(el&&el.textContent!==text)el.textContent=text;}
+    function waAutoDB(){return new Promise((ok,no)=>{if(!window.indexedDB){no(new Error('No se permite guardar en este navegador.'));return;}const request=indexedDB.open('nancy_wa_autosave_v1',1);request.onupgradeneeded=()=>request.result.createObjectStore('projects');request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error);request.onblocked=()=>no(new Error('Almacenamiento ocupado.'));});}
+    async function waReadAutosave(){const db=await waAutoDB();try{return await new Promise((ok,no)=>{const tx=db.transaction('projects'),request=tx.objectStore('projects').get('latest');let record;request.onsuccess=()=>{record=request.result;};tx.oncomplete=()=>ok(record||null);tx.onerror=()=>no(tx.error);tx.onabort=()=>no(tx.error);});}finally{db.close();}}
+    async function waWriteAutosave(record){const db=await waAutoDB();try{await new Promise((ok,no)=>{const tx=db.transaction('projects','readwrite');tx.objectStore('projects').put(record,'latest');tx.oncomplete=ok;tx.onerror=()=>no(tx.error);tx.onabort=()=>no(tx.error);});}finally{db.close();}}
+    function waScheduleAutosave(){if(!waScene||waAutoRestoring)return;waAutoRevision++;clearTimeout(waAutoTimer);waAutoStatus('Guardando diseño…');waAutoTimer=setTimeout(()=>{waAutoTimer=null;waFlushAutosave();},650);}
+    function waFlushAutosave(){
+      clearTimeout(waAutoTimer);waAutoTimer=null;if(waAutoWriting)return waAutoWriting;if(!waScene||waAutoRestoring||waAutoSavedRevision===waAutoRevision)return Promise.resolve();
+      const save=async()=>{try{
+        while(waScene&&!waAutoRestoring&&waAutoSavedRevision!==waAutoRevision){const revision=waAutoRevision,project=waClone(waProject());waValidateProject(project);await waWriteAutosave({format:'nancy-wa-autosave',version:1,savedAt:Date.now(),project});waAutoSavedRevision=revision;}
+        waAutoStatus('Guardado en este dispositivo');
+      }catch(e){waAutoStatus('No se pudo guardar aquí. Usa Guardar → Descargar proyecto.');}};waAutoWriting=save().finally(()=>{waAutoWriting=null;});return waAutoWriting;
+    }
+    function waRestoreOnce(){
+      if(waAutoRestoreTask)return waAutoRestoreTask;
+      waAutoRestoreTask=(async()=>{waAutoRestoring=true;try{const record=await waReadAutosave();if(record?.format==='nancy-wa-autosave'&&record.version===1&&record.project){waValidateProject(record.project);await waOpenProject(waClone(record.project));waAutoSavedRevision=waAutoRevision;waAutoStatus('Último diseño recuperado');}else waAutoStatus('Guardado automático en este dispositivo');}catch(e){waAutoStatus('Guardado automático no disponible. Puedes descargar el proyecto.');}finally{waAutoRestoring=false;}})();return waAutoRestoreTask;
+    }
+    function waAutoBackground(){waClearTouches();if(waScene){waFinishInline();waFlushAutosave();}}
+    window.addEventListener('pagehide',waAutoBackground);
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')waAutoBackground();});
+
+    // Efectos del propio texto: siguen siendo editables y se dibujan también en el PNG.
+    const WA_TEXT_EFFECTS=[
+      {name:'Normal'},{name:'Sombra'},{name:'Contorno'},{name:'Resaltado'},
+      {name:'Sticker lima',face:['#ffffff','#f7f7fb'],outline:[['#c6f500',.19],['#111116',.105]],side:'#111116',depth:.075,dx:.35,dy:1,shadow:.045},
+      {name:'3D naranja',face:['#fff655','#ffaf08','#ff4c08'],outline:[['#ffffff',.075]],side:'#9d9da5',sideLight:'#eeeeef',depth:.15,dx:.5,dy:1,shadow:.05},
+      {name:'3D morado',face:['#6f12b5','#b600f5','#ed00fc'],outline:[['#ffffff',.08]],side:'#9999a1',sideLight:'#f1f1f4',depth:.13,dx:.35,dy:1,shadow:.04},
+      {name:'Pop amarillo',face:['#fff66b','#ffe534'],outline:[['#570969',.21],['#ea00e9',.16],['#fff2ff',.012]],side:'#87036d',depth:.08,dx:.3,dy:1,curve:.045,swoosh:true},
+      {name:'Degradado neón',face:['#fff837','#ff7d24','#f90092'],outline:[['#ff6eaa',.022]],side:'#9e0754',depth:.06,dx:.22,dy:1,glow:'#ff41b5',shadow:.065},
+      {name:'Doble borde',face:['#ffffff','#fff7fb'],outline:[['#ffffff',.14],['#9e0734',.085]],side:'#97062d',depth:.025,dx:.3,dy:1},
+      {name:'Arco 3D',face:['#ff3150','#f71235'],outline:[['#53121e',.06]],side:'#4b0c19',depth:.17,dx:.18,dy:1,curve:.20}
+    ];
+    function waEffectIndex(n){const value=Number(n.textStyle);return Number.isInteger(value)&&value>=0&&value<WA_TEXT_EFFECTS.length?value:0;}
+    function waEffectStrength(n){return Math.min(1.5,Math.max(.5,Number(n.effectStrength)||1));}
+    function waEffectMetrics(n,size){
+      const effect=WA_TEXT_EFFECTS[waEffectIndex(n)],strength=waEffectStrength(n),outline=Math.max(0,...(effect.outline||[]).map(x=>x[1]))*size*strength/2,depth=(effect.depth||0)*size*strength,curve=(effect.curve||0)*size,shadow=(effect.shadow||0)*size*strength;
+      const pad=Math.ceil(Math.max(size*.08,outline+depth+shadow*2+(curve?size*.18:0)+size*.06));
+      return {pad,lineHeight:size*1.2+curve,after:effect.swoosh?size*.32:0,curve,strength};
+    }
+    function waTextEffectControls(n){const index=waEffectIndex(n);return '<div class="wa-row"><label style="flex:1">Efecto<select aria-label="Efecto del texto" onchange="waTextStyle(Number(this.value))">'+WA_TEXT_EFFECTS.map((effect,i)=>'<option value="'+i+'" '+(index===i?'selected':'')+'>'+effect.name+'</option>').join('')+'</select></label>'+(index>=4?'<label style="flex:1">Intensidad<select aria-label="Intensidad del efecto" onchange="waSetEffectStrength(Number(this.value))">'+[[.65,'Suave'],[1,'Media'],[1.4,'Fuerte']].map(([v,label])=>'<option value="'+v+'" '+(Math.abs(waEffectStrength(n)-v)<.05?'selected':'')+'>'+label+'</option>').join('')+'</select></label>':'')+'</div>';}
+    function waTextStyle(index){
+      const n=waNode();if(n?.type!=='text')return;index=Math.floor(Number(index));if(!Number.isInteger(index)||index<0||index>=WA_TEXT_EFFECTS.length)return;
+      waRemember();if(!n.textStyleBase)n.textStyleBase={color:n.color,stroke:n.stroke,lineWidth:n.lineWidth,glow:n.glow||0};Object.assign(n,n.textStyleBase);
+      n.textStyle=index;n.textShadow=index===1;n.textHighlight=index===3?'#ffe58a':'';n.effectStrength=1;delete n.effectFaceOverride;
+      if(index===2){const hex=waColor(waScene,n.color),rgb=/^#[0-9a-f]{6}$/i.test(hex)?[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)):[255,255,255];n.stroke=(rgb[0]*.299+rgb[1]*.587+rgb[2]*.114)>150?'#222033':'#ffffff';n.lineWidth=Math.max(2,(n.fontSize||36)*.06);n.glow=0;}
+      if(index===3){n.color='#252033';n.stroke='';n.glow=0;}
+      if(index>=4){n.color=WA_TEXT_EFFECTS[index].face[0];n.stroke='';n.glow=0;}
+      waChanged();waInspector();waPositionInline();
+    }
+    function waSetEffectStrength(value){const n=waNode();if(n?.type!=='text'||waEffectIndex(n)<4)return;waRemember();n.effectStrength=Math.min(1.5,Math.max(.5,Number(value)||1));waChanged();waInspector();waPositionInline();}
+    function waShadeColor(color,amount){if(!/^#[0-9a-f]{6}$/i.test(color))return color;const rgb=[1,3,5].map(i=>parseInt(color.slice(i,i+2),16));return '#'+rgb.map(v=>Math.round(amount>=0?v+(255-v)*amount:v*(1+amount)).toString(16).padStart(2,'0')).join('');}
+    function waTextGlyphs(text){if(typeof Intl!=='undefined'&&Intl.Segmenter){const segmenter=new Intl.Segmenter('es',{granularity:'grapheme'});return Array.from(segmenter.segment(text),g=>g.segment);}return Array.from(text);}
+    function waGlyphRun(c,text,x,y,curve){
+      if(!curve)return {draw(method){c[method](text,x,y);}};
+      const glyphs=waTextGlyphs(text),width=Math.max(1,c.measureText(text).width),left=c.textAlign==='center'?x-width/2:c.textAlign==='right'?x-width:x,positions=[];let prefix='';
+      for(const glyph of glyphs){const advance=c.measureText(prefix).width,w=c.measureText(glyph).width,t=Math.min(1,Math.max(0,(advance+w/2)/width)),q=2*t-1;positions.push({glyph,x:left+advance+w/2,y:y+curve*q*q,angle:Math.atan(4*curve*q/width)});prefix+=glyph;}
+      return {draw(method){c.save();c.textAlign='center';for(const p of positions){c.save();c.translate(p.x,p.y);c.rotate(p.angle);c[method](p.glyph,0,0);c.restore();}c.restore();}};
+    }
+    function waEffectFace(c,n,effect,y,size){const colors=n.effectFaceOverride?[waShadeColor(n.effectFaceOverride,.35),n.effectFaceOverride,waShadeColor(n.effectFaceOverride,-.2)]:effect.face;
+      const gradient=c.createLinearGradient(0,y,0,y+Math.max(1,size));colors.forEach((color,i)=>gradient.addColorStop(i/Math.max(1,colors.length-1),color));return gradient;}
+    function waDrawGraphicLine(c,n,effect,run,y,size){
+      const strength=waEffectStrength(n),depth=(effect.depth||0)*size*strength,steps=Math.min(18,Math.max(1,Math.ceil(depth))),outer=effect.outline?.[0],side=effect.side||'#222222';
+      c.save();c.lineJoin='round';c.miterLimit=2;c.shadowBlur=0;c.shadowOffsetX=0;c.shadowOffsetY=0;
+      // Una sombra exterior y, delante, las copias que forman el canto del relieve.
+      if(effect.shadow||effect.glow){c.save();c.translate(depth*(effect.dx||0),depth*(effect.dy||0));c.fillStyle=side;c.shadowColor=effect.glow||'#00000055';c.shadowBlur=size*(effect.shadow||.04)*strength;c.shadowOffsetX=size*.025;c.shadowOffsetY=size*.04;if(outer){c.strokeStyle=outer[0];c.lineWidth=outer[1]*size*strength;run.draw('strokeText');}run.draw('fillText');c.restore();}
+      for(let i=steps;i>0;i--){const t=i/steps;c.save();c.translate(depth*(effect.dx||0)*t,depth*(effect.dy||0)*t);c.fillStyle=effect.sideLight?waMixColor(effect.sideLight,side,t):side;if(outer){c.strokeStyle=effect.sideLight?waMixColor(effect.sideLight,side,t):outer[0];c.lineWidth=outer[1]*size*strength;run.draw('strokeText');}run.draw('fillText');c.restore();}
+      for(const [color,width]of effect.outline||[]){c.strokeStyle=color;c.lineWidth=width*size*strength;run.draw('strokeText');}
+      c.fillStyle=waEffectFace(c,n,effect,y,size);run.draw('fillText');c.restore();
+    }
+    function waMixColor(a,b,t){if(!/^#[0-9a-f]{6}$/i.test(a)||!/^#[0-9a-f]{6}$/i.test(b))return b;return '#'+[1,3,5].map(i=>Math.round(parseInt(a.slice(i,i+2),16)*(1-t)+parseInt(b.slice(i,i+2),16)*t).toString(16).padStart(2,'0')).join('');}
+    function waDrawSwoosh(c,n,effect,layout){
+      const pad=n.textPad||0,line=layout.lines.at(-1)||'',width=c.measureText(line).width,left=n.align==='center'?(n.w-width)/2:n.align==='right'?n.w-pad-width:pad,y=pad+(layout.lines.length-1)*layout.lineHeight+layout.size*1.24;
+      const path=()=>{c.beginPath();c.moveTo(left+width*.07,y+layout.size*.035);c.quadraticCurveTo(left+width*.5,y-layout.size*.10,left+width*.93,y+layout.size*.035);};
+      c.save();c.lineCap='round';c.lineJoin='round';c.shadowBlur=0;for(const [color,extra]of [['#570969',.23],['#ea00e9',.18],['#fff2ff',.115],['#ffe83c',.08]]){path();c.strokeStyle=color;c.lineWidth=layout.size*extra*waEffectStrength(n);c.stroke();}c.restore();
+    }
+    function waDrawTextNode(c,s,n){
+      const layout=waTextLayout(c,n),pad=n.textPad||0,index=waEffectIndex(n),effect=WA_TEXT_EFFECTS[index],x=n.align==='center'?n.w/2:n.align==='right'?n.w-pad:pad;
+      c.textBaseline='top';c.textAlign=n.align||'left';
+      if(index>=4){for(let i=0;i<layout.lines.length;i++){const y=pad+i*layout.lineHeight,run=waGlyphRun(c,layout.lines[i],x,y,(effect.curve||0)*layout.size);waDrawGraphicLine(c,n,effect,run,y,layout.size);}if(effect.swoosh)waDrawSwoosh(c,n,effect,layout);return;}
+      if(n.textHighlight){c.save();c.shadowBlur=0;c.fillStyle=n.textHighlight;c.beginPath();if(c.roundRect)c.roundRect(0,0,n.w,n.h,Math.min(10,n.h/5));else c.rect(0,0,n.w,n.h);c.fill();c.restore();}
+      c.beginPath();c.rect(-pad,-pad,n.w+pad*2,n.h+pad*2);c.clip();if(n.textShadow){c.shadowColor='#00000099';c.shadowBlur=layout.size*.13;c.shadowOffsetX=layout.size*.05;c.shadowOffsetY=layout.size*.08;}
+      for(let i=0;i<layout.lines.length;i++){if(n.stroke&&n.lineWidth)c.strokeText(layout.lines[i],x,pad+i*layout.lineHeight);c.fillText(layout.lines[i],x,pad+i*layout.lineHeight);}
+    }
+
     let waActivePanel='',waInlineId='',waInlineUndo=false,waCanvasZoom=1,waInlineHistoryGroup=false;
     const waMeasureCanvas=document.createElement('canvas'),waMeasureContext=waMeasureCanvas.getContext('2d');
-    function waTextKey(n){return JSON.stringify([n.text,n.font,n.fontSize,n.weight,n.italic,n.align,n.textStyle]);}
+    function waTextKey(n){return JSON.stringify([n.text,n.font,n.fontSize,n.weight,n.italic,n.align,n.textStyle,n.effectStrength]);}
     function waFitTextBox(n,force=false){
       if(n.type!=='text'||(!force&&n.textMeasureKey===waTextKey(n)))return;
-      const c=waMeasureContext,oldW=n.w,oldH=n.h,oldSize=n.fontSize||36,oldScale=n.scale||1,a=(n.rotation||0)*Math.PI/180,align=n.align==='center'?.5:n.align==='right'?1:0;
+      const c=waMeasureContext,oldW=n.w,oldH=n.h,oldPad=n.textPad||0,oldSize=n.fontSize||36,oldScale=n.scale||1,a=(n.rotation||0)*Math.PI/180,align=n.align==='center'?.5:n.align==='right'?1:0;
       let size=oldSize;if(!n.directText){const old=waLegacyTextLayout(c,n);size=old.size;n.wrapWidth=Math.max(20,n.w);n.fontSize=size;n.directText=true;n.autoFit=false;}
       n.wrapWidth=Math.min(1800,Math.max(20,n.wrapWidth||oldW));c.font=(n.italic?'italic ':'')+(n.weight||700)+' '+size+'px '+waFontCss(n.font||'Arial');
-      const lines=waTextLines(c,n.text,n.wrapWidth),pad=Math.max(2,size*.08),width=Math.max(size*.4,...lines.map(l=>c.measureText(l).width))+pad*2,height=Math.max(1,lines.length)*size*1.2+pad*2;
+      const lines=waTextLines(c,n.text,n.wrapWidth),metrics=waEffectMetrics(n,size),pad=metrics.pad,width=Math.max(size*.4,...lines.map(l=>c.measureText(l).width))+pad*2,height=Math.max(1,lines.length)*metrics.lineHeight+pad*2+metrics.after;
       // Mantener el punto de alineación aunque cambien las métricas de la fuente.
-      const lx=(align-.5)*oldW*oldScale,ly=-oldH*oldScale/2,ax=n.x+oldW/2+lx*Math.cos(a)-ly*Math.sin(a),ay=n.y+oldH/2+lx*Math.sin(a)+ly*Math.cos(a);
-      const nx=(align-.5)*width*oldScale,ny=-height*oldScale/2;n.w=width;n.h=height;n.x=ax-nx*Math.cos(a)+ny*Math.sin(a)-width/2;n.y=ay-nx*Math.sin(a)-ny*Math.cos(a)-height/2;n.textPad=pad;n.textMeasureKey=waTextKey(n);
+      const lx=(align-.5)*(oldW-2*oldPad)*oldScale,ly=(-oldH/2+oldPad)*oldScale,ax=n.x+oldW/2+lx*Math.cos(a)-ly*Math.sin(a),ay=n.y+oldH/2+lx*Math.sin(a)+ly*Math.cos(a);
+      const nx=(align-.5)*(width-2*pad)*oldScale,ny=(-height/2+pad)*oldScale;n.w=width;n.h=height;n.x=ax-nx*Math.cos(a)+ny*Math.sin(a)-width/2;n.y=ay-nx*Math.sin(a)-ny*Math.cos(a)-height/2;n.textPad=pad;n.textAfter=metrics.after;n.textMeasureKey=waTextKey(n);
     }
     function waPrepareTextBoxes(scene){for(const n of scene.layers)if(n.type==='text')waFitTextBox(n);}
-    function waTextLayout(c,n){if(!n.directText)return waLegacyTextLayout(c,n);const size=n.fontSize||36;c.font=(n.italic?'italic ':'')+(n.weight||700)+' '+size+'px '+waFontCss(n.font||'Arial');return {lines:waTextLines(c,n.text,n.wrapWidth||n.w),size,lineHeight:size*1.2};}
+    function waTextLayout(c,n){if(!n.directText)return waLegacyTextLayout(c,n);const size=n.fontSize||36;c.font=(n.italic?'italic ':'')+(n.weight||700)+' '+size+'px '+waFontCss(n.font||'Arial');return {lines:waTextLines(c,n.text,n.wrapWidth||n.w),size,lineHeight:waEffectMetrics(n,size).lineHeight};}
     function waPanel(name){waFinishInline();waActivePanel=name;waEl('wa-sheet').hidden=false;waEl('wa-sheet-title').textContent=({design:'Diseño',save:'Guardar y abrir',selection:waNode()?.label||'Editar'})[name];for(const el of document.querySelectorAll('[data-simple-panel]'))el.hidden=el.dataset.simplePanel!==name;}
     function waClosePanel(){waFinishInline();waActivePanel='';waEl('wa-sheet').hidden=true;waSelected='';waPreviewSelection();waFontStatus('');}
     function waSimpleRefresh(){
@@ -1690,16 +1832,13 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       waEl('wa-sheet-title').textContent=n.label;
       if(n.type==='text'){
         const color=/^#[0-9a-f]{6}$/i.test(waColor(waScene,n.color))?waColor(waScene,n.color):'#111111';
-        host.innerHTML='<div class="ws-font-row"><label>Fuente<select aria-label="Fuente del texto" onchange="waPickFont(this.value)">'+waFontOptions(n.font)+'</select></label><label class="wa-file">+ Mis fuentes<input type="file" accept=".ttf,.otf,.woff,.woff2" multiple onchange="waImportFonts(event)"></label></div>'+ '<div class="ws-small-tools"><button type="button" onclick="waStartInline()">Editar texto</button><button type="button" onclick="waFinishInline()">Mover</button><button type="button" onclick="waTextSize(-4)" aria-label="Reducir letra">A−</button><button type="button" onclick="waTextSize(4)" aria-label="Aumentar letra">A+</button><label><input aria-label="Color del texto" type="color" value="'+color+'" oninput="waEdit(\'color\',this.value)"></label><button type="button" aria-label="Negrita" aria-pressed="'+(Number(n.weight)>=700)+'" onclick="waEdit(\'weight\',Number(waNode().weight)>=700?\'400\':\'700\');waInspector()"><b>B</b></button><button type="button" aria-label="Cursiva" aria-pressed="'+!!n.italic+'" onclick="waEdit(\'italic\',!waNode().italic);waInspector()"><i>I</i></button></div>'+ '<div class="wa-row">'+['Normal','Sombra','Contorno','Resaltado'].map((label,i)=>'<button type="button" aria-pressed="'+((n.textStyle||0)===i)+'" onclick="waTextStyle('+i+')">'+label+'</button>').join('')+'</div><div class="wa-row"><button type="button" onclick="waPickFont(waNode().font,true)">Esta fuente en todos los textos</button><button type="button" onclick="waDelete();waClosePanel()">Quitar texto</button></div>';
+        host.innerHTML='<div class="ws-font-row"><label>Fuente<select aria-label="Fuente del texto" onchange="waPickFont(this.value)">'+waFontOptions(n.font)+'</select></label><label class="wa-file">+ Mis fuentes<input type="file" accept=".ttf,.otf,.woff,.woff2" multiple onchange="waImportFonts(event)"></label></div>'+ '<div class="ws-small-tools"><button type="button" onclick="waStartInline()">Editar texto</button><button type="button" onclick="waFinishInline()">Mover</button><button type="button" onclick="waTextSize(-4)" aria-label="Reducir letra">A−</button><button type="button" onclick="waTextSize(4)" aria-label="Aumentar letra">A+</button><label><input aria-label="Color del texto" type="color" value="'+color+'" oninput="waEdit(\'color\',this.value)"></label><button type="button" aria-label="Negrita" aria-pressed="'+(Number(n.weight)>=700)+'" onclick="waEdit(\'weight\',Number(waNode().weight)>=700?\'400\':\'700\');waInspector()"><b>B</b></button><button type="button" aria-label="Cursiva" aria-pressed="'+!!n.italic+'" onclick="waEdit(\'italic\',!waNode().italic);waInspector()"><i>I</i></button></div>'+ waTextEffectControls(n)+'<div class="wa-row"><button type="button" onclick="waPickFont(waNode().font,true)">Esta fuente en todos los textos</button><button type="button" onclick="waDelete();waClosePanel()">Quitar texto</button></div>';
       }else if(n.type==='image'){
         host.innerHTML='<div class="wa-row"><label class="wa-file">Cambiar foto<input type="file" accept="image/*" onchange="waUploadLayer(event)"></label><button type="button" onclick="waEdit(\'fit\',waNode().fit===\'cover\'?\'contain\':\'cover\');waInspector()">'+(n.fit==='cover'?'Ver foto completa':'Llenar espacio')+'</button></div><div id="wa-product-form" class="ws-product-fields"></div>';
         if(n.slot!==undefined){waSlot=n.slot;waProductForm();}else host.insertAdjacentHTML('beforeend','<button type="button" onclick="waDelete();waClosePanel()">Quitar imagen</button>');
       }else host.innerHTML='<label>Color<input aria-label="Color de la forma" type="color" value="'+(/^#[0-9a-f]{6}$/i.test(waColor(waScene,n.color))?waColor(waScene,n.color):'#ffffff')+'" oninput="waEdit(\'color\',this.value)"></label><button type="button" onclick="waDelete();waClosePanel()">Quitar forma</button>';
     }
     function waTextSize(delta){const n=waNode();if(!n||n.type!=='text')return;waEdit('fontSize',Math.max(8,Math.min(500,(n.fontSize||36)+delta)));waPositionInline();}
-    function waTextStyle(index){const n=waNode();if(n?.type!=='text')return;waRemember();if(!n.textStyleBase)n.textStyleBase={color:n.color,stroke:n.stroke,lineWidth:n.lineWidth,glow:n.glow||0};Object.assign(n,n.textStyleBase);n.textStyle=index;n.textShadow=index===1;n.textHighlight=index===3?'#ffe58a':'';
-      if(index===2){const hex=waColor(waScene,n.color),rgb=/^#[0-9a-f]{6}$/i.test(hex)?[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)):[255,255,255];n.stroke=(rgb[0]*.299+rgb[1]*.587+rgb[2]*.114)>150?'#222033':'#ffffff';n.lineWidth=Math.max(2,(n.fontSize||36)*.06);n.glow=0;}if(index===3){n.color='#252033';n.stroke='';n.glow=0;}waChanged();waInspector();
-    }
     function waProductForm(){const host=waEl('wa-product-form');if(!host||!waScene?.slots[waSlot])return;const p=waScene.slots[waSlot],description=waScene.layers.find(n=>n.slot===waSlot&&n.role==='description');
       host.innerHTML='<details><summary>Elegir otro producto del catálogo</summary><input id="statusProductSearch" aria-label="Buscar producto" placeholder="Buscar producto…" oninput="renderStatusProductPicker()"><div id="statusProductPicker" class="wa-picker"></div></details>'+['name','description','price'].map(k=>'<label>'+({name:'Nombre',description:'Descripción',price:'Precio'})[k]+'<'+(k==='description'?'textarea':'input')+(k==='description'?'': ' value="'+waEscape(p[k])+'"')+' oninput="waProductValue(\''+k+'\',this.value)">'+(k==='description'?waEscape(p[k])+'</textarea>':'')+'</label>').join('')+'<div class="wa-row"><label class="wa-check"><input id="wa-show-description" type="checkbox" '+(description?.visible?'checked':'')+' onchange="waShowDescription(this.checked)"> Mostrar descripción</label><label class="wa-check"><input type="checkbox" '+(p.showPrice?'checked':'')+' onchange="waProductValue(\'showPrice\',this.checked)"> Mostrar precio</label></div>';renderStatusProductPicker();
     }
@@ -1708,17 +1847,20 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     function waStartInline(){const n=waNode();if(n?.type!=='text')return;waInlineId=n.id;waInlineUndo=false;const input=waEl('wa-inline');input.hidden=false;input.value=n.text||'';waPositionInline();input.focus({preventScroll:true});input.setSelectionRange(input.value.length,input.value.length);}
     function waInlineInput(text){const n=waScene?.layers.find(n=>n.id===waInlineId);if(!n)return;if(!waInlineUndo){waRemember();waInlineUndo=true;}n.text=text;if(n.slot!==undefined&&['name','description','price','code'].includes(n.role)){waScene.slots[n.slot][n.role]=text;waApplySlot(n.slot);}waChanged();waPositionInline();}
     function waFinishInline(){if(!waInlineId)return;waInlineId='';const input=waEl('wa-inline');input.hidden=true;input.blur();waInlineUndo=false;}
-    function waPositionInline(){const input=waEl('wa-inline'),n=waScene?.layers.find(n=>n.id===waInlineId);if(!input||!n||input.hidden)return;const board=waEl('wa-artboard'),r=board.clientWidth/1080,scale=n.scale||1;input.style.left=(n.x+n.w/2-n.w*scale/2)*r+'px';input.style.top=(n.y+n.h/2-n.h*scale/2)*r+'px';input.style.width=n.w*scale*r+'px';input.style.height=n.h*scale*r+'px';input.style.transform='rotate('+n.rotation+'deg)';input.style.setProperty('font-size',n.fontSize*scale*r+'px','important');input.style.fontFamily=waFontCss(n.font||'Arial');input.style.fontWeight=n.weight||700;input.style.fontStyle=n.italic?'italic':'normal';input.style.lineHeight=1.2;input.style.textAlign=n.align||'left';}
+    function waPositionInline(){
+      const input=waEl('wa-inline'),n=waScene?.layers.find(n=>n.id===waInlineId);if(!input||!n||input.hidden)return;
+      const r=waEl('wa-artboard').clientWidth/1080,scale=n.scale||1,pad=n.textPad||0,after=n.textAfter||0,width=Math.max(1,n.w-pad*2),height=Math.max(1,n.h-pad*2-after),angle=(n.rotation||0)*Math.PI/180,cx=n.x+n.w/2+Math.sin(angle)*after*scale/2,cy=n.y+n.h/2-Math.cos(angle)*after*scale/2;
+      input.style.left=(cx-width*scale/2)*r+'px';input.style.top=(cy-height*scale/2)*r+'px';input.style.width=width*scale*r+'px';input.style.height=height*scale*r+'px';input.style.transform='rotate('+n.rotation+'deg)';input.style.setProperty('font-size',n.fontSize*scale*r+'px','important');input.style.fontFamily=waFontCss(n.font||'Arial');input.style.fontWeight=n.weight||700;input.style.fontStyle=n.italic?'italic':'normal';input.style.lineHeight=waEffectMetrics(n,n.fontSize).lineHeight/n.fontSize;input.style.textAlign=n.align||'left';
+    }
     function waSizeCanvas(){const stage=waEl('wa-stage'),board=waEl('wa-artboard');if(!stage||!board)return;const height=Math.max(100,Math.min(stage.clientHeight-16,(stage.clientWidth-16)*1920/1080))*waCanvasZoom;board.style.width=height*1080/1920+'px';board.style.height=height+'px';waPreviewSelection();waPositionInline();}
-    function waZoomCanvas(){waCanvasZoom=waCanvasZoom===1?1.8:1;waEl('wa-zoom').textContent=waCanvasZoom===1?'Acercar':'Alejar';waSizeCanvas();}
     function waSelect(id,inspect=true){waFinishInline();waSelected=id;const n=waNode();if(n?.type==='text')n.locked=false;if(inspect)waInspector();waPreviewSelection();}
     function waHitNode(p){const hit=n=>{if(!n.visible||n.locked&&n.type!=='text')return false;const a=-n.rotation*Math.PI/180,dx=(p.x-n.x-n.w/2)/n.scale,dy=(p.y-n.y-n.h/2)/n.scale;return Math.abs(dx*Math.cos(a)-dy*Math.sin(a))<=n.w/2&&Math.abs(dx*Math.sin(a)+dy*Math.cos(a))<=n.h/2;};const reverse=waScene.layers.slice().reverse();return reverse.find(n=>['text','image'].includes(n.type)&&hit(n))||reverse.find(hit);}
     function waBindCanvas(){const canvas=waEl('statusCanvas');if(canvas.dataset.bound)return;canvas.dataset.bound='1';const point=e=>{const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*1080/r.width,y:(e.clientY-r.top)*1920/r.height};};
-      canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;waFinishInline();const p=point(e),handle=waHandleAt(p,waNode(),e.pointerType),n=handle?waNode():waHitNode(p);waSelect(n?.id||'',false);if(n){e.preventDefault();waDrag={id:n.id,mode:handle?'resize':'move',corner:handle,start:waClone(n),px:p.x,py:p.y,changed:false};canvas.setPointerCapture(e.pointerId);}});
-      canvas.addEventListener('pointermove',e=>{if(!waDrag)return;const p=point(e),n=waScene.layers.find(n=>n.id===waDrag.id);if(!n)return;const dx=p.x-waDrag.px,dy=p.y-waDrag.py,threshold=5*1080/Math.max(1,canvas.getBoundingClientRect().width);if(!waDrag.changed&&Math.hypot(dx,dy)<threshold)return;if(!waDrag.changed){waRemember();waDrag.changed=true;}if(waDrag.mode==='resize')Object.assign(n,waResizeFromCorner(waDrag.start,waDrag.corner,p));else{n.x=waDrag.start.x+dx;n.y=waDrag.start.y+dy;}drawStatusCanvas();});
-      const finish=e=>{if(!waDrag)return;const moved=waDrag.changed;waDrag=null;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(moved){waChanged();waInspector();return;}const n=waNode();if(!n)return;waPanel('selection');waInspector();if(n.type==='text')waStartInline();};canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',e=>{waDrag=null;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);});
+      canvas.addEventListener('pointerdown',e=>{if(e.button!==0||waPinch||waTouchBlocked)return;waFinishInline();waGuides=[];const p=point(e),handle=waHandleAt(p,waNode(),e.pointerType),n=handle?waNode():waHitNode(p);waSelect(n?.id||'',false);if(n){e.preventDefault();waDrag={id:n.id,mode:handle?'resize':'move',corner:handle,start:waClone(n),future:waFuture.slice(),px:p.x,py:p.y,changed:false};canvas.setPointerCapture(e.pointerId);}else if(waCanvasZoom>1){const stage=waEl('wa-stage');waCanvasPan={x:e.clientX,y:e.clientY,left:stage.scrollLeft,top:stage.scrollTop};canvas.setPointerCapture(e.pointerId);}});
+      canvas.addEventListener('pointermove',e=>{if(!waDrag||waPinch||waTouchBlocked)return;const p=point(e),n=waScene.layers.find(n=>n.id===waDrag.id);if(!n)return;const dx=p.x-waDrag.px,dy=p.y-waDrag.py,threshold=5*1080/Math.max(1,canvas.getBoundingClientRect().width);if(!waDrag.changed&&Math.hypot(dx,dy)<threshold)return;if(!waDrag.changed){waRemember();waDrag.changed=true;}if(waDrag.mode==='resize'){waGuides=[];Object.assign(n,waResizeFromCorner(waDrag.start,waDrag.corner,p));}else Object.assign(n,waSnapMove(n,waDrag.start.x+dx,waDrag.start.y+dy));drawStatusCanvas();waScheduleAutosave();});
+      const finish=e=>{if(!waDrag)return;const moved=waDrag.changed;waDrag=null;waGuides=[];if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(moved){waChanged();waInspector();waPreviewSelection();return;}const n=waNode();if(!n)return;waPanel('selection');waInspector();if(n.type==='text')waStartInline();};canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',e=>{waCancelObjectDrag(false);if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);});
     }
-    window.addEventListener('DOMContentLoaded',()=>{if(window.ResizeObserver)new ResizeObserver(waSizeCanvas).observe(waEl('wa-stage'));window.addEventListener('resize',waSizeCanvas);});
+    window.addEventListener('DOMContentLoaded',()=>{waBindGestures();if(window.ResizeObserver)new ResizeObserver(waSizeCanvas).observe(waEl('wa-stage'));window.addEventListener('resize',waSizeCanvas);});
 
     // Editor publicitario aislado: nunca llama a saveToFirebase ni modifica products.
     const WA_TEMPLATES = [
@@ -1756,12 +1898,13 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     }
 
     function waRemember(){if(!waScene)return;waHistory.push(JSON.stringify(waScene));if(waHistory.length>30)waHistory.shift();waFuture=[];}
-    function waChanged(inspect=false){waPrepareTextBoxes(waScene);waPositionInline();waDrafts[waScene.template]=waScene;drawStatusCanvas();if(inspect)waRefresh();}
+    function waChanged(inspect=false){waPrepareTextBoxes(waScene);waPositionInline();waScheduleAutosave();waDrafts[waScene.template]=waScene;drawStatusCanvas();if(inspect)waRefresh();}
     function waChooseTemplate(index){
       if(waScene)waDrafts[waScene.template]=waScene;
-      waFinishInline();waScene=waDrafts[index]||waTemplate(index);waPrepareTextBoxes(waScene);waDrafts[index]=waScene;waHistory=[];waFuture=[];waSelected='';waSlot=0;waRefresh();drawStatusCanvas();
+      waClearTouches();waFinishInline();waScene=waDrafts[index]||waTemplate(index);waPrepareTextBoxes(waScene);waDrafts[index]=waScene;waHistory=[];waFuture=[];waSelected='';waSlot=0;waRefresh();drawStatusCanvas();waScheduleAutosave();
     }
-    function openStatusModal(id=null){
+    async function openStatusModal(id=null){
+      await waRestoreOnce();
       if(!waScene)waChooseTemplate(id===null?1:3);
       if(id!==null){waChooseTemplate(3);const p=products.find(p=>String(p.id)===String(id));if(p)waUseProduct(p.id);}
       openModal('statusModal');waBindCanvas();waRefresh();waSizeCanvas();drawStatusCanvas();
@@ -1790,7 +1933,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     }
     async function waUploadProduct(e,second){const file=e.target.files[0],scene=waScene,slot=waSlot;if(!file)return;try{const src=await waReadFile(file);if(scene!==waScene)return;waRemember();scene.slots[slot][second?'photo2':'photo']=src;waApplySlot(slot);waChanged(true);}catch(err){showToast(err.message,'error');}finally{e.target.value='';}}
 
-    function waEdit(k,v){const n=waNode();if(!n)return;if(typeof v==='number'&&!Number.isFinite(v))return;if(['color','stroke','gradient'].includes(k)&&v&&!waScene.palette[v]&&!CSS.supports('color',v)){showToast('Usa un color válido, como #ff8800, o un nombre de paleta.','error');waInspector();return;}const limits={w:[1,5000],h:[1,5000],scale:[.05,10],opacity:[0,1],fontSize:[8,500],spacing:[12,250],glow:[0,100],lineWidth:[0,100],radius:[0,1000]};if(limits[k])v=Math.min(limits[k][1],Math.max(limits[k][0],v));waRemember();n[k]=v;
+    function waEdit(k,v){const n=waNode();if(!n)return;if(typeof v==='number'&&!Number.isFinite(v))return;if(['color','stroke','gradient'].includes(k)&&v&&!waScene.palette[v]&&!CSS.supports('color',v)){showToast('Usa un color válido, como #ff8800, o un nombre de paleta.','error');waInspector();return;}const limits={w:[1,5000],h:[1,5000],scale:[.05,10],opacity:[0,1],fontSize:[8,500],spacing:[12,250],glow:[0,100],lineWidth:[0,100],radius:[0,1000]};if(limits[k])v=Math.min(limits[k][1],Math.max(limits[k][0],v));waRemember();n[k]=v;if(k==='color'&&n.type==='text'&&waEffectIndex(n)>=4)n.effectFaceOverride=v;
       if(n.slot!==undefined&&['text','src','visible'].includes(k)){const p=waScene.slots[n.slot];if(k==='text'&&['name','code','description','price'].includes(n.role))p[n.role]=v;if(k==='src'&&['photo','photo2'].includes(n.role))p[n.role]=v;if(k==='visible'&&n.role==='price'){p.showPrice=v;for(const label of waScene.layers.filter(x=>x.slot===n.slot&&x.role==='price-bg'))label.visible=v;}waProductForm();}
       waChanged();waLayerList();if(['src','type','color','gradient','stroke'].includes(k))waInspector();
     }
@@ -1805,7 +1948,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     function waProject(){waDrafts[waScene.template]=waScene;return {format:'nancy-wa-studio',version:1,active:waScene.template,drafts:waDrafts,fontAssets:waProjectFontAssets(waDrafts)};}
     function waSaveLocal(){try{localStorage.setItem('nancy_wa_projects_v1',JSON.stringify(waProject()));showToast('Proyecto guardado solo en este navegador.');}catch(e){showToast('No hay espacio local. Descarga el proyecto JSON para conservar las fotos.','error');}}
     function waValidateProject(p){if(p?.format!=='nancy-wa-studio'||p.version!==1||!p.drafts||typeof p.drafts!=='object')throw new Error('Proyecto no compatible.');for(const [key,s]of Object.entries(p.drafts)){const t=WA_TEMPLATES[Number(key)-1];if(!t||s.template!==Number(key)||s.count<t[1]||s.count>t[2]||!Array.isArray(s.layers)||s.layers.length>600||!Array.isArray(s.slots)||s.slots.length!==s.count||!s.palette)throw new Error('Estructura de proyecto inválida.');for(const c of Object.values(s.palette))if(typeof c!=='string'||!/^#[0-9a-f]{6}$/i.test(c))throw new Error('Paleta inválida.');for(const n of s.layers){if(!['rect','ellipse','poly','text','image','pattern'].includes(n.type)||typeof n.id!=='string'||!['x','y','w','h','scale','opacity','rotation'].every(k=>Number.isFinite(n[k]))||n.w<=0||n.w>5000||n.h<=0||n.h>5000||n.scale<=0||n.scale>10)throw new Error('Capa inválida.');if(n.src&&!/^(data:image\/(png|jpeg|webp|gif);base64,|https?:\/\/)/i.test(n.src))throw new Error('Origen de foto no permitido.');if(n.type==='poly'&&(!Array.isArray(n.points)||n.points.length>100))throw new Error('Forma inválida.');}}if(!p.drafts[p.active])throw new Error('No se encontró el diseño activo.');return p;}
-    async function waOpenProject(p){waValidateProject(p);await waPrepareProjectFonts(p);waFinishInline();waDrafts=waClone(p.drafts);for(const s of Object.values(waDrafts)){for(const n of s.layers)if(n.type==='text'&&!n.font?.startsWith('NancyLocal_')&&!WA_SYSTEM_FONTS.includes(n.font))n.font='Arial';waPrepareTextBoxes(s);}waScene=waDrafts[p.active];waSerial=Math.max(waSerial,...Object.values(waDrafts).flatMap(s=>s.layers.map(n=>Number(n.id.replace(/^wa/,''))||0)));waSelected='';waSlot=0;waHistory=[];waFuture=[];waRefresh();drawStatusCanvas();}
+    async function waOpenProject(p){waValidateProject(p);await waPrepareProjectFonts(p);waFinishInline();waDrafts=waClone(p.drafts);for(const s of Object.values(waDrafts)){for(const n of s.layers)if(n.type==='text'&&!n.font?.startsWith('NancyLocal_')&&!WA_SYSTEM_FONTS.includes(n.font))n.font='Arial';waPrepareTextBoxes(s);}waScene=waDrafts[p.active];waSerial=Math.max(waSerial,...Object.values(waDrafts).flatMap(s=>s.layers.map(n=>Number(n.id.replace(/^wa/,''))||0)));waSelected='';waSlot=0;waHistory=[];waFuture=[];waRefresh();drawStatusCanvas();waScheduleAutosave();}
     async function waLoadLocal(){try{const p=localStorage.getItem('nancy_wa_projects_v1');if(!p)throw new Error('Todavía no hay un proyecto guardado en este navegador.');await waOpenProject(JSON.parse(p));showToast('Proyecto recuperado.');}catch(e){showToast(e.message,'error');}}
     function waDownloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
     function waExportProject(){try{waDownloadBlob(new Blob([JSON.stringify(waProject())],{type:'application/json'}),'catalogo-nancy-proyecto.json');}catch(e){showToast(e.message,'error');}}
@@ -1827,13 +1970,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       const loaded=new Map(await Promise.all(s.layers.filter(n=>n.visible&&n.type==='image'&&n.src).map(async n=>[n.id,await waLoadImage(n.src)])));
       for(const n of s.layers){if(!n.visible)continue;c.save();c.globalAlpha=n.opacity;c.translate(n.x+n.w/2,n.y+n.h/2);c.rotate(n.rotation*Math.PI/180);c.scale(n.scale,n.scale);c.translate(-n.w/2,-n.h/2);c.fillStyle=waColor(s,n.color);c.strokeStyle=waColor(s,n.stroke);c.lineWidth=n.lineWidth||0;c.setLineDash(n.dash||[]);if(n.glow){c.shadowColor=waColor(s,n.stroke||n.color);c.shadowBlur=n.glow;}
         if(n.gradient){const g=n.gradientType==='radial'?c.createRadialGradient(n.w/2,n.h/2,0,n.w/2,n.h/2,Math.max(n.w,n.h)/2):c.createLinearGradient(0,0,n.w,n.h);g.addColorStop(0,waColor(s,n.color));g.addColorStop(1,waColor(s,n.gradient));c.fillStyle=g;}
-        if(n.type==='text'){
-          const pad=n.textPad||0,layout=waTextLayout(c,n),lines=layout.lines,lh=layout.lineHeight,x=n.align==='center'?n.w/2:n.align==='right'?n.w-pad:pad;
-          if(n.textHighlight){c.save();c.shadowBlur=0;c.fillStyle=n.textHighlight;c.beginPath();if(c.roundRect)c.roundRect(0,0,n.w,n.h,Math.min(10,n.h/5));else c.rect(0,0,n.w,n.h);c.fill();c.restore();}
-          c.beginPath();c.rect(-pad,-pad,n.w+pad*2,n.h+pad*2);c.clip();c.textBaseline='top';c.textAlign=n.align||'left';
-          if(n.textShadow){c.shadowColor='#00000099';c.shadowBlur=layout.size*.13;c.shadowOffsetX=layout.size*.05;c.shadowOffsetY=layout.size*.08;}
-          for(let i=0;i<lines.length;i++){if(n.stroke&&n.lineWidth)c.strokeText(lines[i],x,pad+i*lh);c.fillText(lines[i],x,pad+i*lh);}
-        }
+        if(n.type==='text'){waDrawTextNode(c,s,n);}
 
         else if(n.type==='image'){const im=loaded.get(n.id);waPath(c,n);c.clip();if(im){if(n.fit==='stretch')c.drawImage(im,0,0,n.w,n.h);else{const scale=n.fit==='cover'?Math.max(n.w/im.width,n.h/im.height):Math.min(n.w/im.width,n.h/im.height);c.drawImage(im,(n.w-im.width*scale)/2,(n.h-im.height*scale)/2,im.width*scale,im.height*scale);}}else{if(n.src)failures.push(n.label);c.fillStyle='#ffffff16';c.fillRect(0,0,n.w,n.h);c.strokeStyle='#88888880';c.setLineDash([10,10]);c.strokeRect(1,1,n.w-2,n.h-2);c.fillStyle=waColor(s,n.placeholderColor||'ink');c.font='600 24px Arial';c.textAlign='center';c.textBaseline='middle';c.fillText(n.src?'FOTO NO DISPONIBLE':n.placeholder||'FOTO',n.w/2,n.h/2,Math.max(1,n.w-20));}}
         else if(n.type==='pattern'){c.beginPath();c.rect(0,0,n.w,n.h);c.clip();waDrawPattern(c,n);}
@@ -1855,7 +1992,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
 
     function waPreviewSelection(){
       const canvas=waEl('statusCanvas');if(!canvas||!waArtwork)return;const c=canvas.getContext('2d'),ratio=1080/Math.max(1,canvas.getBoundingClientRect().width);
-      c.clearRect(0,0,1080,1920);c.drawImage(waArtwork,0,0);const n=waNode();if(!n||!n.visible)return;
+      c.clearRect(0,0,1080,1920);c.drawImage(waArtwork,0,0);waDrawGuides(c,ratio);const n=waNode();if(!n||!n.visible)return;
       c.save();c.translate(n.x+n.w/2,n.y+n.h/2);c.rotate(n.rotation*Math.PI/180);c.scale(n.scale,n.scale);c.strokeStyle=n.locked?'#8b8795':'#fa3eac';c.lineWidth=1.5*ratio/n.scale;c.setLineDash([5*ratio/n.scale,3*ratio/n.scale]);c.strokeRect(-n.w/2,-n.h/2,n.w,n.h);c.restore();
       if(!n.locked){c.save();c.fillStyle='#ffffff';c.strokeStyle='#b52679';c.lineWidth=2*ratio;const r=6*ratio;for(const [sx,sy]of [[-1,-1],[1,-1],[1,1],[-1,1]]){const p=waCorner(n,sx,sy);c.beginPath();c.rect(p.x-r,p.y-r,r*2,r*2);c.fill();c.stroke();}c.restore();}
     }
@@ -1984,7 +2121,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     }
 
     function closeModal(id) {
-      if(id==='statusModal')waFinishInline();
+      if(id==='statusModal'){waFinishInline();waClearTouches();waFlushAutosave();}
       const el = document.getElementById(id);
       el.classList.add('hidden');
       el.classList.remove('flex');
