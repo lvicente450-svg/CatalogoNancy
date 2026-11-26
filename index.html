@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Catálogo Nancy</title>
+  <title>Catálogo</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- QRCode.js CDN -->
@@ -82,8 +82,12 @@
 .ws-product-fields textarea{min-height:70px}.ws-product-fields .wa-picker{max-height:180px}
 .ws-badge-preset{flex:1 1 42%;border:0!important}.ws-offer .wa-row>label{flex:1;min-width:0}.ws-offer input:not([type=checkbox]){width:100%}.ws-toolbar{flex-wrap:wrap}
 body:has(#statusModal:not(.hidden)){overflow:hidden}
+.wa-recovery-modal{z-index:10010}.wa-recovery-card{max-width:650px;max-height:90dvh;overflow:auto}.wa-recovery-card button{min-height:44px;padding:10px 13px;background:#f0e3f6;border:1px solid #dcc7e7;border-radius:12px;font-size:14px;font-weight:600}.wa-recovery-card button:disabled{opacity:.55}.wa-recovery-item{border:1px solid #e1d5e7;border-radius:15px;padding:14px;margin:10px 0}.wa-recovery-item b{display:block;overflow-wrap:anywhere}.wa-recovery-item p{font-size:14px;margin:6px 0 10px;color:#65546c}#recoveryPreview{border:2px solid #9559b0;background:#f8f0fb;padding:14px;border-radius:14px;margin:12px 0}#recoveryApply{background:#593070;color:white}#recoveryCatalogStatus:empty{display:none}
 @media(min-width:850px){.wa-simple{padding:12px}.wa-simple .wa-shell{height:96dvh;border-radius:18px}.ws-sheet-body{padding:10px 18px}.ws-sheet{max-height:33dvh}.ws-sheet-body [data-simple-panel=selection] .ws-font-row{max-width:600px}}
 @media(max-width:360px){.ws-toolbar{gap:4px;padding:5px 6px}.ws-toolbar button{padding:6px 7px;font-size:12px}.wa-simple .wa-top b{font-size:15px}.wa-simple .wa-top small{font-size:10px}}
+
+.catalog-modal{position:fixed;inset:0;z-index:1002;background:#20142d9c;backdrop-filter:blur(5px);padding:12px;align-items:center;justify-content:center;overscroll-behavior:contain}.catalog-modal.hidden,.catalog-cart-bar.hidden{display:none!important}.catalog-modal.flex{display:flex}.catalog-dialog{background:white;border-radius:22px;width:min(560px,100%);max-height:94dvh;overflow:auto;box-shadow:0 20px 60px #160b2b55;color:#292135}.catalog-dialog-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid #eadfec;position:sticky;top:0;background:white;z-index:2}.catalog-dialog-heading h2{font-size:20px;font-weight:800;margin:0}.catalog-dialog button,.catalog-file{min-height:44px;padding:10px 13px;border-radius:12px;border:1px solid #dfd1e5;background:#f5eef8;font:600 14px/1.3 Arial,sans-serif;color:#4d2863;touch-action:manipulation;cursor:pointer}.catalog-dialog button:disabled{opacity:.55;cursor:wait}.catalog-dialog button.catalog-primary{background:#862b94;border-color:#862b94;color:#fff}.catalog-dialog-body{padding:16px 18px}.catalog-dialog label{display:block;font-size:15px;font-weight:650;margin-bottom:12px}.catalog-dialog input:not([type=file]),.catalog-dialog select,.catalog-dialog textarea{display:block;width:100%;box-sizing:border-box;padding:11px 12px;min-height:46px;font:400 16px Arial,sans-serif;color:#292135;background:#fff;border:1px solid #cec0d6;border-radius:12px;margin-top:5px}.catalog-dialog input:focus,.catalog-dialog select:focus,.catalog-dialog textarea:focus{outline:2px solid #a251b2;outline-offset:1px}.catalog-dialog-footer{position:sticky;bottom:0;padding:12px 18px max(12px,env(safe-area-inset-bottom));border-top:1px solid #eadfec;background:white;z-index:1}.catalog-save-buttons,.catalog-two-columns{display:grid;grid-template-columns:1fr 1fr;gap:10px}.catalog-note{font:400 14px/1.45 Arial,sans-serif;color:#6c5b75;margin:7px 0}.catalog-note:empty,.catalog-message:empty{display:none}.catalog-message{font-size:15px;color:#b32245;font-weight:600}.catalog-photo-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}.catalog-photo-preview{width:84px;height:96px;background:#f7eff7;border:1px solid #e5d3e8;border-radius:14px;flex:none;display:grid;place-items:center;overflow:hidden;font-size:32px}.catalog-photo-preview img{width:100%;height:100%;object-fit:contain}.catalog-file{display:inline-flex!important;align-items:center;position:relative;margin:0!important;background:#f2def1}.catalog-file input{position:absolute;width:1px;height:1px;opacity:0}.catalog-dialog [hidden]{display:none!important}#newMoreOptions{padding:10px 12px;border:1px solid #e6dce9;border-radius:14px;margin:6px 0}#newMoreOptions summary{font-size:16px;font-weight:700;cursor:pointer;min-height:30px;display:list-item}#newMoreOptions[open] summary{margin-bottom:12px}#newMoreOptions button{margin-bottom:12px}#categoryModal{z-index:1004}body:has(.catalog-modal:not(.hidden)){overflow:hidden}.catalog-cart-bar{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));z-index:40;width:calc(100% - 24px);max-width:600px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;border-radius:18px;padding:12px 16px;background:#126e4c;color:white;box-shadow:0 8px 28px #0c3a3650}.catalog-cart-bar span{display:block;font-size:14px}.catalog-cart-bar strong{display:block;font-size:20px;font-weight:800}.catalog-cart-bar button{min-height:48px;background:white;color:#126e4c;font-size:16px;font-weight:800;border:0;border-radius:12px;padding:10px 18px;touch-action:manipulation}.catalog-order-dialog{display:flex;flex-direction:column;overflow:hidden}.catalog-order-items{overflow:auto;min-height:80px;flex:1}.catalog-order-row{display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;padding:13px 0;border-bottom:1px solid #eadfec}.catalog-order-row img{width:64px;height:78px;object-fit:contain;background:#f7f1f7;border-radius:12px}.catalog-order-row h3{margin:0;font-size:16px;font-weight:700;overflow-wrap:anywhere}.catalog-order-row p{font-size:14px;color:#706076;margin:4px 0}.catalog-order-line{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:9px}.catalog-quantity{display:flex;align-items:center;gap:6px}.catalog-quantity button{padding:7px;min-width:44px;font-size:20px}.catalog-dialog .catalog-quantity input{width:64px;min-height:44px;margin:0;padding:8px 4px;text-align:center;font-weight:700;appearance:textfield}.catalog-quantity input::-webkit-inner-spin-button{appearance:none}.catalog-remove{background:transparent!important;padding:6px!important;color:#a72b50!important;border:0!important}.catalog-order-total{display:flex;justify-content:space-between;gap:14px;align-items:baseline;font-size:16px}.catalog-order-total strong{font-size:26px}.catalog-order-footer>button{width:100%;margin-top:8px}.catalog-dialog button.catalog-whatsapp{background:#126e4c;border-color:#126e4c;color:white;font-size:16px;min-height:50px}.catalog-card-quantity button{min-width:44px;min-height:44px}.catalog-card-quantity span{font-size:16px}.catalog-client-add{min-height:46px!important;font-size:15px!important}@media(max-width:400px){.catalog-dialog-heading,.catalog-dialog-body,.catalog-dialog-footer{padding-left:13px;padding-right:13px}.catalog-save-buttons{grid-template-columns:1fr}.catalog-cart-bar{padding:10px 12px}.catalog-cart-bar strong{font-size:18px}}@media(max-height:640px){.catalog-modal{padding:6px}.catalog-dialog{max-height:98dvh}}
+.catalog-dialog button:focus-visible,.catalog-cart-bar button:focus-visible,.catalog-file:focus-within{outline:3px solid #bb73c8;outline-offset:2px}#clientGrid h3{font-size:15px;line-height:1.35}
 
 </style>
 </head>
@@ -99,7 +103,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
         </div>
         <div class="min-w-0">
           <h1 id="headerStoreName" class="font-extrabold text-base sm:text-xl leading-tight tracking-tight truncate">
-            Catálogo Nancy
+            Catálogo
           </h1>
           <p id="headerSubtitle" class="text-[11px] sm:text-xs text-pink-100 font-medium truncate">
             Conectando con el catálogo...
@@ -255,6 +259,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
             ➕ Nuevo Artículo
           </button>
 
+          <button type="button" onclick="waOpenRecovery('catalog')" class="bg-purple-100 text-purple-800 font-bold px-4 py-3 rounded-xl text-sm">Respaldos automáticos</button><span id="recoveryCatalogStatus" class="text-sm text-purple-800" role="status"></span>
           <button type="button" onclick="openCategoryModal()" class="bg-purple-100 text-purple-800 font-bold px-4 py-3 rounded-xl text-sm">Categorías</button>
           <button
             type="button"
@@ -330,23 +335,8 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
 
   </main>
 
-  <!-- ==================== BARRA FLOTANTE VERDE DE WHATSAPP (CLIENTES) ==================== -->
-  <div
-    id="waCartBar"
-    class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto bg-emerald-600 text-white p-3.5 sm:p-4 rounded-2xl shadow-2xl border border-emerald-400/40 flex items-center justify-between gap-3 z-40 hidden animate-fade"
-  >
-    <div class="min-w-0">
-      <div id="cartCountText" class="text-xs text-emerald-100 font-medium truncate">0 artículos seleccionados</div>
-      <div id="cartTotalText" class="font-extrabold text-base sm:text-lg leading-tight">Total estimado: $0</div>
-    </div>
-    <button
-      type="button"
-      onclick="sendWhatsAppOrder()"
-      class="bg-white hover:bg-emerald-50 text-emerald-700 font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-sm transition shrink-0 flex items-center gap-1.5"
-    >
-      💬 Pedir por WhatsApp
-    </button>
-  </div>
+  <div id="waCartBar" class="catalog-cart-bar hidden" aria-label="Resumen de tu pedido"><div><span id="cartCountText">0 productos</span><strong id="cartTotalText">Total: $0</strong></div><button type="button" onclick="catalogOpenOrder()">Ver pedido</button></div>
+
 
   <!-- ==================== MODAL 1: ACCESO PIN ADMINISTRADOR (2511) ==================== -->
   <div id="pinModal" class="fixed inset-0 bg-slate-900/65 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
@@ -421,6 +411,9 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
           </section>
           <section data-simple-panel="badges" hidden><p class="wa-note">Elige un sello. Después tócalo para cambiar el texto y los colores, o arrástralo a donde quieras.</p><div id="wa-badge-presets" class="wa-row"></div></section>
           <section data-simple-panel="save" hidden>
+            <label>Nombre del diseño<input id="wa-design-name" type="text" maxlength="80" value="Mi diseño" onchange="waRenameProject(this.value)"></label>
+            <div class="wa-row"><button type="button" onclick="waSaveDesignCloud()">Guardar ahora en la nube</button><button type="button" onclick="waOpenRecovery('design')">Mis diseños y versiones</button></div>
+            <p class="wa-note">Las versiones se guardan automáticamente mientras editas. Para continuar en otro equipo, entra como administrador y abre «Mis diseños y versiones». Espera el aviso «Diseño disponible en otros dispositivos» antes de cambiar de equipo.</p>
             <p class="wa-note">Guarda el proyecto para seguir editando. Incluye tus fotos y todas las fuentes importadas, también las que aún no hayas usado.</p>
             <div class="wa-row"><button type="button" onclick="waSaveLocal()">Guardar aquí</button><button type="button" onclick="waLoadLocal()">Abrir guardado</button><button type="button" onclick="waExportProject()">Descargar proyecto</button><label class="wa-file">Abrir proyecto<input type="file" accept=".json,application/json" onchange="waImportProject(event)"></label></div>
             <label class="wa-file">Añadir mis fuentes<input type="file" accept=".ttf,.otf,.woff,.woff2" multiple onchange="waImportFonts(event)"></label><p class="wa-note">TTF, OTF, WOFF y WOFF2. Hasta 10 MB por archivo.</p>
@@ -430,6 +423,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
         </div>
       </section>
       <p id="wa-font-status" class="ws-status" role="status" aria-live="polite"></p>
+      <p id="wa-recovery-status" class="ws-status" role="status" aria-live="polite"></p>
       <p id="wa-font-cloud-status" class="ws-status" role="status" aria-live="polite"></p>
       <footer class="ws-footer"><button type="button" onclick="downloadStatusImage()">↓ Descargar PNG</button><button type="button" class="ws-share" onclick="shareStatusImage()">Compartir</button></footer>
     </div>
@@ -445,71 +439,41 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     </section>
   </div>
 
-  <!-- ==================== MODAL 3: NUEVO ARTÍCULO ==================== -->
-  <div id="newModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50 overflow-y-auto">
-    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-100 my-6 animate-fade">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="font-extrabold text-lg text-slate-900">➕ Nuevo Artículo</h3>
-        <button type="button" onclick="closeModal('newModal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold">&times;</button>
-      </div>
-
-      <form id="newProductForm" onsubmit="saveNewProduct(event)" class="space-y-3.5 text-sm">
-        <div class="flex items-center gap-3.5 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-          <img
-            id="newPhotoPreview"
-            src="https://placehold.co/200x200/fdf2f8/db2777?text=Foto"
-            alt="Vista previa"
-            class="w-16 h-16 rounded-xl object-cover border border-slate-200 bg-white shrink-0"
-          />
-          <div class="flex-1 min-w-0">
-            <label class="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs shadow-sm transition">
-              📷 Tomar o elegir foto
-              <input type="file" id="newPhotoInput" accept="image/*" onchange="previewNewProductPhoto(event)" class="hidden" />
-            </label>
-            <p class="text-[11px] text-slate-400 mt-1">Compresión automática a máximo 500px.</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2.5">
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1">Código</label>
-            <input type="text" id="newCode" required class="w-full border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="#30" />
-          </div>
-          <div class="col-span-2">
-            <label class="block text-xs font-semibold text-slate-500 mb-1">Categoría</label>
-            <select id="newCat" class="w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500">
-              <option value="Belleza y Skincare">💄 Belleza y Skincare</option>
-              <option value="Hogar y Cocina">🏠 Hogar y Cocina</option>
-              <option value="Gadgets y Novedades">⚡ Gadgets y Novedades</option>
-              <option value="Ropa y Accesorios">👜 Ropa y Accesorios</option>
-              <option value="Juguetes y Fiestas">🧸 Juguetes y Fiestas</option>
-            </select><button type="button" onclick="openCategoryModal('newCat')" class="text-purple-700 text-sm font-bold min-h-11 px-2">+ Nueva categoría</button>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">Nombre del producto</label>
-          <input type="text" id="newName" required class="w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Ej. Labial mágico con glitter" />
-        </div>
-
-        <div class="grid grid-cols-2 gap-2.5">
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1">Precio ($)</label>
-            <input type="number" id="newPrice" min="0" step="any" required value="50" class="w-full border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:ring-2 focus:ring-pink-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1">Existencia (Stock)</label>
-            <input type="number" id="newStock" min="0" step="1" required value="5" class="w-full border border-slate-200 rounded-xl px-3 py-2 font-bold focus:outline-none focus:ring-2 focus:ring-pink-500" />
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-          <button type="button" onclick="closeModal('newModal')" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
-          <button type="submit" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm bg-pink-600 hover:bg-pink-700 text-white font-bold shadow-sm">Guardar y Publicar</button>
-        </div>
-      </form>
-    </div>
+  <div id="recoveryModal" class="wa-recovery-modal fixed inset-0 bg-slate-900/65 backdrop-blur-sm hidden items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="recoveryHeading">
+    <section class="wa-recovery-card bg-white rounded-3xl w-full p-5 shadow-xl">
+      <div class="flex justify-between items-center gap-3 mb-3"><h3 id="recoveryHeading" class="font-extrabold text-lg">Versiones guardadas</h3><button type="button" onclick="closeModal('recoveryModal');waRecoveryListToken++" class="rounded-xl bg-slate-100 min-h-11 px-4" aria-label="Cerrar versiones">✕</button></div>
+      <p id="recoveryNote" class="text-sm mb-3"></p><div class="flex gap-2 flex-wrap"><button type="button" onclick="waRefreshRecovery()">Actualizar lista</button><button type="button" onclick="waRetryRecovery()">Reintentar sincronización</button></div>
+      <p id="recoveryMessage" role="status" aria-live="polite" class="text-sm text-purple-800 my-3"></p>
+      <section id="recoveryPreview" hidden><b id="recoverySummary"></b><div class="flex gap-2 flex-wrap mt-3"><button id="recoveryApply" type="button" onclick="waApplyRecovery()">Recuperar versión</button><button type="button" onclick="waDownloadRecovery()">Descargar respaldo JSON</button><button type="button" onclick="waRecoverySelection=null;document.getElementById('recoveryPreview').hidden=true">Cancelar</button></div></section>
+      <div id="recoveryList"></div>
+    </section>
   </div>
+
+  <!-- ==================== MODAL 3: NUEVO ARTÍCULO ==================== -->
+  <div id="newModal" class="catalog-modal hidden" role="dialog" aria-modal="true" aria-labelledby="newProductHeading">
+    <section class="catalog-dialog">
+      <header class="catalog-dialog-heading"><h2 id="newProductHeading">Agregar producto</h2><button type="button" onclick="closeModal('newModal')" aria-label="Cerrar nuevo producto">✕</button></header>
+      <form id="newProductForm" onsubmit="saveNewProduct(event)">
+        <div class="catalog-dialog-body">
+          <div class="catalog-photo-row"><div class="catalog-photo-preview"><img id="newPhotoPreview" alt="Foto del producto" hidden><span id="newPhotoEmpty" aria-hidden="true">📷</span></div><div><label class="catalog-file">Tomar o elegir foto<input type="file" id="newPhotoInput" accept="image/*" onchange="previewNewProductPhoto(event)"></label><button id="newPhotoRemove" type="button" onclick="catalogClearNewPhoto()" hidden>Quitar foto</button><p id="newPhotoStatus" class="catalog-note" role="status">La foto es opcional. Puedes añadirla después.</p></div></div>
+          <label for="newName">Nombre del producto<input id="newName" type="text" required maxlength="150" autocomplete="off" placeholder="Ej. Crema para manos"></label>
+          <div class="catalog-two-columns"><label for="newPrice">Precio ($)<input id="newPrice" type="number" min="0" max="9999999" step="0.01" inputmode="decimal" required placeholder="0.00"></label><label for="newStock">Existencia<input id="newStock" type="number" min="0" max="999999" step="1" inputmode="numeric" required value="1"></label></div>
+          <details id="newMoreOptions"><summary>Más opciones</summary><label for="newCat">Categoría<select id="newCat" onchange="catalogNewOptionsHint()"></select></label><button type="button" onclick="openCategoryModal('newCat')">+ Nueva categoría</button><label for="newCode">Código<input id="newCode" type="text" maxlength="40" autocomplete="off" oninput="catalogNewOptionsHint()"></label><p class="catalog-note">El código se propone automáticamente; puedes cambiarlo.</p><label for="newDescription">Descripción (opcional)<textarea id="newDescription" rows="3" maxlength="1000" placeholder="Detalles que quieras mostrar"></textarea></label></details>
+          <p id="newOptionsHint" class="catalog-note"></p><p id="newProductMessage" class="catalog-message" role="alert"></p><p id="newProductSaveStatus" class="catalog-note" role="status" aria-live="polite"></p>
+        </div>
+        <footer class="catalog-dialog-footer catalog-save-buttons"><button id="newSaveClose" class="catalog-primary" type="submit" name="saveMode" value="close">Guardar</button><button id="newSaveAnother" type="submit" name="saveMode" value="another">Guardar y agregar otro</button></footer>
+      </form>
+    </section>
+  </div>
+
+  <div id="orderModal" class="catalog-modal hidden" role="dialog" aria-modal="true" aria-labelledby="orderHeading">
+    <section class="catalog-dialog catalog-order-dialog">
+      <header class="catalog-dialog-heading"><div><h2 id="orderHeading">Tu pedido</h2><p id="orderCount" class="catalog-note"></p></div><button type="button" onclick="closeModal('orderModal')" aria-label="Cerrar pedido">✕</button></header>
+      <div id="orderItems" class="catalog-dialog-body catalog-order-items"></div>
+      <footer class="catalog-dialog-footer catalog-order-footer"><div class="catalog-order-total"><span>Total de productos</span><strong id="orderTotal">$0</strong></div><p id="orderNote" class="catalog-note">La disponibilidad y la entrega se confirman por WhatsApp.</p><button id="orderSend" type="button" class="catalog-whatsapp" onclick="sendWhatsAppOrder()">Enviar pedido por WhatsApp</button><button type="button" onclick="closeModal('orderModal')">Seguir viendo productos</button></footer>
+    </section>
+  </div>
+
 
   <!-- ==================== MODAL 4: CARGA MASIVA DE FOTOS ==================== -->
   <div id="bulkModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
@@ -615,7 +579,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     function renderCategoryPills(){const host=document.getElementById('clientCategoryPills');host.replaceChildren();for(const name of ['ALL',...getCategories()]){const button=document.createElement('button');button.type='button';button.className='whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition shrink-0 '+(selectedClientCategory===name?'bg-pink-600 text-white shadow-sm':'bg-slate-100 text-slate-600 hover:bg-slate-200');button.textContent=name==='ALL'?'✨ Todas':name;button.onclick=()=>{selectedClientCategory=name;renderClient();};host.append(button);}}
     function openCategoryModal(target=''){categoryReturnTarget=target;document.getElementById('categoryName').value='';document.getElementById('categoryMessage').textContent='';renderCategoryList();openModal('categoryModal');document.getElementById('categoryName').focus();}
     function renderCategoryList(){const host=document.getElementById('categoryList');host.replaceChildren();for(const name of getCategories()){const item=document.createElement('span');item.textContent=name;item.className='inline-block bg-purple-50 text-purple-800 text-sm rounded-xl px-3 py-2';host.append(item);}}
-    async function addCatalogCategory(event){event.preventDefault();if(!isAdminMode)return;const input=document.getElementById('categoryName'),name=input.value.replace(/\s+/g,' ').trim(),message=document.getElementById('categoryMessage');if(!name||name.length>60||categoryKey(name)==='all'){message.textContent='Escribe un nombre de entre 1 y 60 caracteres.';return;}const existing=getCategories().find(c=>categoryKey(c)===categoryKey(name));if(!existing&&getCategories().length>=200){message.textContent='Se permiten hasta 200 categorías.';return;}if(!existing)customCategories=cleanCategories([...customCategories,name]);const chosen=existing||name;refreshCategoryInputs();renderCategoryList();renderClient();if(isAdminMode)renderAdmin();const saved=await saveToFirebase();message.textContent=existing?'Esa categoría ya existe.':saved?'Categoría guardada.':'Categoría guardada en este dispositivo; se enviará con la próxima sincronización.';input.value='';if(categoryReturnTarget){const target=document.getElementById(categoryReturnTarget);if(target)target.value=chosen;closeModal('categoryModal');}else input.focus();}
+    async function addCatalogCategory(event){event.preventDefault();if(!isAdminMode)return;const input=document.getElementById('categoryName'),name=input.value.replace(/\s+/g,' ').trim(),message=document.getElementById('categoryMessage');if(!name||name.length>60||categoryKey(name)==='all'){message.textContent='Escribe un nombre de entre 1 y 60 caracteres.';return;}const existing=getCategories().find(c=>categoryKey(c)===categoryKey(name));if(!existing&&getCategories().length>=200){message.textContent='Se permiten hasta 200 categorías.';return;}if(!existing)customCategories=cleanCategories([...customCategories,name]);const chosen=existing||name;refreshCategoryInputs();renderCategoryList();renderClient();if(isAdminMode)renderAdmin();const saved=await saveToFirebase();message.textContent=existing?'Esa categoría ya existe.':saved?'Categoría guardada.':'Categoría guardada en este dispositivo; se enviará con la próxima sincronización.';input.value='';if(categoryReturnTarget){const target=document.getElementById(categoryReturnTarget);if(target){target.value=chosen;if(categoryReturnTarget==='newCat')catalogNewOptionsHint();}closeModal('categoryModal');}else input.focus();}
     window.addEventListener('DOMContentLoaded',refreshCategoryInputs);
 
     // ==================== CONFIGURACIÓN GLOBAL ====================
@@ -775,26 +739,14 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       }
     }
 
-    function saveLocalCache() {
-      try {
-        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify({
-          storeName,
-          waNumber,
-          products,
-          categories: getCategories(),
-          updatedAt: Date.now()
-        }));
-      } catch (err) {
-        console.warn('No se pudo guardar en localStorage:', err);
-      }
-    }
+    function saveLocalCache(){try{localStorage.setItem(LOCAL_CACHE_KEY,JSON.stringify({...waRecoveryCatalogPayload(),updatedAt:Date.now()}));return true;}catch(err){console.warn('No se pudo guardar en localStorage:',err);return false;}}
 
     function loadLocalCache() {
       try {
         const raw = localStorage.getItem(LOCAL_CACHE_KEY) || localStorage.getItem('catalogo_nancy_cache_v1');
         if (!raw) return null;
         const parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.products) && parsed.products.length > 0) {
+        if (parsed && Array.isArray(parsed.products)) {
           return parsed;
         }
       } catch (err) {
@@ -804,32 +756,10 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     }
 
     // Guarda el estado completo en Firebase Realtime Database + localStorage
-    async function saveToFirebase() {
-      saveLocalCache();
-      if (!bazarRef) {
-        setSyncBadge('offline');
-        return false;
-      }
-
-      setSyncBadge('saving');
-      const payload = {
-        storeName: storeName || 'Catálogo Nancy',
-        waNumber: waNumber || '',
-        products: products,
-        categories: getCategories(),
-        updatedAt: Date.now()
-      };
-
-      try {
-        await bazarRef.set(payload);
-        setSyncBadge('live');
-        return true;
-      } catch (err) {
-        console.error('Error guardando en Firebase:', err);
-        setSyncBadge('offline');
-        showToast('Error al sincronizar con la nube. Guardado localmente.', 'error');
-        return false;
-      }
+    function saveToFirebase(){
+      saveLocalCache();const payload={...waRecoveryCatalogPayload(),updatedAt:Date.now()};
+      const save=async()=>{await waRecoveryProtectCatalog();if(!bazarRef){setSyncBadge('offline');waRecoveryObserveCatalog(payload);return false;}setSyncBadge('saving');try{await bazarRef.set(payload);setSyncBadge('live');waRecoveryObserveCatalog(payload);return true;}catch(err){console.error('Error guardando en Firebase:',err);setSyncBadge('offline');waRecoveryObserveCatalog(payload);showToast('Error al sincronizar con la nube. Guardado localmente.','error');return false;}};
+      waRecoveryCatalogSaveTail=waRecoveryCatalogSaveTail.then(save,save);return waRecoveryCatalogSaveTail;
     }
 
     function initFirebaseRealtime() {
@@ -838,7 +768,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       if (cached) {
         storeName = cached.storeName || 'Catálogo Nancy';
         waNumber = cached.waNumber || '';
-        products = cached.products;
+        products = cached.products;waRecoveryObserveCatalog(cached);
         customCategories = cleanCategories(cached.categories);
         revealUI();
       }
@@ -852,13 +782,13 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
         }
         db = firebase.database();
         bazarRef = db.ref('bazar');
-        if(isAdminMode)waSyncFontLibrary();
+        if(isAdminMode){waSyncFontLibrary();waRecoveryStart();}
 
         // Monitorear estado de conexión en tiempo real
         db.ref('.info/connected').on('value', (snap) => {
           if (snap.val() === true) {
             setSyncBadge('live');
-            waFontCloudConnectionChanged(true);
+            waFontCloudConnectionChanged(true);waRecoveryStart();
           } else {
             setSyncBadge('offline');
             waFontCloudConnectionChanged(false);
@@ -868,9 +798,10 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
         // Escucha en tiempo real de cambios en el catálogo
         bazarRef.on('value', async (snapshot) => {
           hasReceivedCloudData = true;
-          const data = snapshot.val();
+          const data = waRecoveryNormalizeCatalog(snapshot.val());
 
-          if (data && Array.isArray(data.products) && data.products.length > 0) {
+          if (data && Array.isArray(data.products)) {
+            waRecoveryObserveCatalog(data);
             storeName = data.storeName || 'Catálogo Nancy';
             waNumber = data.waNumber || '';
             products = data.products;
@@ -967,7 +898,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     }
 
     function updateHeaderAndStats() {
-      const cleanName = storeName || 'Catálogo Nancy';
+      const cleanName = 'Catálogo';
       document.title = cleanName;
       document.getElementById('headerStoreName').textContent = cleanName;
 
@@ -1117,7 +1048,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
 
     function enterAdminMode() {
       isAdminMode = true;
-      waSyncFontLibrary();
+      waSyncFontLibrary();waRecoveryStart();
       document.getElementById('viewClient').classList.add('hidden');
       document.getElementById('viewAdmin').classList.remove('hidden');
       document.getElementById('headerClientControls').classList.add('hidden');
@@ -1157,15 +1088,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       const allCats = ['ALL', ...getCategories()];
       renderCategoryPills();
 
-      // Limitar carrito al stock real
-      for (const idKey in cart) {
-        const prod = products.find(p => p.id === Number(idKey));
-        if (!prod || Number(prod.stock) <= 0) {
-          delete cart[idKey];
-        } else if (cart[idKey] > Number(prod.stock)) {
-          cart[idKey] = Number(prod.stock);
-        }
-      }
+      catalogCartItems();
 
       // Mostrar solo productos con stock > 0
       const available = products.filter(p => {
@@ -1234,16 +1157,16 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
               ${qty === 0 ? `
                 <button
                   type="button"
-                  onclick="addToCart(${p.id})"
-                  class="w-full py-2.5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs sm:text-sm shadow-sm transition active:scale-[0.98]"
+                  aria-label="Agregar una unidad de ${escapeHtml(p.name)}" onclick="addToCart(${p.id})"
+                  class="catalog-client-add w-full py-2.5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs sm:text-sm shadow-sm transition active:scale-[0.98]"
                 >
-                  + Lo quiero
+                  Agregar al pedido
                 </button>
               ` : `
-                <div class="flex items-center justify-between bg-pink-50 border border-pink-200 rounded-xl p-1">
+                <div class="catalog-card-quantity flex items-center justify-between bg-pink-50 border border-pink-200 rounded-xl p-1">
                   <button
                     type="button"
-                    onclick="removeFromCart(${p.id})"
+                    aria-label="Quitar una unidad de ${escapeHtml(p.name)}" onclick="removeFromCart(${p.id})"
                     class="w-8 h-8 rounded-lg bg-white hover:bg-pink-100 text-pink-700 font-extrabold shadow-sm transition"
                   >
                     -
@@ -1251,7 +1174,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
                   <span class="text-xs sm:text-sm font-extrabold text-pink-900">${qty}</span>
                   <button
                     type="button"
-                    onclick="addToCart(${p.id})"
+                    aria-label="Agregar una unidad de ${escapeHtml(p.name)}" onclick="addToCart(${p.id})"
                     class="w-8 h-8 rounded-lg bg-pink-600 hover:bg-pink-700 text-white font-extrabold shadow-sm transition"
                   >
                     +
@@ -1266,74 +1189,6 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       updateCartBar();
     }
 
-    function addToCart(id) {
-      const prod = products.find(p => p.id === id);
-      if (!prod) return;
-      const current = cart[id] || 0;
-      if (current < Number(prod.stock)) {
-        cart[id] = current + 1;
-        renderClient();
-      } else {
-        showToast(`Solo quedan ${prod.stock} pieza(s) disponibles`, 'info');
-      }
-    }
-
-    function removeFromCart(id) {
-      if (!cart[id]) return;
-      if (cart[id] > 1) cart[id] -= 1;
-      else delete cart[id];
-      renderClient();
-    }
-
-    function updateCartBar() {
-      const bar = document.getElementById('waCartBar');
-      let totalItems = 0;
-      let totalMoney = 0;
-
-      for (const idKey in cart) {
-        const prod = products.find(p => p.id === Number(idKey));
-        if (prod && Number(prod.stock) > 0) {
-          totalItems += cart[idKey];
-          totalMoney += Number(prod.price) * cart[idKey];
-        }
-      }
-
-      if (totalItems === 0 || isAdminMode) {
-        bar.classList.add('hidden');
-      } else {
-        bar.classList.remove('hidden');
-        document.getElementById('cartCountText').textContent = `${totalItems} artículo${totalItems === 1 ? '' : 's'} seleccionado${totalItems === 1 ? '' : 's'}`;
-        document.getElementById('cartTotalText').textContent = `Total estimado: $${totalMoney.toLocaleString('es-MX')}`;
-      }
-    }
-
-    function sendWhatsAppOrder() {
-      const lines = [`¡Hola! 👋 Me interesan estos productos de *${storeName || 'Catálogo Nancy'}*:`, ''];
-      let total = 0;
-
-      for (const idKey in cart) {
-        const prod = products.find(p => p.id === Number(idKey));
-        if (prod && cart[idKey] > 0) {
-          const subtotal = Number(prod.price) * cart[idKey];
-          total += subtotal;
-          lines.push(`• *${prod.code}* ${prod.name} (x${cart[idKey]}) — $${subtotal}`);
-        }
-      }
-
-      if (total === 0) {
-        showToast('Agrega al menos un producto primero', 'info');
-        return;
-      }
-
-      lines.push('');
-      lines.push(`*Total estimado:* $${total}`);
-      lines.push('¿Me confirmas disponibilidad para apartarlos?');
-
-      const cleanPhone = (waNumber || '').replace(/\D/g, '');
-      const text = encodeURIComponent(lines.join('\n'));
-      const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${text}` : `https://wa.me/?text=${text}`;
-      window.open(url, '_blank');
-    }
 
     // ==================== 2. PANEL DE ADMINISTRACIÓN ====================
 
@@ -1974,17 +1829,119 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     }
     function waDrawGuides(c,ratio){if(!waGuides.length)return;c.save();c.strokeStyle='#d92283';c.lineWidth=1.2*ratio;c.setLineDash([5*ratio,3*ratio]);for(const g of waGuides){c.beginPath();if(g.axis==='x'){c.moveTo(g.value,Math.max(0,g.from));c.lineTo(g.value,Math.min(waPageHeight(),g.to));}else{c.moveTo(Math.max(0,g.from),g.value);c.lineTo(Math.min(1080,g.to),g.value);}c.stroke();}c.restore();}
 
+    // Versiones independientes del inventario y de la biblioteca de fuentes.
+    // Fotos y fuentes se almacenan una sola vez por contenido. El índice se publica al final.
+    const WA_RECOVERY_ROOT='nancyRecovery/v1',WA_RECOVERY_PART=400000,WA_RECOVERY_MAX=128*1024*1024;
+    let waProjectLabel='Mi diseño',waRecoveryLastCatalog=null,waRecoveryTail=Promise.resolve(),waRecoveryTimer=null,waRecoveryCloudTimer=null,waRecoveryWriting=null,waRecoveryFault='',waRecoveryLocalFault='',waRecoveryDirty=false,waRecoveryLatestDesign='',waRecoveryConfirmedDesign='',waRecoveryKind='design',waRecoveryListToken=0,waRecoverySelection=null,waRecoveryBusy=false,waRecoveryCatalogSaveTail=Promise.resolve();
+    const waRecoveryPending=new Map(),waRecoveryAssetHashes=new Map();
+    function waRecoveryDisabled(){return new URLSearchParams(location.search).get('prueba')==='1';}
+    function waRecoveryCloudAllowed(){return !waRecoveryDisabled()&&isAdminMode&&!!db;}
+    function waRecoveryDB(){return new Promise((ok,no)=>{if(!window.indexedDB){no(Error('El navegador no permite guardar versiones aquí.'));return;}const request=indexedDB.open('nancy_recovery_v1',1);request.onupgradeneeded=()=>{request.result.createObjectStore('assets');request.result.createObjectStore('versions');};request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error);request.onblocked=()=>no(Error('El guardado está ocupado. Cierra otras pestañas del catálogo e inténtalo otra vez.'));});}
+    async function waRecoveryStore(store,action,key,value){const database=await waRecoveryDB();try{return await new Promise((ok,no)=>{const tx=database.transaction(store,action==='get'||action==='all'?'readonly':'readwrite'),objects=tx.objectStore(store),request=action==='all'?objects.getAll():action==='get'?objects.get(key):action==='delete'?objects.delete(key):objects.put(value,key);let result;request.onsuccess=()=>result=request.result;tx.oncomplete=()=>ok(result);tx.onerror=()=>no(tx.error);tx.onabort=()=>no(tx.error);});}finally{database.close();}}
+    async function waRecoveryHash(text){if(!globalThis.crypto?.subtle)throw Error('Abre el catálogo con https:// o utiliza un navegador actualizado para sincronizar versiones.');const data=new TextEncoder().encode(text),digest=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('');}
+    function waRecoveryId(){return Date.now().toString().padStart(13,'0')+'_'+(globalThis.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)).replace(/[^a-z0-9_-]/gi,'');}
+    function waRecoveryStatus(){const el=waEl('wa-recovery-status'),catalog=waEl('recoveryCatalogStatus');if(catalog)catalog.textContent=waRecoveryDisabled()?'':waRecoveryLocalFault||waRecoveryFault;if(!el)return;el.textContent=waRecoveryDisabled()?'':waRecoveryLocalFault||waRecoveryFault||(waRecoveryWriting?'Guardando versiones en la nube…':waRecoveryDirty?'Cambios guardándose · todavía no están disponibles en otro equipo.':waRecoveryLatestDesign&&waRecoveryLatestDesign===waRecoveryConfirmedDesign?'Diseño disponible en otros dispositivos.':waScene?'Guardado en este dispositivo · pendiente de sincronizar.':'');}
+    function waRecoveryDesignChanged(){if(waRecoveryDisabled())return;waRecoveryDirty=true;waRecoveryStatus();}
+    function waRenameProject(value){waProjectLabel=String(value||'Mi diseño').trim().slice(0,80)||'Mi diseño';if(waEl('wa-design-name'))waEl('wa-design-name').value=waProjectLabel;waScheduleAutosave();}
+    function waRecoveryCatalogPayload(){return {catalogSchema:1,storeName:storeName||'Catálogo Nancy',waNumber:waNumber||'',categories:getCategories(),products:waClone(products)};}
+    function waRecoveryNormalizeCatalog(value){return value?.catalogSchema===1&&value.products==null?{...value,products:[]}:value;}
+    function waRecoveryValidateCatalog(value){value=waRecoveryNormalizeCatalog(value);if(!value||!Array.isArray(value.products)||value.products.length>5000||typeof value.storeName!=='string'||typeof value.waNumber!=='string')throw Error('Respaldo del catálogo no compatible.');const ids=new Set();for(const p of value.products){if(!p||typeof p!=='object'||!['string','number'].includes(typeof p.id)||typeof p.name!=='string'||!Number.isFinite(Number(p.price))||!Number.isFinite(Number(p.stock))||Number(p.price)<0||Number(p.stock)<0||ids.has(String(p.id)))throw Error('El respaldo contiene artículos inválidos.');ids.add(String(p.id));}return value;}
+    function waRecoveryValidate(kind,value){if(kind==='design')waValidateProject(value);else if(kind==='catalog')waRecoveryValidateCatalog(value);else throw Error('Tipo de respaldo no compatible.');}
+    async function waRecoveryPack(value){
+      const assets=new Map();let length=0,nodes=0;
+      const visit=async(item,depth=0)=>{if(depth>40||++nodes>250000)throw Error('El proyecto contiene demasiados datos para las versiones automáticas.');if(typeof item==='string'){length+=item.length;if(length>WA_RECOVERY_MAX)throw Error('El diseño supera el tamaño del guardado automático. Descarga su proyecto JSON.');if(item.startsWith('data:')&&item.length>4096){let hash=waRecoveryAssetHashes.get(item);if(!hash){hash=await waRecoveryHash(item);if(waRecoveryAssetHashes.size>=24)waRecoveryAssetHashes.delete(waRecoveryAssetHashes.keys().next().value);if(item.length<2000000)waRecoveryAssetHashes.set(item,hash);}assets.set(hash,item);return {__nancyRecoveryAsset:hash};}return item;}if(Array.isArray(item)){const out=[];for(const child of item)out.push(await visit(child,depth+1));return out;}if(item&&typeof item==='object'){const entries=[];for(const [key,child]of Object.entries(item))entries.push([key,await visit(child,depth+1)]);return Object.fromEntries(entries);}return item;};
+      const body=await visit(value),text=JSON.stringify(body);if(text.length>WA_RECOVERY_MAX)throw Error('El respaldo es demasiado grande.');return {body,assets,docHash:await waRecoveryHash(text)};
+    }
+    async function waRecoveryCapture(kind,value,options={}){
+      waRecoveryValidate(kind,value);const packed=await waRecoveryPack(value),all=await waRecoveryStore('versions','all'),previous=(all||[]).filter(r=>r.kind===kind).sort((a,b)=>b.id.localeCompare(a.id))[0];
+      if(previous?.docHash===packed.docHash){if(kind==='design'){waRecoveryLatestDesign=previous.id;waRecoveryDirty=options.revision!==undefined&&options.revision!==waAutoRevision;if(previous.cloudState==='confirmed')waRecoveryConfirmedDesign=previous.id;}waRecoveryLocalFault='';waRecoveryStatus();waRecoveryScheduleCloud();return previous;}
+      for(const [hash,data]of packed.assets)if(!await waRecoveryStore('assets','get',hash))await waRecoveryStore('assets','put',hash,data);
+      const record={id:waRecoveryId(),kind,at:Date.now(),title:kind==='design'?String(value.name||'Mi diseño').slice(0,80):String(value.storeName||'Catálogo Nancy')+' · '+value.products.length+' artículos',count:kind==='design'?Object.keys(value.drafts).length:value.products.length,body:packed.body,docHash:packed.docHash,cloudState:'pending'};
+      await waRecoveryStore('versions','put',record.id,record);const older=(all||[]).filter(r=>r.kind===kind).sort((a,b)=>b.id.localeCompare(a.id)).slice(19);for(const old of older)await waRecoveryStore('versions','delete',old.id);
+      if(kind==='design'){waRecoveryLatestDesign=record.id;waRecoveryDirty=options.revision!==undefined&&options.revision!==waAutoRevision;}waRecoveryLocalFault='';waRecoveryStatus();waRecoveryScheduleCloud();return record;
+    }
+    function waRecoveryQueue(kind,value,revision){if(waRecoveryDisabled()||!isAdminMode)return;waRecoveryPending.set(kind,{kind,value:waClone(value),revision});clearTimeout(waRecoveryTimer);waRecoveryTimer=setTimeout(()=>{waRecoveryTimer=null;waRecoveryFlushLocal();},900);}
+    function waRecoveryFlushLocal(){clearTimeout(waRecoveryTimer);waRecoveryTimer=null;const batch=Array.from(waRecoveryPending.values());waRecoveryPending.clear();if(!batch.length)return waRecoveryTail;const work=async()=>{for(const item of batch)try{await waRecoveryCapture(item.kind,item.value,{revision:item.revision});}catch(e){waRecoveryLocalFault='No se pudo guardar una versión aquí. Descarga un respaldo JSON. '+(e.message||'');waRecoveryStatus();}};waRecoveryTail=waRecoveryTail.then(work,work);return waRecoveryTail;}
+    function waRecoveryObserveCatalog(value){const data=waRecoveryNormalizeCatalog(value);if(!data||!Array.isArray(data.products))return;const clean={catalogSchema:1,storeName:data.storeName||'Catálogo Nancy',waNumber:data.waNumber||'',categories:cleanCategories(data.categories),products:waClone(data.products)};waRecoveryLastCatalog=clean;waRecoveryQueue('catalog',clean);}
+    async function waRecoveryProtectCatalog(){if(waRecoveryDisabled()||!isAdminMode||!waRecoveryLastCatalog)return;try{await waRecoveryFlushLocal();await waRecoveryCapture('catalog',waRecoveryLastCatalog);}catch(e){waRecoveryLocalFault='No se pudo crear el respaldo previo del catálogo. Descarga un respaldo JSON.';waRecoveryStatus();}}
+    function waRecoveryScheduleCloud(){if(!waRecoveryCloudAllowed())return;clearTimeout(waRecoveryCloudTimer);waRecoveryCloudTimer=setTimeout(()=>{waRecoveryCloudTimer=null;waRecoveryFlushCloud();},2500);}
+    async function waRecoveryReadCloudText(path,expectedHash){
+      const ref=db.ref(WA_RECOVERY_ROOT+'/'+path),meta=(await waFontTimeout(ref.child('meta').once('value'),'La nube no respondió. Revisa tu conexión.',15000)).val();if(!meta||meta.hash!==expectedHash||!Number.isInteger(meta.count)||meta.count<1||meta.count>400||!Number.isInteger(meta.length)||meta.length<1||meta.length>WA_RECOVERY_MAX||meta.count!==Math.ceil(meta.length/WA_RECOVERY_PART))throw Error('La versión está incompleta. Elige otra versión.');
+      const parts=[];for(let i=0;i<meta.count;i++){const part=(await waFontTimeout(ref.child('parts/'+String(i).padStart(4,'0')).once('value'),'No se pudo descargar la versión completa.',15000)).val();if(typeof part!=='string'||part.length>WA_RECOVERY_PART)throw Error('Falta una parte del respaldo.');parts.push(part);}const text=parts.join('');if(text.length!==meta.length||await waRecoveryHash(text)!==expectedHash)throw Error('El respaldo no pasó la comprobación de integridad.');return text;
+    }
+    async function waRecoveryWriteCloudText(path,text,hash){
+      const ref=db.ref(WA_RECOVERY_ROOT+'/'+path),meta=(await waFontTimeout(ref.child('meta').once('value'),'La nube no respondió. Pulsa Reintentar.',15000)).val();if(meta?.hash===hash&&meta.length===text.length&&meta.count===Math.ceil(text.length/WA_RECOVERY_PART))return;
+      for(let i=0;i<Math.ceil(text.length/WA_RECOVERY_PART);i++){if(!waRecoveryCloudAllowed())throw Error('Pendiente de sincronizar. Entra como administrador.');await waFontTimeout(ref.child('parts/'+String(i).padStart(4,'0')).set(text.slice(i*WA_RECOVERY_PART,(i+1)*WA_RECOVERY_PART)),'La subida quedó pendiente. Revisa tu conexión y reintenta.',25000);}
+      await waFontTimeout(ref.child('meta').set({hash,count:Math.ceil(text.length/WA_RECOVERY_PART),length:text.length}),'No se confirmó el respaldo en la nube. Reintenta.',25000);
+    }
+    function waRecoveryAssetRefs(value,out=new Set()){if(value&&typeof value==='object'){if(Object.keys(value).length===1&&typeof value.__nancyRecoveryAsset==='string'){if(!/^[a-f0-9]{64}$/.test(value.__nancyRecoveryAsset))throw Error('Referencia de foto o fuente inválida.');out.add(value.__nancyRecoveryAsset);}else for(const child of Object.values(value))waRecoveryAssetRefs(child,out);}return out;}
+    async function waRecoveryUpload(record){
+      for(const hash of waRecoveryAssetRefs(record.body)){const data=await waRecoveryStore('assets','get',hash);if(typeof data!=='string'||await waRecoveryHash(data)!==hash)throw Error('Falta una foto o fuente del respaldo local. Guarda de nuevo el diseño.');await waRecoveryWriteCloudText('assets/'+hash,data,hash);}
+      await waRecoveryWriteCloudText('documents/'+record.id,JSON.stringify(record.body),record.docHash);
+      const index={id:record.id,kind:record.kind,at:record.at,title:record.title,count:record.count,docHash:record.docHash};await waFontTimeout(db.ref(WA_RECOVERY_ROOT+'/index/'+record.kind+'/'+record.id).set(index),'No se confirmó la versión en la nube. Reintenta.',25000);
+      record.cloudState='confirmed';record.syncedAt=Date.now();await waRecoveryStore('versions','put',record.id,record);if(record.kind==='design'&&waRecoveryLatestDesign===record.id&&!waRecoveryDirty)waRecoveryConfirmedDesign=record.id;
+    }
+    function waRecoveryFlushCloud(){
+      clearTimeout(waRecoveryCloudTimer);waRecoveryCloudTimer=null;if(waRecoveryWriting)return waRecoveryWriting;if(!waRecoveryCloudAllowed()){waRecoveryStatus();return Promise.resolve(false);}
+      const work=async()=>{try{while(waRecoveryCloudAllowed()){await waRecoveryFlushLocal();const all=await waRecoveryStore('versions','all'),pending=(all||[]).filter(r=>r.cloudState!=='confirmed').sort((a,b)=>a.id.localeCompare(b.id));if(!pending.length){waRecoveryFault='';return true;}for(const record of pending){if(!waRecoveryCloudAllowed())break;await waRecoveryUpload(record);}}return false;}catch(e){waRecoveryFault=/permission|denied/i.test(String(e?.message||e))?'Firebase no permitió sincronizar las versiones. Se conservan en este dispositivo.':'No se completó la sincronización de versiones. '+(e.message||'Reintenta con internet.');return false;}};
+      waRecoveryWriting=work().finally(()=>{waRecoveryWriting=null;waRecoveryStatus();if(waRecoveryPending.size)waRecoveryScheduleCloud();});waRecoveryStatus();return waRecoveryWriting;
+    }
+    function waRecoveryStart(){if(waRecoveryDisabled()||!isAdminMode)return;waRecoveryFault='';if(!waRecoveryLastCatalog&&products.length)waRecoveryLastCatalog=waRecoveryCatalogPayload();if(waRecoveryLastCatalog)waRecoveryQueue('catalog',waRecoveryLastCatalog);if(waScene)try{waRecoveryQueue('design',waProject(),waAutoRevision);}catch{}waRecoveryScheduleCloud();}
+    async function waSaveDesignCloud(){if(!waScene)return;try{if(!isAdminMode)throw Error('Entra como administrador para sincronizar tus diseños.');waFinishCrop(true);waFinishInline();await waWaitBackground();await waFontsReady;await waWaitFontActions();await waFlushAutosave();await waRecoveryFlushLocal();const record=await waRecoveryCapture('design',waClone(waProject()),{revision:waAutoRevision});if(!await waRecoveryFlushCloud())throw Error(waRecoveryFault||'El diseño está guardado aquí; falta conexión con la nube.');const saved=await waRecoveryStore('versions','get',record.id);if(saved?.cloudState!=='confirmed')throw Error('Todavía no se confirmó la subida. Pulsa Reintentar.');showToast('Diseño disponible en otros dispositivos.');}catch(e){showToast(e.message,'error');waRecoveryStatus();}}
+    async function waRecoveryExpand(record){
+      if(!record.body){const text=await waRecoveryReadCloudText('documents/'+record.id,record.docHash);record.body=JSON.parse(text);}
+      if(await waRecoveryHash(JSON.stringify(record.body))!==record.docHash)throw Error('La versión no pasó la comprobación de integridad.');let total=0;
+      const visit=async(value,depth=0)=>{if(depth>40)throw Error('Estructura del respaldo inválida.');if(value&&typeof value==='object'&&Object.keys(value).length===1&&typeof value.__nancyRecoveryAsset==='string'){const hash=value.__nancyRecoveryAsset;if(!/^[a-f0-9]{64}$/.test(hash))throw Error('Foto o fuente inválida.');let asset;try{asset=await waRecoveryStore('assets','get',hash);}catch{}if(typeof asset!=='string'){if(!waRecoveryCloudAllowed())throw Error('Falta una foto o fuente. Conéctate a internet para recuperarla.');asset=await waRecoveryReadCloudText('assets/'+hash,hash);try{await waRecoveryStore('assets','put',hash,asset);}catch{}}if(await waRecoveryHash(asset)!==hash)throw Error('Una foto o fuente está dañada. Elige otra versión.');total+=asset.length;if(total>WA_RECOVERY_MAX)throw Error('La versión supera el tamaño permitido.');return asset;}if(Array.isArray(value)){const out=[];for(const child of value)out.push(await visit(child,depth+1));return out;}if(value&&typeof value==='object'){const entries=[];for(const [key,child]of Object.entries(value))entries.push([key,await visit(child,depth+1)]);return Object.fromEntries(entries);}return value;};
+      const result=await visit(record.body);waRecoveryValidate(record.kind,result);return result;
+    }
+    window.addEventListener('online',()=>waRecoveryStart());
+
+    function waRecoveryMessage(text){const el=waEl('recoveryMessage');if(el)el.textContent=text;}
+    function waRecoveryDate(at){return new Date(at).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'});}
+    async function waOpenRecovery(kind='design'){
+      if(!isAdminMode){showToast('Entra como administrador para abrir tus versiones.','info');return;}waRecoveryKind=kind==='catalog'?'catalog':'design';waRecoverySelection=null;waEl('recoveryPreview').hidden=true;waEl('recoveryHeading').textContent=waRecoveryKind==='catalog'?'Respaldos del catálogo':'Mis diseños y versiones';waEl('recoveryNote').textContent=waRecoveryKind==='catalog'?'Recupera artículos, fotos, precios, existencias y categorías. Antes de restaurar se guardará una copia del catálogo actual.':'Abre una versión para seguir editando con sus fotos, fuentes y acomodo. Tu diseño actual se guarda antes de abrir otro.';openModal('recoveryModal');
+      if(waRecoveryKind==='design'&&waScene)try{waFinishCrop(true);waFinishInline();await waFontsReady;await waWaitFontActions();waRecoveryQueue('design',waProject(),waAutoRevision);}catch(e){waRecoveryMessage(e.message);}await waRecoveryFlushLocal();await waRefreshRecovery();
+    }
+    function waRecoveryValidIndex(record,kind){return record&&record.kind===kind&&typeof record.id==='string'&&/^[0-9]{13}_[a-z0-9_-]{8,100}$/i.test(record.id)&&Number.isFinite(record.at)&&record.at>0&&typeof record.title==='string'&&record.title.length<250&&/^[a-f0-9]{64}$/.test(record.docHash);}
+    async function waRefreshRecovery(){
+      const token=++waRecoveryListToken,kind=waRecoveryKind,host=waEl('recoveryList');host.replaceChildren();waRecoveryMessage('Buscando versiones guardadas…');let local=[],remote=[],warnings=[];
+      try{local=(await waRecoveryStore('versions','all')||[]).filter(r=>waRecoveryValidIndex(r,kind));}catch{warnings.push('Este navegador no permitió leer las versiones locales.');}
+      if(waRecoveryCloudAllowed())try{const snapshot=await waFontTimeout(db.ref(WA_RECOVERY_ROOT+'/index/'+kind).orderByKey().limitToLast(20).once('value'),'La nube no respondió. Se muestran las versiones de este dispositivo.',15000);remote=Object.values(snapshot.val()||{}).filter(r=>waRecoveryValidIndex(r,kind));}catch(e){warnings.push(/permission|denied/i.test(String(e?.message||e))?'Firebase no permitió leer las versiones compartidas.':e.message);}
+      else warnings.push('Sin conexión con la nube. Se muestran las versiones de este dispositivo.');
+      if(token!==waRecoveryListToken||kind!==waRecoveryKind)return;const records=new Map(remote.map(r=>[r.id,{...r,source:'cloud'}]));for(const r of local)records.set(r.id,{...r,source:r.cloudState==='confirmed'?'both':'local'});const sorted=Array.from(records.values()).sort((a,b)=>b.id.localeCompare(a.id)).slice(0,20);
+      for(const record of sorted){const item=document.createElement('article'),title=document.createElement('b'),detail=document.createElement('p'),button=document.createElement('button');title.textContent=record.title;detail.textContent=waRecoveryDate(record.at)+' · '+({local:'Solo en este dispositivo · pendiente de sincronizar',cloud:'En la nube',both:'En este dispositivo y en la nube'})[record.source];button.type='button';button.textContent=kind==='catalog'?'Revisar respaldo':'Revisar y abrir';button.onclick=()=>waReviewRecovery(record);item.className='wa-recovery-item';item.append(title,detail,button);host.append(item);}
+      waRecoveryMessage((sorted.length?'Se muestran las '+sorted.length+' versiones más recientes.':'Todavía no hay versiones guardadas.')+(warnings.length?' '+warnings.join(' '):''));
+    }
+    async function waReviewRecovery(record){
+      if(waRecoveryBusy)return;waRecoveryBusy=true;waRecoveryMessage('Abriendo y comprobando la versión…');try{const value=await waRecoveryExpand({...record});if(waRecoveryKind!==record.kind)return;waRecoverySelection={record,value};const preview=waEl('recoveryPreview'),summary=waEl('recoverySummary');preview.hidden=false;summary.textContent=record.kind==='catalog'?waRecoveryDate(record.at)+' · '+value.products.length+' artículos · '+cleanCategories(value.categories).length+' categorías · '+value.storeName:waRecoveryDate(record.at)+' · '+(value.name||'Mi diseño')+' · '+Object.keys(value.drafts).length+' plantillas editadas · '+(value.fontAssets?.length||0)+' fuentes incluidas';waEl('recoveryApply').textContent=record.kind==='catalog'?'Restaurar este catálogo':'Abrir este diseño';waEl('recoveryApply').disabled=false;waRecoveryMessage('Versión comprobada. Revisa los datos y pulsa el botón para recuperarla.');}catch(e){waRecoveryMessage(e.message||'No se pudo abrir esta versión.');}finally{waRecoveryBusy=false;}
+    }
+    async function waApplyRecovery(){
+      if(waRecoveryBusy||!waRecoverySelection||!isAdminMode)return;const selected=waRecoverySelection;waRecoveryBusy=true;waEl('recoveryApply').disabled=true;
+      try{
+        if(selected.record.kind==='design'){
+          await waRestoreOnce();waFinishCrop(true);waFinishInline();if(waScene){await waFontsReady;await waWaitFontActions();await waRecoveryCapture('design',waClone(waProject()),{revision:waAutoRevision});}
+          await waOpenProject(waClone(selected.value));waProjectLabel=selected.value.name||'Mi diseño';waRecoveryQueue('design',waProject(),waAutoRevision);closeModal('recoveryModal');await openStatusModal();waPanel('save');showToast('Diseño recuperado con sus fotos, fuentes y estilos.');
+        }else{
+          waRecoveryValidateCatalog(selected.value);waRecoveryMessage('Guardando una copia del catálogo actual antes de restaurar…');await waRecoveryCapture('catalog',waRecoveryCatalogPayload());
+          const restored=waClone(selected.value);products=restored.products;storeName=restored.storeName;waNumber=restored.waNumber;customCategories=cleanCategories(restored.categories);refreshCategoryInputs();updateHeaderAndStats();renderClient();renderAdmin();saveLocalCache();const synced=await saveToFirebase();waRecoveryObserveCatalog(waRecoveryCatalogPayload());
+          waRecoveryMessage(synced?'Catálogo restaurado y sincronizado. La copia anterior sigue en la lista.':'Catálogo recuperado en este dispositivo. Falta sincronizarlo con Firebase; revisa tu conexión.');waRecoverySelection=null;waEl('recoveryPreview').hidden=true;showToast(synced?'Catálogo restaurado.':'Recuperado aquí; pendiente de sincronizar.',synced?'success':'info');
+        }
+      }catch(e){waRecoveryMessage('No se completó la recuperación. '+(e.message||''));}finally{waRecoveryBusy=false;waEl('recoveryApply').disabled=false;}
+    }
+    async function waDownloadRecovery(){if(!waRecoverySelection)return;try{const {record,value}=waRecoverySelection;waDownloadBlob(new Blob([JSON.stringify(value)],{type:'application/json'}),(record.kind==='catalog'?'respaldo-catalogo-':'diseno-nancy-')+record.id+'.json');}catch(e){waRecoveryMessage(e.message);}}
+    async function waRetryRecovery(){waRecoveryFault='';waRecoveryStatus();await waRecoveryFlushLocal();const ok=await waRecoveryFlushCloud();waRecoveryMessage(ok?'Versiones sincronizadas.':waRecoveryFault||'Todavía no se pudo conectar con la nube.');await waRefreshRecovery();}
+
     // Los borradores publicitarios se guardan solo en este dispositivo.
     let waAutoRevision=0,waAutoSavedRevision=0,waAutoTimer=null,waAutoWriting=null,waAutoRestoreTask=null,waAutoRestoring=false;
     function waAutoStatus(text){const el=waEl('wa-auto-status');if(el&&el.textContent!==text)el.textContent=text;}
     function waAutoDB(){return new Promise((ok,no)=>{if(!window.indexedDB){no(new Error('No se permite guardar en este navegador.'));return;}const request=indexedDB.open('nancy_wa_autosave_v1',1);request.onupgradeneeded=()=>request.result.createObjectStore('projects');request.onsuccess=()=>ok(request.result);request.onerror=()=>no(request.error);request.onblocked=()=>no(new Error('Almacenamiento ocupado.'));});}
     async function waReadAutosave(){const db=await waAutoDB();try{return await new Promise((ok,no)=>{const tx=db.transaction('projects'),request=tx.objectStore('projects').get('latest');let record;request.onsuccess=()=>{record=request.result;};tx.oncomplete=()=>ok(record||null);tx.onerror=()=>no(tx.error);tx.onabort=()=>no(tx.error);});}finally{db.close();}}
     async function waWriteAutosave(record){const db=await waAutoDB();try{await new Promise((ok,no)=>{const tx=db.transaction('projects','readwrite');tx.objectStore('projects').put(record,'latest');tx.oncomplete=ok;tx.onerror=()=>no(tx.error);tx.onabort=()=>no(tx.error);});}finally{db.close();}}
-    function waScheduleAutosave(){if(!waScene||waAutoRestoring)return;waAutoRevision++;clearTimeout(waAutoTimer);waAutoStatus('Guardando diseño…');waAutoTimer=setTimeout(()=>{waAutoTimer=null;waFlushAutosave();},650);}
+    function waScheduleAutosave(){if(!waScene||waAutoRestoring)return;waAutoRevision++;waRecoveryDesignChanged();clearTimeout(waAutoTimer);waAutoStatus('Guardando diseño…');waAutoTimer=setTimeout(()=>{waAutoTimer=null;waFlushAutosave();},650);}
     function waFlushAutosave(){
       clearTimeout(waAutoTimer);waAutoTimer=null;if(waAutoWriting)return waAutoWriting;if(!waScene||waAutoRestoring||waAutoSavedRevision===waAutoRevision)return Promise.resolve();
       const save=async()=>{try{
-        while(waScene&&!waAutoRestoring&&waAutoSavedRevision!==waAutoRevision){const revision=waAutoRevision,project=waClone(waProject());waValidateProject(project);await waWriteAutosave({format:'nancy-wa-autosave',version:1,savedAt:Date.now(),project});waAutoSavedRevision=revision;}
+        while(waScene&&!waAutoRestoring&&waAutoSavedRevision!==waAutoRevision){const revision=waAutoRevision,project=waClone(waProject());waValidateProject(project);await waWriteAutosave({format:'nancy-wa-autosave',version:1,savedAt:Date.now(),project});waAutoSavedRevision=revision;waRecoveryQueue('design',project,revision);}
         waAutoStatus('Guardado en este dispositivo');
       }catch(e){waAutoStatus('No se pudo guardar aquí. Usa Guardar → Descargar proyecto.');}};waAutoWriting=save().finally(()=>{waAutoWriting=null;});return waAutoWriting;
     }
@@ -1992,7 +1949,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       if(waAutoRestoreTask)return waAutoRestoreTask;
       waAutoRestoreTask=(async()=>{waAutoRestoring=true;try{const record=await waReadAutosave();if(record?.format==='nancy-wa-autosave'&&record.version===1&&record.project){waValidateProject(record.project);await waOpenProject(waClone(record.project));waAutoSavedRevision=waAutoRevision;waAutoStatus('Último diseño recuperado');}else waAutoStatus('Guardado automático en este dispositivo');}catch(e){waAutoStatus('Guardado automático no disponible. Puedes descargar el proyecto.');}finally{waAutoRestoring=false;}})();return waAutoRestoreTask;
     }
-    function waAutoBackground(){waClearTouches();if(waScene){waFinishInline();waFlushAutosave();}}
+    function waAutoBackground(){waClearTouches();if(waScene){waFinishInline();waFlushAutosave();waRecoveryFlushLocal();}}
     window.addEventListener('pagehide',waAutoBackground);
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')waAutoBackground();});
 
@@ -2073,6 +2030,56 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       for(let i=0;i<layout.lines.length;i++){if(n.stroke&&n.lineWidth)c.strokeText(layout.lines[i],x,pad+i*layout.lineHeight);c.fillText(layout.lines[i],x,pad+i*layout.lineHeight);}
     }
 
+    let catalogNewSession=0,catalogPhotoToken=0,catalogPhotoTask=Promise.resolve(true),catalogPhotoPending=false,catalogNewSaving=false,catalogLastAddedId=null,catalogOrderOpen=false,catalogCartNotice='';
+    const catalogProductById=id=>products.find(p=>String(p.id)===String(id));
+    const catalogMoney=cents=>'$'+(cents/100).toLocaleString('es-MX',{minimumFractionDigits:cents%100===0?0:2,maximumFractionDigits:2});
+    function catalogNextCode(){let max=products.length;for(const p of products){const match=String(p.code||'').match(/\d+/),number=Number(match?.[0]);if(Number.isSafeInteger(number)&&number<=1e12)max=Math.max(max,number);}let code;do{code='#'+String(++max).padStart(2,'0');}while(products.some(p=>catalogCodeKey(p.code)===catalogCodeKey(code)));return code;}
+    const catalogCodeKey=value=>String(value||'').replace(/^#/,'').trim().toLowerCase();
+    function catalogNewButtons(){for(const id of ['newSaveAnother','newSaveClose']){const button=waEl(id);if(button)button.disabled=catalogNewSaving||catalogPhotoPending;}}
+    function catalogNewOptionsHint(){const cat=waEl('newCat').value||getCategories()[0]||'',code=waEl('newCode').value.trim()||catalogNextCode();waEl('newOptionsHint').textContent=cat+' · '+code;}
+    function catalogClearNewPhoto(){catalogPhotoToken++;catalogPhotoPending=false;catalogPhotoTask=Promise.resolve(true);newModalCompressedPhoto='';const input=waEl('newPhotoInput');input.value='';waEl('newPhotoPreview').hidden=true;waEl('newPhotoPreview').removeAttribute?.('src');waEl('newPhotoEmpty').hidden=false;waEl('newPhotoRemove').hidden=true;waEl('newPhotoStatus').textContent='La foto es opcional. Puedes añadirla después.';catalogNewButtons();}
+    function catalogResetNewProduct(category=''){
+      catalogNewSession++;waEl('newProductForm').reset();refreshCategoryInputs();let remembered='';try{remembered=localStorage.getItem('nancy_last_category_v1')||'';}catch{}const selected=getCategories().find(c=>c===category)||getCategories().find(c=>c===remembered)||getCategories()[0]||'';waEl('newCat').value=selected;waEl('newCode').value=catalogNextCode();waEl('newName').value='';waEl('newPrice').value='';waEl('newStock').value='1';waEl('newDescription').value='';waEl('newMoreOptions').open=false;waEl('newProductMessage').textContent='';catalogClearNewPhoto();catalogNewOptionsHint();
+    }
+    function openNewModal(){if(!isAdminMode)return;if(catalogNewSaving)return;const selected=waEl('adminCategory').value;catalogResetNewProduct(selected==='ALL'?'':selected);waEl('newProductSaveStatus').textContent='';openModal('newModal');}
+    function catalogCloseNewProduct(){if(catalogNewSaving){showToast('Espera un momento a que termine de preparar el producto.','info');return false;}catalogNewSession++;catalogPhotoToken++;catalogPhotoPending=false;return true;}
+    function previewNewProductPhoto(event){
+      const input=event.target,file=input.files?.[0];if(!file)return Promise.resolve(false);const session=catalogNewSession,token=++catalogPhotoToken;catalogPhotoPending=true;waEl('newPhotoStatus').textContent='Preparando la foto…';waEl('newPhotoRemove').hidden=false;catalogNewButtons();
+      catalogPhotoTask=(async()=>{try{if(!String(file.type||'').startsWith('image/'))throw Error('Elige una foto PNG, JPG o WebP.');if(file.size>30*1024*1024)throw Error('La foto es demasiado grande. Elige una de menos de 30 MB.');const src=await waFontTimeout(compressImage(file),'No se pudo abrir la foto. Intenta elegirla otra vez.',20000);if(session!==catalogNewSession||token!==catalogPhotoToken)return false;newModalCompressedPhoto=src;waEl('newPhotoPreview').src=src;waEl('newPhotoPreview').hidden=false;waEl('newPhotoEmpty').hidden=true;waEl('newPhotoStatus').textContent='Foto lista.';return true;}catch(e){if(session===catalogNewSession&&token===catalogPhotoToken){waEl('newPhotoStatus').textContent=e.message||'No se pudo leer la foto. Elige otra o pulsa «Quitar foto».';showToast(e.message||'No se pudo leer la foto.','error');}return false;}finally{if(session===catalogNewSession&&token===catalogPhotoToken){catalogPhotoPending=false;input.value='';catalogNewButtons();}}})();return catalogPhotoTask;
+    }
+    async function saveNewProduct(event){
+      event.preventDefault();if(!isAdminMode||catalogNewSaving)return;const another=event.submitter?.value==='another',session=catalogNewSession;catalogNewSaving=true;catalogNewButtons();waEl('newProductMessage').textContent='';
+      try{
+        let task,photoOK;do{task=catalogPhotoTask;photoOK=await task;}while(task!==catalogPhotoTask);if(session!==catalogNewSession)return;if(!photoOK)throw Error('Revisa la foto. Puedes elegir otra o pulsar «Quitar foto» para continuar.');
+        const name=waEl('newName').value.trim(),rawPrice=waEl('newPrice').value,rawStock=waEl('newStock').value,price=Number(rawPrice),stock=Number(rawStock),code=waEl('newCode').value.trim()||catalogNextCode(),category=waEl('newCat').value||getCategories()[0]||'';
+        if(!name||name.length>150){waEl('newName').focus();throw Error('Escribe el nombre del producto.');}if(rawPrice.trim()===''||!Number.isFinite(price)||price<0||price>9999999){waEl('newPrice').focus();throw Error('Escribe un precio válido, mayor o igual a cero.');}if(rawStock.trim()===''||!Number.isInteger(stock)||stock<0||stock>999999){waEl('newStock').focus();throw Error('La existencia debe ser un número entero, mayor o igual a cero.');}
+        if(!getCategories().includes(category))throw Error('Elige una categoría en «Más opciones».');if(code.length>40)throw Error('El código debe tener como máximo 40 caracteres.');if(products.some(p=>catalogCodeKey(p.code)===catalogCodeKey(code))){waEl('newMoreOptions').open=true;waEl('newCode').focus();throw Error('Ese código ya existe. Usa otro código para este producto.');}
+        let id=Date.now();while(products.some(p=>String(p.id)===String(id)))id++;const product={id,code,name,category,price:Math.round(price*100)/100,stock,description:waEl('newDescription').value.trim().slice(0,1000),icon:'🛍️',photo:newModalCompressedPhoto};products.push(product);catalogLastAddedId=id;try{localStorage.setItem('nancy_last_category_v1',category);}catch{}const localSaved=saveLocalCache()!==false;updateHeaderAndStats();renderAdmin();renderClient();
+        catalogNewSaving=false;if(another){catalogResetNewProduct(category);waEl('newName').focus({preventScroll:true});}else closeModal('newModal');waEl('newProductSaveStatus').textContent=localSaved?'Producto '+code+' guardado aquí. Sincronizando…':'Producto agregado. No cierres la página hasta que se confirme la sincronización.';showToast(localSaved?(another?'Producto guardado. Puedes agregar el siguiente.':'Producto guardado.'):'El navegador no pudo guardar el producto aquí. Espera la sincronización.');
+        Promise.resolve().then(()=>saveToFirebase()).then(saved=>{const message=saved?'Producto '+code+' sincronizado con el catálogo.':localSaved?'Producto '+code+' guardado en este dispositivo. Pendiente de sincronizar.':'El producto sigue en esta página, pero no se pudo guardar ni sincronizar. Descarga un respaldo antes de cerrar.';if(catalogLastAddedId===id)waEl('newProductSaveStatus').textContent=message;if(!saved||!localSaved)showToast(message,saved?'success':'info');}).catch(()=>{const message=localSaved?'Guardado aquí. No se pudo confirmar la sincronización.':'No se confirmó el guardado. Descarga un respaldo antes de cerrar esta página.';if(catalogLastAddedId===id)waEl('newProductSaveStatus').textContent=message;showToast(message,'info');});
+      }catch(e){waEl('newProductMessage').textContent=e.message||'No se pudo guardar el producto. Revisa sus datos.';}finally{catalogNewSaving=false;catalogNewButtons();}
+    }
+    function catalogCartItems(){
+      const items=[];for(const [key,rawQty]of Object.entries(cart)){const product=catalogProductById(key),stock=Math.max(0,Math.floor(Number(product?.stock)||0)),qty=Math.min(stock,Math.max(0,Math.floor(Number(rawQty)||0))),price=Number(product?.price);if(!product||!Number.isFinite(qty)||qty===0||!Number.isFinite(price)||price<0||!Number.isSafeInteger(Math.round(price*100))){delete cart[key];if(rawQty>0)catalogCartNotice='Actualizamos el pedido porque cambió la disponibilidad de un producto.';continue;}if(qty!==Number(rawQty))catalogCartNotice='Ajustamos una cantidad a las existencias disponibles.';cart[key]=qty;items.push({product,qty,stock,unitCents:Math.round(price*100),subtotal:Math.round(price*100)*qty});}return items;
+    }
+    function catalogSetCartQty(id,value){
+      const p=catalogProductById(id);if(!p)return;const qty=Number(value);if(String(value).trim()===''||!Number.isFinite(qty)||!Number.isInteger(qty)){showToast('Escribe una cantidad de unidades completas.','info');if(catalogOrderOpen)catalogRenderOrder();return;}const max=Math.max(0,Math.floor(Number(p.stock)||0)),safe=Math.min(max,Math.max(0,qty));if(safe>0)Object.defineProperty(cart,String(id),{value:safe,writable:true,configurable:true,enumerable:true});else delete cart[String(id)];if(qty>max){catalogCartNotice='Solo quedan '+max+' unidades de '+p.name+'.';showToast(catalogCartNotice,'info');}renderClient();
+    }
+    function addToCart(id){const p=catalogProductById(id);if(!p)return;catalogSetCartQty(id,(Number(cart[String(id)])||0)+1);}
+    function removeFromCart(id){catalogSetCartQty(id,(Number(cart[String(id)])||0)-1);}
+    function updateCartBar(){const items=catalogCartItems(),count=items.reduce((sum,i)=>sum+i.qty,0),total=items.reduce((sum,i)=>sum+i.subtotal,0),bar=waEl('waCartBar');bar.classList.toggle('hidden',!count||isAdminMode);waEl('cartCountText').textContent=count+' unidad'+(count===1?'':'es')+' · '+items.length+' producto'+(items.length===1?'':'s');waEl('cartTotalText').textContent='Total: '+catalogMoney(total);if(catalogOrderOpen)catalogRenderOrder(items);}
+    function catalogOpenOrder(){if(isAdminMode)return;catalogOrderOpen=true;catalogCartNotice='';catalogRenderOrder();openModal('orderModal');}
+    function catalogRenderOrder(items=catalogCartItems()){
+      const host=waEl('orderItems');host.replaceChildren();const count=items.reduce((sum,i)=>sum+i.qty,0),total=items.reduce((sum,i)=>sum+i.subtotal,0);waEl('orderCount').textContent=count+' unidad'+(count===1?'':'es')+' en '+items.length+' producto'+(items.length===1?'':'s');waEl('orderTotal').textContent=catalogMoney(total);
+      if(!items.length){const empty=document.createElement('p');empty.textContent='Tu pedido está vacío. Agrega productos para continuar.';host.append(empty);}
+      for(const item of items){const p=item.product,row=document.createElement('article'),img=document.createElement('img'),body=document.createElement('div'),title=document.createElement('h3'),price=document.createElement('p'),line=document.createElement('div'),quantity=document.createElement('div'),less=document.createElement('button'),input=document.createElement('input'),more=document.createElement('button'),subtotal=document.createElement('strong'),remove=document.createElement('button');row.className='catalog-order-row';img.src=getProductImage(p);img.alt='';title.textContent=p.name;price.textContent=(p.code?p.code+' · ':'')+catalogMoney(item.unitCents)+' por unidad';line.className='catalog-order-line';quantity.className='catalog-quantity';less.type=more.type=remove.type='button';less.textContent='−';more.textContent='+';less.setAttribute('aria-label','Quitar una unidad de '+p.name);more.setAttribute('aria-label','Agregar una unidad de '+p.name);less.onclick=()=>catalogSetCartQty(p.id,item.qty-1);more.onclick=()=>catalogSetCartQty(p.id,item.qty+1);more.disabled=item.qty>=item.stock;input.type='number';input.inputMode='numeric';input.min='0';input.max=String(item.stock);input.step='1';input.value=String(item.qty);input.setAttribute('aria-label','Cantidad de '+p.name);input.onchange=()=>catalogSetCartQty(p.id,input.value);input.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();catalogSetCartQty(p.id,input.value);}};subtotal.textContent=catalogMoney(item.subtotal);remove.className='catalog-remove';remove.textContent='Quitar producto';remove.setAttribute('aria-label','Quitar '+p.name+' del pedido');remove.onclick=()=>catalogSetCartQty(p.id,0);quantity.append(less,input,more);line.append(quantity,subtotal);body.append(title,price,line,remove);row.append(img,body);host.append(row);}
+      const phone=String(waNumber||'').replace(/\D/g,''),ready=/^\d{7,15}$/.test(phone);waEl('orderSend').disabled=!items.length||!ready;waEl('orderNote').textContent=!ready?'El catálogo todavía no tiene un número de WhatsApp disponible para pedidos.':(catalogCartNotice?catalogCartNotice+' ':'')+'La disponibilidad y la entrega se confirman por WhatsApp.';
+    }
+    function catalogBuildWhatsAppOrder(items=catalogCartItems()){
+      if(!items.length)throw Error('Agrega al menos un producto al pedido.');const phone=String(waNumber||'').replace(/\D/g,'');if(!/^\d{7,15}$/.test(phone))throw Error('El catálogo todavía no tiene un número de WhatsApp disponible.');const total=items.reduce((sum,i)=>sum+i.subtotal,0),lines=['¡Hola! Me gustaría hacer este pedido del catálogo:',''];for(const {product:p,qty,unitCents,subtotal}of items)lines.push('• '+(p.code?p.code+' · ':'')+p.name+'\n  '+qty+' × '+catalogMoney(unitCents)+' = '+catalogMoney(subtotal));lines.push('','Total de productos: '+catalogMoney(total),'¿Me confirmas disponibilidad y cómo sería la entrega?');return {url:'https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\n')),text:lines.join('\n'),totalCents:total,units:items.reduce((sum,i)=>sum+i.qty,0)};
+    }
+    function sendWhatsAppOrder(){if(!catalogOrderOpen){catalogOpenOrder();return;}try{const before=JSON.stringify(cart),items=catalogCartItems();catalogRenderOrder(items);if(before!==JSON.stringify(cart)){showToast('Cambió la disponibilidad. Revisa las cantidades antes de enviar.','info');return;}const order=catalogBuildWhatsAppOrder(items);window.open(order.url,'_blank','noopener,noreferrer');}catch(e){showToast(e.message,'info');}}
+
     let waActivePanel='',waInlineId='',waInlineUndo=false,waCanvasZoom=1,waInlineHistoryGroup=false;
     const waMeasureCanvas=document.createElement('canvas'),waMeasureContext=waMeasureCanvas.getContext('2d');
     function waTextKey(n){return JSON.stringify([n.text,n.font,n.fontSize,n.weight,n.italic,n.align,n.textStyle,n.effectStrength,n.badge]);}
@@ -2091,7 +2098,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     function waPanel(name){waFinishCrop(true);waFinishInline();waActivePanel=name;waEl('wa-sheet').hidden=false;waEl('wa-sheet-title').textContent=({design:'Diseño',save:'Guardar y abrir',badges:'Añadir sello',selection:waNode()?.label||'Editar'})[name];if(name==='badges')waEl('wa-badge-presets').innerHTML=waBadgeButtons();for(const el of document.querySelectorAll('[data-simple-panel]'))el.hidden=el.dataset.simplePanel!==name;}
     function waClosePanel(){waFinishCrop(true);waGroupMoveSlot=null;waFinishInline();waActivePanel='';waEl('wa-sheet').hidden=true;waSelected='';waPreviewSelection();waFontStatus('');}
     function waSimpleRefresh(){
-      if(!waScene)return;const s=waScene,t=WA_TEMPLATES[s.template-1];
+      if(!waScene)return;waEl('wa-design-name').value=waProjectLabel;const s=waScene,t=WA_TEMPLATES[s.template-1];
       waEl('wa-format').innerHTML=waFormatOptions();waEl('wa-format').value=s.pageFormat||'story';waSizeCanvas();
       waEl('wa-template').innerHTML=WA_TEMPLATES.map((t,i)=>'<option value="'+(i+1)+'">'+(i+1)+' · '+waEscape(t[0])+'</option>').join('');waEl('wa-template').value=s.template;
       waEl('wa-count').innerHTML=Array.from({length:t[2]-t[1]+1},(_,i)=>'<option>'+(t[1]+i)+'</option>').join('');waEl('wa-count').value=s.count;
@@ -2225,10 +2232,10 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     function waSyncContact(){waRemember();const n=waScene.layers.find(n=>n.role==='contact');if(n)n.text=waNumber||'Configura tu WhatsApp en el catálogo';waChanged(true);}
     async function waSetQr(url){const scene=waScene;scene.qrUrl=url;try{if(url&&!/^https?:\/\//i.test(url))throw new Error('Usa un enlace completo https:// para el QR.');if(!url){waToggleQr(false);return;}if(typeof QRCode==='undefined')throw new Error('El generador QR requiere conexión a Internet. Puedes cargar tu propio QR.');const box=document.createElement('div');new QRCode(box,{text:url,width:280,height:280,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});await new Promise(ok=>setTimeout(ok,40));const c=box.querySelector('canvas');if(!c)throw new Error('No fue posible generar el QR.');if(scene!==waScene)return;waRemember();const n=scene.layers.find(n=>n.role==='qr');if(n){n.src=c.toDataURL('image/png');n.visible=true;scene.qrVisible=true;}waChanged(true);}catch(err){showToast(err.message,'error');}}
     function waToggleQr(on){const n=waScene.layers.find(n=>n.role==='qr');if(!n)return;if(on&&!n.src){waSetQr(waEl('wa-qr-url').value);return;}waRemember();n.visible=on;waScene.qrVisible=on;waChanged(true);}
-    function waProject(){waDrafts[waScene.template]=waScene;return {format:'nancy-wa-studio',version:1,active:waScene.template,drafts:waDrafts,fontAssets:waProjectFontAssets(waDrafts)};}
+    function waProject(){waDrafts[waScene.template]=waScene;return {format:'nancy-wa-studio',version:1,name:waProjectLabel,active:waScene.template,drafts:waDrafts,fontAssets:waProjectFontAssets(waDrafts)};}
     async function waSaveLocal(){try{await waFontsReady;await waWaitFontActions();localStorage.setItem('nancy_wa_projects_v1',JSON.stringify(waProject()));showToast('Proyecto guardado solo en este navegador.');}catch(e){showToast('No hay espacio local. Descarga el proyecto JSON para conservar las fotos.','error');}}
     function waValidateProject(p){if(p?.format!=='nancy-wa-studio'||p.version!==1||!p.drafts||typeof p.drafts!=='object')throw new Error('Proyecto no compatible.');for(const [key,s]of Object.entries(p.drafts)){const t=WA_TEMPLATES[Number(key)-1];if(!t||s.template!==Number(key)||s.count<t[1]||s.count>t[2]||!Array.isArray(s.layers)||s.layers.length>600||!Array.isArray(s.slots)||s.slots.length!==s.count||!s.palette)throw new Error('Estructura de proyecto inválida.');for(const c of Object.values(s.palette))if(typeof c!=='string'||!/^#[0-9a-f]{6}$/i.test(c))throw new Error('Paleta inválida.');waValidateTools(s);for(const n of s.layers){if(!['rect','ellipse','poly','text','image','pattern'].includes(n.type)||typeof n.id!=='string'||!['x','y','w','h','scale','opacity','rotation'].every(k=>Number.isFinite(n[k]))||n.w<=0||n.w>5000||n.h<=0||n.h>5000||n.scale<=0||n.scale>10)throw new Error('Capa inválida.');if(n.src&&!/^(data:image\/(png|jpeg|webp|gif);base64,|https?:\/\/)/i.test(n.src))throw new Error('Origen de foto no permitido.');if(n.backgroundOriginal&&(n.type!=='image'||typeof n.backgroundOriginal.src!=='string'||!/^(data:image\/(png|jpeg|webp|gif);base64,|https?:\/\/)/i.test(n.backgroundOriginal.src)||!['contain','cover','stretch'].includes(n.backgroundOriginal.fit)||n.backgroundOriginal.crop&&(!['zoom','x','y'].every(k=>Number.isFinite(n.backgroundOriginal.crop[k]))||n.backgroundOriginal.crop.zoom<1||n.backgroundOriginal.crop.zoom>5||Math.abs(n.backgroundOriginal.crop.x)>1||Math.abs(n.backgroundOriginal.crop.y)>1)))throw new Error('Foto original inválida.');if(n.crop&&(n.type!=='image'||!['zoom','x','y'].every(k=>Number.isFinite(n.crop[k]))||n.crop.zoom<1||n.crop.zoom>5||Math.abs(n.crop.x)>1||Math.abs(n.crop.y)>1))throw new Error('Recorte inválido.');if(n.type==='poly'&&(!Array.isArray(n.points)||n.points.length>100))throw new Error('Forma inválida.');}}if(!p.drafts[p.active])throw new Error('No se encontró el diseño activo.');return p;}
-    async function waOpenProject(p){waValidateProject(p);await waPrepareProjectFonts(p);waClearTouches();waFinishInline();waDrafts=waClone(p.drafts);for(const s of Object.values(waDrafts)){for(const n of s.layers)if(n.type==='text'&&!n.font?.startsWith('NancyLocal_')&&!WA_SYSTEM_FONTS.includes(n.font))n.font='Arial';waPrepareTextBoxes(s);}waScene=waDrafts[p.active];waSerial=Math.max(waSerial,...Object.values(waDrafts).flatMap(s=>s.layers.map(n=>Number(n.id.replace(/^wa/,''))||0)));waSelected='';waSlot=0;waHistory=[];waFuture=[];waRefresh();drawStatusCanvas();waScheduleAutosave();}
+    async function waOpenProject(p){waValidateProject(p);await waPrepareProjectFonts(p);waClearTouches();waFinishInline();waProjectLabel=typeof p.name==='string'?p.name.slice(0,80):'Mi diseño';waDrafts=waClone(p.drafts);for(const s of Object.values(waDrafts)){for(const n of s.layers)if(n.type==='text'&&!n.font?.startsWith('NancyLocal_')&&!WA_SYSTEM_FONTS.includes(n.font))n.font='Arial';waPrepareTextBoxes(s);}waScene=waDrafts[p.active];waSerial=Math.max(waSerial,...Object.values(waDrafts).flatMap(s=>s.layers.map(n=>Number(n.id.replace(/^wa/,''))||0)));waSelected='';waSlot=0;waHistory=[];waFuture=[];waRefresh();drawStatusCanvas();waScheduleAutosave();}
     async function waLoadLocal(){try{const p=localStorage.getItem('nancy_wa_projects_v1');if(!p)throw new Error('Todavía no hay un proyecto guardado en este navegador.');await waOpenProject(JSON.parse(p));showToast('Proyecto recuperado.');}catch(e){showToast(e.message,'error');}}
     function waDownloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
     async function waExportProject(){try{await waFontsReady;await waWaitFontActions();waDownloadBlob(new Blob([JSON.stringify(waProject())],{type:'application/json'}),'catalogo-nancy-proyecto.json');}catch(e){showToast(e.message,'error');}}
@@ -2401,64 +2408,13 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     }
 
     function closeModal(id) {
+      if(id==='newModal'&&!catalogCloseNewProduct())return;if(id==='orderModal')catalogOrderOpen=false;
       if(id==='statusModal'){waFinishInline();waClearTouches();waFlushAutosave();}
       const el = document.getElementById(id);
       el.classList.add('hidden');
       el.classList.remove('flex');
     }
 
-    // Nuevo artículo
-    function openNewModal() {
-      refreshCategoryInputs();
-      document.getElementById('newProductForm').reset();
-      newModalCompressedPhoto = '';
-      document.getElementById('newPhotoPreview').src = 'https://placehold.co/200x200/fdf2f8/db2777?text=Foto';
-
-      let maxNum = products.length;
-      products.forEach(p => {
-        const match = String(p.code || '').match(/\d+/);
-        if (match) maxNum = Math.max(maxNum, Number(match[0]));
-      });
-      document.getElementById('newCode').value = `#${String(maxNum + 1).padStart(2, '0')}`;
-      openModal('newModal');
-    }
-
-    async function previewNewProductPhoto(event) {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      try {
-        newModalCompressedPhoto = await compressImage(file);
-        document.getElementById('newPhotoPreview').src = newModalCompressedPhoto;
-      } catch (err) {
-        showToast('No se pudo leer la foto', 'error');
-      }
-    }
-
-    async function saveNewProduct(event) {
-      event.preventDefault();
-      const code = document.getElementById('newCode').value.trim() || `#${products.length + 1}`;
-      const name = document.getElementById('newName').value.trim();
-      const category = document.getElementById('newCat').value;
-      const price = Math.max(0, Number(document.getElementById('newPrice').value) || 0);
-      const stock = Math.max(0, Math.floor(Number(document.getElementById('newStock').value) || 0));
-      if (!name) return;
-
-      products.push({
-        id: Date.now(),
-        code,
-        name,
-        category,
-        price,
-        stock,
-        icon: '🛍️',
-        photo: newModalCompressedPhoto
-      });
-
-      closeModal('newModal');
-      renderAdmin();
-      await saveToFirebase();
-      showToast(`Artículo ${code} publicado en vivo`, 'success');
-    }
 
     // Carga masiva de fotos
     function openBulkModal() {
