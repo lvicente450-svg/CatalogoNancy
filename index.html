@@ -1777,6 +1777,95 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     function waDragCrop(drag,n,p){const state=waCropState;if(!state)return;const from=waNodePoint(drag.start,{x:drag.px,y:drag.py}),to=waNodePoint(drag.start,p),frame=waImagePlacement(drag.start,state.image),rangeX=Math.max(0,(frame.w-n.w)/2),rangeY=Math.max(0,(frame.h-n.h)/2),crop=waCropConfig(drag.start);n.crop={zoom:crop.zoom,x:rangeX?Math.min(1,Math.max(-1,crop.x+(to.x-from.x)/rangeX)):0,y:rangeY?Math.min(1,Math.max(-1,crop.y+(to.y-from.y)/rangeY)):0};}
     function waDrawCropGrid(c,n,ratio){c.save();c.translate(n.x+n.w/2,n.y+n.h/2);c.rotate((n.rotation||0)*Math.PI/180);c.scale(n.scale,n.scale);c.translate(-n.w/2,-n.h/2);c.strokeStyle='#ffffff';c.lineWidth=1.2*ratio/(n.scale||1);c.shadowColor='#000000';c.shadowBlur=3*ratio;c.setLineDash([]);c.strokeRect(0,0,n.w,n.h);c.beginPath();for(const factor of [1/3,2/3]){c.moveTo(n.w*factor,0);c.lineTo(n.w*factor,n.h);c.moveTo(0,n.h*factor);c.lineTo(n.w,n.h*factor);}c.stroke();c.restore();}
 
+    // Local inference: U²-Net small (Apache-2.0), Xuebin Qin et al.
+    // https://github.com/xuebinqin/U-2-Net — ONNX mirror verified by SHA-256 below.
+    // ONNX Runtime Web (MIT): https://github.com/microsoft/onnxruntime
+    // Preprocessing follows https://github.com/danielgatis/rembg (MIT).
+    let waBackgroundJob=null,waBackgroundWorker=null,waBackgroundWorkerURL='',waBackgroundSequence=0,waBackgroundIdleTimer=null;
+    function waBackgroundWorkerMain(){
+      let sessionPromise;
+      const runtime='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
+      const model='https://huggingface.co/BritishWerewolf/U-2-Netp/resolve/becee72/onnx/model.onnx';
+      async function modelBytes(){
+        let cache;try{cache=await caches.open('nancy-background-u2netp-v1');const hit=await cache.match(model);if(hit)return new Uint8Array(await hit.arrayBuffer());}catch{}
+        const response=await fetch(model);if(!response.ok)throw Error('No se pudo descargar el recortador. Revisa tu conexión e inténtalo otra vez.');
+        const bytes=new Uint8Array(await response.arrayBuffer());
+        if(bytes.byteLength!==4574861)throw Error('La descarga del recortador quedó incompleta. Inténtalo otra vez.');
+        if(self.crypto?.subtle){const digest=await crypto.subtle.digest('SHA-256',bytes),hash=Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('');if(hash!=='309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8')throw Error('No se pudo verificar el recortador.');}
+        try{await cache?.put(model,new Response(bytes));}catch{}
+        return bytes;
+      }
+      self.onmessage=async({data})=>{
+        const {id,pixels}=data;
+        try{
+          if(!sessionPromise)sessionPromise=(async()=>{
+            self.postMessage({id,status:'Preparando el recortador… La primera vez necesita internet.'});
+            importScripts(runtime+'ort.wasm.min.js');ort.env.wasm.wasmPaths=runtime;ort.env.wasm.numThreads=1;ort.env.wasm.proxy=false;
+            const bytes=await modelBytes();return ort.InferenceSession.create(bytes,{executionProviders:['wasm'],graphOptimizationLevel:'all'});
+          })().catch(e=>{sessionPromise=null;throw e;});
+          const session=await sessionPromise;
+          self.postMessage({id,status:'Quitando fondo… Puedes seguir acomodando tu diseño.'});
+          const size=320*320,input=new Float32Array(size*3),mean=[.485,.456,.406],std=[.229,.224,.225];let max=1;
+          for(let i=0;i<size;i++)for(let ch=0;ch<3;ch++)max=Math.max(max,pixels[i*4+ch]);
+          for(let i=0;i<size;i++)for(let ch=0;ch<3;ch++)input[ch*size+i]=(pixels[i*4+ch]/max-mean[ch])/std[ch];
+          const result=await session.run({[session.inputNames[0]]:new ort.Tensor('float32',input,[1,3,320,320])}),output=result[session.outputNames[0]];
+          if(!output||output.data.length<size)throw Error('No se pudo calcular el recorte.');
+          const values=output.data,mask=new Uint8ClampedArray(size);let min=Infinity,high=-Infinity;
+          for(let i=0;i<size;i++){if(!Number.isFinite(values[i]))throw Error('No se pudo calcular el recorte.');min=Math.min(min,values[i]);high=Math.max(high,values[i]);}
+          if(high-min<1e-6)throw Error('No pude distinguir el producto del fondo. Prueba otra foto.');
+          let foreground=0;for(let i=0;i<size;i++){mask[i]=Math.round((values[i]-min)/(high-min)*255);if(mask[i]>128)foreground++;}
+          if(foreground<size*.003||foreground>size*.997)throw Error('No pude distinguir el producto del fondo. Prueba otra foto.');
+          for(const tensor of Object.values(result))tensor.dispose?.();
+          self.postMessage({id,mask},[mask.buffer]);
+        }catch(e){self.postMessage({id,error:e.message||'No se pudo quitar el fondo.'});}
+      };
+    }
+    function waBackgroundTools(n){
+      const busy=waBackgroundJob?.scene===waScene&&waBackgroundJob.node===n;
+      return '<div class="wa-row">'+(busy?'<button type="button" onclick="waCancelBackground()">Cancelar quitar fondo</button>':'<button type="button" onclick="waRemoveBackground()" '+(!n.src?'disabled':'')+'>Quitar fondo</button>'+(n.backgroundOriginal?'<button type="button" onclick="waRestoreBackground()">Recuperar foto original</button>':''))+'</div>'+(busy?'<p class="wa-note" role="status" id="wa-background-status">'+waEscape(waBackgroundJob.status)+'</p>':'<p class="wa-note">El fondo se quita en tu dispositivo. La primera vez necesita internet y puede tardar un poco.</p>');
+    }
+    function waBackgroundProgress(job,status){job.status=status;if(waBackgroundJob!==job)return;const node=waEl('wa-background-status');if(node&&waNode()===job.node)node.textContent=status;}
+    function waStopBackgroundWorker(){clearTimeout(waBackgroundIdleTimer);if(waBackgroundWorker)waBackgroundWorker.terminate();waBackgroundWorker=null;if(waBackgroundWorkerURL)URL.revokeObjectURL(waBackgroundWorkerURL);waBackgroundWorkerURL='';}
+    function waCancelBackground(){const job=waBackgroundJob;if(!job)return;job.cancelled=true;waStopBackgroundWorker();job.cancel?.();waBackgroundJob=null;waInspector();showToast('Cancelado. Tu foto sigue igual.','info');}
+    function waRunBackground(job,pixels){
+      return new Promise((resolve,reject)=>{
+        let settled=false;const finish=(error,mask)=>{if(settled)return;settled=true;clearTimeout(timer);job.cancel=null;if(error)reject(error);else resolve(mask);};
+        const timer=setTimeout(()=>{waStopBackgroundWorker();finish(Error('El recorte tardó demasiado. Inténtalo otra vez con conexión a internet.'));},180000);
+        job.cancel=()=>finish(new Error('cancelled'));
+        try{
+          clearTimeout(waBackgroundIdleTimer);
+          if(!waBackgroundWorker){waBackgroundWorkerURL=URL.createObjectURL(new Blob(['('+waBackgroundWorkerMain.toString()+')()'],{type:'text/javascript'}));waBackgroundWorker=new Worker(waBackgroundWorkerURL);}
+          waBackgroundWorker.onmessage=({data})=>{if(data.id!==job.id)return;if(data.status)waBackgroundProgress(job,data.status);else if(data.error)finish(new Error(data.error));else if(data.mask)finish(null,data.mask);};
+          waBackgroundWorker.onerror=e=>{e.preventDefault();waStopBackgroundWorker();finish(new Error('No se pudo iniciar el recortador. Revisa internet o prueba con un navegador actualizado.'));};
+          waBackgroundWorker.postMessage({id:job.id,pixels},[pixels.buffer]);
+        }catch(e){waStopBackgroundWorker();finish(e);}
+      });
+    }
+    async function waCreateBackgroundCutout(job){
+      const image=await waLoadImage(job.src);if(job.cancelled)return null;if(!image)throw Error('No se pudo abrir la foto. Vuelve a cargarla.');
+      const small=document.createElement('canvas');small.width=small.height=320;const ctx=small.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#ffffff';ctx.fillRect(0,0,320,320);ctx.drawImage(image,0,0,320,320);
+      let pixels;try{pixels=ctx.getImageData(0,0,320,320).data;}catch{throw Error('Esta foto no permite el recorte. Cárgala desde tu celular con «Cambiar foto».');}
+      const mask=await waRunBackground(job,pixels);if(job.cancelled)return null;
+      const maskCanvas=document.createElement('canvas');maskCanvas.width=maskCanvas.height=320;const mc=maskCanvas.getContext('2d'),rgba=mc.createImageData(320,320);
+      for(let i=0;i<mask.length;i++){rgba.data[i*4]=rgba.data[i*4+1]=rgba.data[i*4+2]=255;rgba.data[i*4+3]=mask[i];}mc.putImageData(rgba,0,0);
+      const canvas=document.createElement('canvas'),scale=Math.min(1,2048/Math.max(image.width,image.height));canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));
+      const output=canvas.getContext('2d');output.drawImage(image,0,0,canvas.width,canvas.height);output.globalCompositeOperation='destination-in';output.imageSmoothingEnabled=true;output.imageSmoothingQuality='high';output.drawImage(maskCanvas,0,0,canvas.width,canvas.height);
+      return canvas.toDataURL('image/png');
+    }
+    function waSetPhotoSource(n,src){n.src=src;if(n.slot!==undefined&&['photo','photo2'].includes(n.role)&&waScene.slots[n.slot])waScene.slots[n.slot][n.role]=src;}
+    async function waRemoveBackground(){
+      const n=waNode();if(n?.type!=='image'||!n.src){showToast('Primero carga una foto.','info');return false;}if(waBackgroundJob){showToast('Ya estoy quitando el fondo de una foto. Espera o cancela ese recorte.','info');return false;}
+      waFinishCrop(true);waFinishInline();const job={id:++waBackgroundSequence,scene:waScene,node:n,src:n.src,status:'Abriendo foto…',cancelled:false};waBackgroundJob=job;waInspector();
+      job.promise=(async()=>{try{
+        const cutout=await waCreateBackgroundCutout(job);if(job.cancelled||!cutout)return false;
+        if(waScene!==job.scene||!waScene.layers.includes(n)||n.src!==job.src){showToast('La foto cambió durante el recorte. Tu diseño se conservó.','info');return false;}
+        waFinishCrop(true);waRemember();if(!n.backgroundOriginal)n.backgroundOriginal={src:n.src,fit:n.fit||'contain',...(n.crop?{crop:waClone(n.crop)}:{})};waSetPhotoSource(n,cutout);waChanged();showToast('Fondo quitado. Puedes recuperar la foto original.');return true;
+      }catch(e){if(!job.cancelled)showToast(e.message||'No se pudo quitar el fondo. Tu foto sigue igual.','error');return false;}
+      finally{if(waBackgroundJob===job){waBackgroundJob=null;waInspector();if(waBackgroundWorker)waBackgroundIdleTimer=setTimeout(()=>{if(!waBackgroundJob)waStopBackgroundWorker();},30000);}}})();return job.promise;
+    }
+    function waRestoreBackground(){const n=waNode();if(!n?.backgroundOriginal)return;if(waBackgroundJob?.node===n)waCancelBackground();waFinishCrop(true);waRemember();const original=n.backgroundOriginal;waSetPhotoSource(n,original.src);n.fit=original.fit||'contain';if(original.crop)n.crop=waClone(original.crop);else delete n.crop;delete n.backgroundOriginal;waChanged();waInspector();showToast('Foto original recuperada.');}
+    async function waWaitBackground(){const job=waBackgroundJob;if(job?.scene===waScene){const ok=await job.promise;if(!ok)throw Error('El fondo no se quitó. Revisa la foto antes de descargarla.');}}
+
     // Gestos de la vista: no cambian el tamaño de los objetos ni el PNG.
     const waTouchPoints=new Map();
     let waPinch=null,waTouchBlocked=false,waCanvasPan=null,waGuides=[];
@@ -1951,7 +2040,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
         const color=/^#[0-9a-f]{6}$/i.test(waColor(waScene,n.color))?waColor(waScene,n.color):'#111111';
         host.innerHTML='<div class="ws-font-row"><label>Fuente<select aria-label="Fuente del texto" onchange="waPickFont(this.value)">'+waFontOptions(n.font)+'</select></label><label class="wa-file">+ Mis fuentes<input type="file" accept=".ttf,.otf,.woff,.woff2" multiple onchange="waImportFonts(event)"></label></div>'+ '<div class="ws-small-tools"><button type="button" onclick="waStartInline()">Editar texto</button><button type="button" onclick="waFinishInline()">Mover</button><button type="button" onclick="waTextSize(-4)" aria-label="Reducir letra">A−</button><button type="button" onclick="waTextSize(4)" aria-label="Aumentar letra">A+</button><label><input aria-label="Color del texto" type="color" value="'+color+'" oninput="waEdit(\'color\',this.value)"></label><button type="button" aria-label="Negrita" aria-pressed="'+(Number(n.weight)>=700)+'" onclick="waEdit(\'weight\',Number(waNode().weight)>=700?\'400\':\'700\');waInspector()"><b>B</b></button><button type="button" aria-label="Cursiva" aria-pressed="'+!!n.italic+'" onclick="waEdit(\'italic\',!waNode().italic);waInspector()"><i>I</i></button></div>'+ waTextEffectControls(n)+'<div class="wa-row"><button type="button" onclick="waPickFont(waNode().font,true)">Esta fuente en todos los textos</button><button type="button" onclick="waDelete();waClosePanel()">Quitar texto</button></div>';
       }else if(n.type==='image'){
-        host.innerHTML='<div class="wa-row"><label class="wa-file">Cambiar foto<input type="file" accept="image/*" onchange="waUploadLayer(event)"></label><button type="button" onclick="waStartCrop()">Recortar foto</button><button type="button" onclick="waEdit(\'fit\',waNode().fit===\'cover\'?\'contain\':\'cover\');waInspector()">'+(n.fit==='cover'?'Ver foto completa':'Llenar espacio')+'</button></div><div id="wa-product-form" class="ws-product-fields"></div>';
+        host.innerHTML='<div class="wa-row"><label class="wa-file">Cambiar foto<input type="file" accept="image/*" onchange="waUploadLayer(event)"></label><button type="button" onclick="waStartCrop()">Recortar foto</button><button type="button" onclick="waEdit(\'fit\',waNode().fit===\'cover\'?\'contain\':\'cover\');waInspector()">'+(n.fit==='cover'?'Ver foto completa':'Llenar espacio')+'</button></div>'+waBackgroundTools(n)+'<div id="wa-product-form" class="ws-product-fields"></div>';
         if(n.slot!==undefined){waSlot=n.slot;waProductForm();}else host.insertAdjacentHTML('beforeend','<button type="button" onclick="waDelete();waClosePanel()">Quitar imagen</button>');
       }else host.innerHTML='<label>Color<input aria-label="Color de la forma" type="color" value="'+(/^#[0-9a-f]{6}$/i.test(waColor(waScene,n.color))?waColor(waScene,n.color):'#ffffff')+'" oninput="waEdit(\'color\',this.value)"></label><button type="button" onclick="waDelete();waClosePanel()">Quitar forma</button>';
       if(n.slot!==undefined)host.insertAdjacentHTML('beforeend',waGroupControls(n));
@@ -1981,6 +2070,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       const finish=e=>{if(!waDrag)return;const moved=waDrag.changed,crop=waDrag.mode==='crop',group=!!waDrag.groupStart;waDrag=null;waGuides=[];if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(crop){if(moved)waChanged();return;}if(moved){if(group)waGroupMoveSlot=null;waChanged();waInspector();waPreviewSelection();return;}const n=waNode();if(!n)return;waPanel('selection');waInspector();if(n.type==='text'&&!waGroupActive(n))waStartInline();};canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',e=>{waCancelObjectDrag(false);if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);});
     }
     window.addEventListener('DOMContentLoaded',()=>{waBindGestures();if(window.ResizeObserver)new ResizeObserver(waSizeCanvas).observe(waEl('wa-stage'));window.addEventListener('resize',waSizeCanvas);});
+
 
     // Editor publicitario aislado: nunca llama a saveToFirebase ni modifica products.
     const WA_TEMPLATES = [
@@ -2044,7 +2134,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       host.innerHTML='';for(const p of products.filter(p=>!query||(String(p.name)+' '+p.code).toLowerCase().includes(query))){const b=document.createElement('button');b.type='button';b.onclick=()=>waUseProduct(p.id);const img=document.createElement('img');img.src=getProductImage(p);img.alt='';const name=document.createElement('span');name.textContent=`${p.code} · ${p.name} · $${p.price}`;b.append(img,name);host.appendChild(b);}if(!host.children.length)host.textContent='No hay productos que coincidan.';
     }
     function waUseProduct(id){const p=products.find(p=>String(p.id)===String(id));if(!p)return;waRemember();const copy={sourceId:p.id,code:String(p.code||''),name:String(p.name||''),description:String(p.description||'Detalles que te encantarán.'),price:'$'+Number(p.price||0),showPrice:true,photo:p.photo||'',photo2:''};waScene.slots[waSlot]=copy;waApplySlot(waSlot);waChanged(true);}
-    function waApplySlot(i){const p=waScene.slots[i];for(const n of waScene.layers.filter(n=>n.slot===i)){if(['code','name','description','price'].includes(n.role))n.text=p[n.role];if(n.role==='list-code')n.text=p.code;if(n.role==='price'||n.role==='price-bg')n.visible=p.showPrice;if(n.role==='photo'){if(n.src!==p.photo)delete n.crop;n.src=p.photo;}if(n.role==='photo2'){if(n.src!==p.photo2)delete n.crop;n.src=p.photo2;}if(n.role==='list')n.text=p.code+' · '+p.name;}if(i===0){const h=waScene.layers.find(n=>n.role==='hero-code');if(h)h.text=p.code;}}
+    function waApplySlot(i){const p=waScene.slots[i];for(const n of waScene.layers.filter(n=>n.slot===i)){if(['code','name','description','price'].includes(n.role))n.text=p[n.role];if(n.role==='list-code')n.text=p.code;if(n.role==='price'||n.role==='price-bg')n.visible=p.showPrice;if(n.role==='photo'){if(n.src!==p.photo){delete n.crop;delete n.backgroundOriginal;}n.src=p.photo;}if(n.role==='photo2'){if(n.src!==p.photo2){delete n.crop;delete n.backgroundOriginal;}n.src=p.photo2;}if(n.role==='list')n.text=p.code+' · '+p.name;}if(i===0){const h=waScene.layers.find(n=>n.role==='hero-code');if(h)h.text=p.code;}}
     function waProductValue(k,v){waSimpleProductValue(k,v);}
 
     function waHideSlot(){waRemember();const group=waScene.layers.filter(n=>n.slot===waSlot),visible=group.some(n=>n.visible);waScene.slotVisibility=waScene.slotVisibility||{};if(visible)waScene.slotVisibility[waSlot]=Object.fromEntries(group.map(n=>[n.id,n.visible]));for(const n of group)n.visible=visible?false:(waScene.slotVisibility[waSlot]?.[n.id]??true)&&(!['price','price-bg'].includes(n.role)||waScene.slots[waSlot].showPrice);waChanged(true);}
@@ -2053,11 +2143,11 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     }
     async function waUploadProduct(e,second){const file=e.target.files[0],scene=waScene,slot=waSlot;if(!file)return;try{const src=await waReadFile(file);if(scene!==waScene)return;waRemember();scene.slots[slot][second?'photo2':'photo']=src;waApplySlot(slot);waChanged(true);}catch(err){showToast(err.message,'error');}finally{e.target.value='';}}
 
-    function waEdit(k,v){const n=waNode();if(!n)return;if(typeof v==='number'&&!Number.isFinite(v))return;if(['color','stroke','gradient'].includes(k)&&v&&!waScene.palette[v]&&!CSS.supports('color',v)){showToast('Usa un color válido, como #ff8800, o un nombre de paleta.','error');waInspector();return;}const limits={w:[1,5000],h:[1,5000],scale:[.05,10],opacity:[0,1],fontSize:[8,500],spacing:[12,250],glow:[0,100],lineWidth:[0,100],radius:[0,1000]};if(limits[k])v=Math.min(limits[k][1],Math.max(limits[k][0],v));waRemember();n[k]=v;if(k==='src')delete n.crop;if(k==='color'&&n.type==='text'&&waEffectIndex(n)>=4)n.effectFaceOverride=v;
+    function waEdit(k,v){const n=waNode();if(!n)return;if(typeof v==='number'&&!Number.isFinite(v))return;if(['color','stroke','gradient'].includes(k)&&v&&!waScene.palette[v]&&!CSS.supports('color',v)){showToast('Usa un color válido, como #ff8800, o un nombre de paleta.','error');waInspector();return;}const limits={w:[1,5000],h:[1,5000],scale:[.05,10],opacity:[0,1],fontSize:[8,500],spacing:[12,250],glow:[0,100],lineWidth:[0,100],radius:[0,1000]};if(limits[k])v=Math.min(limits[k][1],Math.max(limits[k][0],v));waRemember();n[k]=v;if(k==='src'){delete n.crop;delete n.backgroundOriginal;}if(k==='color'&&n.type==='text'&&waEffectIndex(n)>=4)n.effectFaceOverride=v;
       if(n.slot!==undefined&&['text','src','visible'].includes(k)){const p=waScene.slots[n.slot];if(k==='text'&&['name','code','description','price'].includes(n.role))p[n.role]=v;if(k==='src'&&['photo','photo2'].includes(n.role))p[n.role]=v;if(k==='visible'&&n.role==='price'){p.showPrice=v;for(const label of waScene.layers.filter(x=>x.slot===n.slot&&x.role==='price-bg'))label.visible=v;}waProductForm();}
       waChanged();waLayerList();if(['src','type','color','gradient','stroke'].includes(k))waInspector();
     }
-    async function waUploadLayer(e){const n=waNode(),scene=waScene;if(!n||!e.target.files[0])return;try{const src=await waReadFile(e.target.files[0]);if(scene!==waScene)return;waRemember();n.type='image';n.src=src;delete n.crop;n.fit='contain';if(n.slot!==undefined&&['photo','photo2'].includes(n.role))waScene.slots[n.slot][n.role]=src;waChanged(true);}catch(err){showToast(err.message,'error');}finally{e.target.value='';}}
+    async function waUploadLayer(e){const n=waNode(),scene=waScene;if(!n||!e.target.files[0])return;try{const src=await waReadFile(e.target.files[0]);if(scene!==waScene)return;waRemember();n.type='image';n.src=src;delete n.crop;delete n.backgroundOriginal;n.fit='contain';if(n.slot!==undefined&&['photo','photo2'].includes(n.role))waScene.slots[n.slot][n.role]=src;waChanged(true);}catch(err){showToast(err.message,'error');}finally{e.target.value='';}}
     function waAdd(type){waRemember();const n=waNew(type,type==='text'?'Texte libre':type==='rect'?'Forme libre':'Image libre',140,650,600,type==='text'?170:450,{color:'accent',text:'Ton nouveau texte',font:'Arial',weight:'700',fontSize:60,align:'left',src:'',fit:'contain',placeholder:'FOTO'});n.label=({text:'Texto libre',rect:'Forma libre',image:'Imagen libre'})[type];if(type==='text')n.text='Tu nuevo texto';waScene.layers.push(n);waSelected=n.id;waChanged(true);}
     function waDuplicate(){const n=waNode();if(!n)return;waRemember();const c=waClone(n);c.id='wa'+(++waSerial);c.label+=' · copia';c.x+=25;c.y+=25;delete c.slot;delete c.role;waScene.layers.push(c);waSelected=c.id;waChanged(true);}
     function waDelete(){const n=waNode();if(!n)return;waRemember();waScene.layers=waScene.layers.filter(x=>x!==n);waSelected='';waChanged(true);}
@@ -2067,7 +2157,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     function waToggleQr(on){const n=waScene.layers.find(n=>n.role==='qr');if(!n)return;if(on&&!n.src){waSetQr(waEl('wa-qr-url').value);return;}waRemember();n.visible=on;waScene.qrVisible=on;waChanged(true);}
     function waProject(){waDrafts[waScene.template]=waScene;return {format:'nancy-wa-studio',version:1,active:waScene.template,drafts:waDrafts,fontAssets:waProjectFontAssets(waDrafts)};}
     async function waSaveLocal(){try{await waFontsReady;await waWaitFontActions();localStorage.setItem('nancy_wa_projects_v1',JSON.stringify(waProject()));showToast('Proyecto guardado solo en este navegador.');}catch(e){showToast('No hay espacio local. Descarga el proyecto JSON para conservar las fotos.','error');}}
-    function waValidateProject(p){if(p?.format!=='nancy-wa-studio'||p.version!==1||!p.drafts||typeof p.drafts!=='object')throw new Error('Proyecto no compatible.');for(const [key,s]of Object.entries(p.drafts)){const t=WA_TEMPLATES[Number(key)-1];if(!t||s.template!==Number(key)||s.count<t[1]||s.count>t[2]||!Array.isArray(s.layers)||s.layers.length>600||!Array.isArray(s.slots)||s.slots.length!==s.count||!s.palette)throw new Error('Estructura de proyecto inválida.');for(const c of Object.values(s.palette))if(typeof c!=='string'||!/^#[0-9a-f]{6}$/i.test(c))throw new Error('Paleta inválida.');for(const n of s.layers){if(!['rect','ellipse','poly','text','image','pattern'].includes(n.type)||typeof n.id!=='string'||!['x','y','w','h','scale','opacity','rotation'].every(k=>Number.isFinite(n[k]))||n.w<=0||n.w>5000||n.h<=0||n.h>5000||n.scale<=0||n.scale>10)throw new Error('Capa inválida.');if(n.src&&!/^(data:image\/(png|jpeg|webp|gif);base64,|https?:\/\/)/i.test(n.src))throw new Error('Origen de foto no permitido.');if(n.crop&&(n.type!=='image'||!['zoom','x','y'].every(k=>Number.isFinite(n.crop[k]))||n.crop.zoom<1||n.crop.zoom>5||Math.abs(n.crop.x)>1||Math.abs(n.crop.y)>1))throw new Error('Recorte inválido.');if(n.type==='poly'&&(!Array.isArray(n.points)||n.points.length>100))throw new Error('Forma inválida.');}}if(!p.drafts[p.active])throw new Error('No se encontró el diseño activo.');return p;}
+    function waValidateProject(p){if(p?.format!=='nancy-wa-studio'||p.version!==1||!p.drafts||typeof p.drafts!=='object')throw new Error('Proyecto no compatible.');for(const [key,s]of Object.entries(p.drafts)){const t=WA_TEMPLATES[Number(key)-1];if(!t||s.template!==Number(key)||s.count<t[1]||s.count>t[2]||!Array.isArray(s.layers)||s.layers.length>600||!Array.isArray(s.slots)||s.slots.length!==s.count||!s.palette)throw new Error('Estructura de proyecto inválida.');for(const c of Object.values(s.palette))if(typeof c!=='string'||!/^#[0-9a-f]{6}$/i.test(c))throw new Error('Paleta inválida.');for(const n of s.layers){if(!['rect','ellipse','poly','text','image','pattern'].includes(n.type)||typeof n.id!=='string'||!['x','y','w','h','scale','opacity','rotation'].every(k=>Number.isFinite(n[k]))||n.w<=0||n.w>5000||n.h<=0||n.h>5000||n.scale<=0||n.scale>10)throw new Error('Capa inválida.');if(n.src&&!/^(data:image\/(png|jpeg|webp|gif);base64,|https?:\/\/)/i.test(n.src))throw new Error('Origen de foto no permitido.');if(n.backgroundOriginal&&(n.type!=='image'||typeof n.backgroundOriginal.src!=='string'||!/^(data:image\/(png|jpeg|webp|gif);base64,|https?:\/\/)/i.test(n.backgroundOriginal.src)||!['contain','cover','stretch'].includes(n.backgroundOriginal.fit)||n.backgroundOriginal.crop&&(!['zoom','x','y'].every(k=>Number.isFinite(n.backgroundOriginal.crop[k]))||n.backgroundOriginal.crop.zoom<1||n.backgroundOriginal.crop.zoom>5||Math.abs(n.backgroundOriginal.crop.x)>1||Math.abs(n.backgroundOriginal.crop.y)>1)))throw new Error('Foto original inválida.');if(n.crop&&(n.type!=='image'||!['zoom','x','y'].every(k=>Number.isFinite(n.crop[k]))||n.crop.zoom<1||n.crop.zoom>5||Math.abs(n.crop.x)>1||Math.abs(n.crop.y)>1))throw new Error('Recorte inválido.');if(n.type==='poly'&&(!Array.isArray(n.points)||n.points.length>100))throw new Error('Forma inválida.');}}if(!p.drafts[p.active])throw new Error('No se encontró el diseño activo.');return p;}
     async function waOpenProject(p){waValidateProject(p);await waPrepareProjectFonts(p);waClearTouches();waFinishInline();waDrafts=waClone(p.drafts);for(const s of Object.values(waDrafts)){for(const n of s.layers)if(n.type==='text'&&!n.font?.startsWith('NancyLocal_')&&!WA_SYSTEM_FONTS.includes(n.font))n.font='Arial';waPrepareTextBoxes(s);}waScene=waDrafts[p.active];waSerial=Math.max(waSerial,...Object.values(waDrafts).flatMap(s=>s.layers.map(n=>Number(n.id.replace(/^wa/,''))||0)));waSelected='';waSlot=0;waHistory=[];waFuture=[];waRefresh();drawStatusCanvas();waScheduleAutosave();}
     async function waLoadLocal(){try{const p=localStorage.getItem('nancy_wa_projects_v1');if(!p)throw new Error('Todavía no hay un proyecto guardado en este navegador.');await waOpenProject(JSON.parse(p));showToast('Proyecto recuperado.');}catch(e){showToast(e.message,'error');}}
     function waDownloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
@@ -2118,7 +2208,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     }
 
     async function waPng(){// Always render a fresh, selection-free snapshot; never export a stale preview.
-      waFinishCrop(true);waFinishInline();await waWaitFontActions();const r=await waRenderScene(waClone(waScene));if(r.failures.length)throw new Error('Reemplaza las fotos que no cargaron: '+r.failures.join(', '));return new Promise((ok,no)=>{try{r.canvas.toBlob(b=>b?ok(b):no(new Error('No se pudo crear el PNG.')),'image/png');}catch(e){no(new Error('Una foto externa bloquea la descarga. Cárgala desde tu dispositivo.'));}});
+      waFinishCrop(true);waFinishInline();await waWaitBackground();await waWaitFontActions();const r=await waRenderScene(waClone(waScene));if(r.failures.length)throw new Error('Reemplaza las fotos que no cargaron: '+r.failures.join(', '));return new Promise((ok,no)=>{try{r.canvas.toBlob(b=>b?ok(b):no(new Error('No se pudo crear el PNG.')),'image/png');}catch(e){no(new Error('Una foto externa bloquea la descarga. Cárgala desde tu dispositivo.'));}});
     }
     async function downloadStatusImage(){try{const b=await waPng();waDownloadBlob(b,`nancy-diseno-${String(waScene.template).padStart(2,'0')}-1080x1920.png`);showToast('PNG 1080 × 1920 descargado.');}catch(e){showToast(e.message,'error');}}
     async function shareStatusImage(){try{const b=await waPng(),file=new File([b],'catalogo-nancy.png',{type:'image/png'});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:storeName||'Catálogo Nancy'});showToast('Imagen compartida.');}else{waDownloadBlob(b,'catalogo-nancy-1080x1920.png');showToast('PNG descargado. Súbelo a tu estado de WhatsApp.','info');}}catch(e){if(e.name!=='AbortError')showToast(e.message,'error');}}
