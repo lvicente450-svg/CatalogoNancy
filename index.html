@@ -2005,12 +2005,17 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       {name:'Pop amarillo',face:['#fff66b','#ffe534'],outline:[['#570969',.21],['#ea00e9',.16],['#fff2ff',.012]],side:'#87036d',depth:.08,dx:.3,dy:1,curve:.045,swoosh:true},
       {name:'Degradado neón',face:['#fff837','#ff7d24','#f90092'],outline:[['#ff6eaa',.022]],side:'#9e0754',depth:.06,dx:.22,dy:1,glow:'#ff41b5',shadow:.065},
       {name:'Doble borde',face:['#ffffff','#fff7fb'],outline:[['#ffffff',.14],['#9e0734',.085]],side:'#97062d',depth:.025,dx:.3,dy:1},
-      {name:'Arco 3D',face:['#ff3150','#f71235'],outline:[['#53121e',.06]],side:'#4b0c19',depth:.17,dx:.18,dy:1,curve:.20}
+      {name:'Arco 3D',face:['#ff3150','#f71235'],outline:[['#53121e',.06]],side:'#4b0c19',depth:.17,dx:.18,dy:1,curve:.20},
+      {name:'Relieve coral',face:['#ff7183','#ff4d69','#f94562'],outline:[['#f4f0e8',.095],['#e94660',.018]],side:'#a5a2a1',sideLight:'#ece7df',sideBorder:[['#eeeae2',.095],['#b7b1ae',.045]],depth:.09,dx:.7,dy:.8,shadow:.055,bevel:{light:'#ffbfbe',dark:'#ad2446',width:.023}},
+      {name:'Menta y rosa 3D',face:['#a1ffe1','#38f5d6','#70e4df','#c485e0','#fa4cdb','#ff34bf'],outline:[['#4a4b60',.23],['#1f2231',.17],['#75829a',.045]],side:'#171b2a',sideLight:'#363849',depth:.13,dx:.4,dy:1,shadow:.085,bevel:{light:'#d4ffff',dark:'#7f1369',width:.027}},
+      {name:'Retro neón',face:['#1c22a9','#159ceb','#2939cf','#d11ca8','#ff40b2'],faceStops:[0,.28,.48,.64,1],outline:[['#7bfaf5',.075],['#341f78',.038]],side:'#18304d',sideBorder:[['#35e9e8',.075],['#17334c',.04]],depth:.12,dx:.8,dy:.9,shadow:.04,bevel:{light:'#d9ffff',dark:'#ed419f',width:.012},scanlines:{spacing:.052,width:.012,light:'#9affffab',dark:'#100d4a8c'}},
+      {name:'Tinta blanca y negra',face:['#fffef7','#f5f4ee'],outline:[['#292a27',.085],['#f8f7f0',.047],['#292a27',.016]],side:'#292a27',depth:.12,dx:.45,dy:1,bevel:{light:'#ffffff',dark:'#343530',width:.009}},
+      {name:'Hielo con borde morado',face:['#ffffff','#edffff','#b4f5fa','#77e5ee'],outline:[['#e5dddf',.23],['#76165e',.18],['#b45b9d',.105],['#75dcd8',.045]],side:'#43164e',sideLight:'#762669',sideBorder:[['#e5dddf',.23],['#43164e',.16]],depth:.15,dx:.12,dy:1,shadow:.055,bevel:{light:'#ffffff',dark:'#4ca9b8',width:.025}}
     ];
     function waEffectIndex(n){const value=Number(n.textStyle);return Number.isInteger(value)&&value>=0&&value<WA_TEXT_EFFECTS.length?value:0;}
     function waEffectStrength(n){return Math.min(1.5,Math.max(.5,Number(n.effectStrength)||1));}
     function waEffectMetrics(n,size){
-      const effect=WA_TEXT_EFFECTS[waEffectIndex(n)],strength=waEffectStrength(n),outline=Math.max(0,...(effect.outline||[]).map(x=>x[1]))*size*strength/2,depth=(effect.depth||0)*size*strength,curve=(effect.curve||0)*size,shadow=(effect.shadow||0)*size*strength;
+      const effect=WA_TEXT_EFFECTS[waEffectIndex(n)],strength=waEffectStrength(n),outline=Math.max(0,...(effect.outline||[]).map(x=>x[1]),...(effect.sideBorder||[]).map(x=>x[1]))*size*strength/2,depth=(effect.depth||0)*size*strength,curve=(effect.curve||0)*size,shadow=(effect.shadow||0)*size*strength;
       const pad=Math.ceil(Math.max(n.badge?size*.35:size*.08,outline+depth+shadow*2+(curve?size*.18:0)+size*.06));
       return {pad,lineHeight:size*1.2+curve,after:effect.swoosh?size*.32:0,curve,strength};
     }
@@ -2028,21 +2033,30 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     function waShadeColor(color,amount){if(!/^#[0-9a-f]{6}$/i.test(color))return color;const rgb=[1,3,5].map(i=>parseInt(color.slice(i,i+2),16));return '#'+rgb.map(v=>Math.round(amount>=0?v+(255-v)*amount:v*(1+amount)).toString(16).padStart(2,'0')).join('');}
     function waTextGlyphs(text){if(typeof Intl!=='undefined'&&Intl.Segmenter){const segmenter=new Intl.Segmenter('es',{granularity:'grapheme'});return Array.from(segmenter.segment(text),g=>g.segment);}return Array.from(text);}
     function waGlyphRun(c,text,x,y,curve){
-      if(!curve)return {draw(method){c[method](text,x,y);}};
+      if(!curve)return {draw(method,target=c){target[method](text,x,y);}};
       const glyphs=waTextGlyphs(text),width=Math.max(1,c.measureText(text).width),left=c.textAlign==='center'?x-width/2:c.textAlign==='right'?x-width:x,positions=[];let prefix='';
       for(const glyph of glyphs){const advance=c.measureText(prefix).width,w=c.measureText(glyph).width,t=Math.min(1,Math.max(0,(advance+w/2)/width)),q=2*t-1;positions.push({glyph,x:left+advance+w/2,y:y+curve*q*q,angle:Math.atan(4*curve*q/width)});prefix+=glyph;}
-      return {draw(method){c.save();c.textAlign='center';for(const p of positions){c.save();c.translate(p.x,p.y);c.rotate(p.angle);c[method](p.glyph,0,0);c.restore();}c.restore();}};
+      return {draw(method,target=c){target.save();target.textAlign='center';for(const p of positions){target.save();target.translate(p.x,p.y);target.rotate(p.angle);target[method](p.glyph,0,0);target.restore();}target.restore();}};
     }
     function waEffectFace(c,n,effect,y,size){const colors=n.effectFaceOverride?[waShadeColor(n.effectFaceOverride,.35),n.effectFaceOverride,waShadeColor(n.effectFaceOverride,-.2)]:effect.face;
-      const gradient=c.createLinearGradient(0,y,0,y+Math.max(1,size));colors.forEach((color,i)=>gradient.addColorStop(i/Math.max(1,colors.length-1),color));return gradient;}
+      const gradient=c.createLinearGradient(0,y,0,y+Math.max(1,size));colors.forEach((color,i)=>gradient.addColorStop(!n.effectFaceOverride&&effect.faceStops?effect.faceStops[i]:i/Math.max(1,colors.length-1),color));return gradient;}
+    function waDrawFaceDetails(c,n,effect,run,y,size){
+      if(!effect.bevel&&!effect.scanlines)return;
+      // Rasterizar únicamente la línea, con un límite para cuidar la memoria del celular.
+      const top=Math.max(0,Math.floor(y-size*.4)),height=Math.max(1,Math.min(n.h-top,Math.ceil(size*1.9+(effect.curve||0)*size))),width=Math.max(1,n.w),ratio=Math.min(1,2048/width,768/height),mask=document.createElement('canvas'),detail=document.createElement('canvas');
+      mask.width=detail.width=Math.max(1,Math.ceil(width*ratio));mask.height=detail.height=Math.max(1,Math.ceil(height*ratio));
+      const m=mask.getContext('2d'),d=detail.getContext('2d');m.scale(ratio,ratio);m.translate(0,-top);m.font=c.font;m.textBaseline=c.textBaseline;m.textAlign=c.textAlign;m.fillStyle='#ffffff';run.draw('fillText',m);
+      if(effect.bevel){const offset=Math.max(.65,size*effect.bevel.width*waEffectStrength(n))*ratio;for(const [color,sign]of [[effect.bevel.light,1],[effect.bevel.dark,-1]]){d.clearRect(0,0,detail.width,detail.height);d.globalCompositeOperation='source-over';d.drawImage(mask,0,0);d.globalCompositeOperation='destination-out';d.drawImage(mask,offset*sign,offset*sign);d.globalCompositeOperation='source-in';d.fillStyle=color;d.fillRect(0,0,detail.width,detail.height);c.drawImage(detail,0,top,width,height);}}
+      if(effect.scanlines){const lines=effect.scanlines,spacing=Math.max(3,size*lines.spacing)*ratio,thickness=Math.max(.7,size*lines.width)*ratio;d.clearRect(0,0,detail.width,detail.height);d.globalCompositeOperation='source-over';for(let row=(y-top)*ratio;row<detail.height;row+=spacing){d.fillStyle=lines.light;d.fillRect(0,row,detail.width,thickness);d.fillStyle=lines.dark;d.fillRect(0,row+thickness,detail.width,thickness*.8);}d.globalCompositeOperation='destination-in';d.drawImage(mask,0,0);c.drawImage(detail,0,top,width,height);}
+    }
     function waDrawGraphicLine(c,n,effect,run,y,size){
       const strength=waEffectStrength(n),depth=(effect.depth||0)*size*strength,steps=Math.min(18,Math.max(1,Math.ceil(depth))),outer=effect.outline?.[0],side=effect.side||'#222222';
       c.save();c.lineJoin='round';c.miterLimit=2;c.shadowBlur=0;c.shadowOffsetX=0;c.shadowOffsetY=0;
       // Una sombra exterior y, delante, las copias que forman el canto del relieve.
       if(effect.shadow||effect.glow){c.save();c.translate(depth*(effect.dx||0),depth*(effect.dy||0));c.fillStyle=side;c.shadowColor=effect.glow||'#00000055';c.shadowBlur=size*(effect.shadow||.04)*strength;c.shadowOffsetX=size*.025;c.shadowOffsetY=size*.04;if(outer){c.strokeStyle=outer[0];c.lineWidth=outer[1]*size*strength;run.draw('strokeText');}run.draw('fillText');c.restore();}
-      for(let i=steps;i>0;i--){const t=i/steps;c.save();c.translate(depth*(effect.dx||0)*t,depth*(effect.dy||0)*t);c.fillStyle=effect.sideLight?waMixColor(effect.sideLight,side,t):side;if(outer){c.strokeStyle=effect.sideLight?waMixColor(effect.sideLight,side,t):outer[0];c.lineWidth=outer[1]*size*strength;run.draw('strokeText');}run.draw('fillText');c.restore();}
+      for(let i=steps;i>0;i--){const t=i/steps;c.save();c.translate(depth*(effect.dx||0)*t,depth*(effect.dy||0)*t);c.fillStyle=effect.sideLight?waMixColor(effect.sideLight,side,t):side;if(effect.sideBorder){for(const [color,width]of effect.sideBorder){c.strokeStyle=color;c.lineWidth=width*size*strength;run.draw('strokeText');}}else if(outer){c.strokeStyle=effect.sideLight?waMixColor(effect.sideLight,side,t):outer[0];c.lineWidth=outer[1]*size*strength;run.draw('strokeText');}run.draw('fillText');c.restore();}
       for(const [color,width]of effect.outline||[]){c.strokeStyle=color;c.lineWidth=width*size*strength;run.draw('strokeText');}
-      c.fillStyle=waEffectFace(c,n,effect,y,size);run.draw('fillText');c.restore();
+      c.fillStyle=waEffectFace(c,n,effect,y,size);run.draw('fillText');waDrawFaceDetails(c,n,effect,run,y,size);c.restore();
     }
     function waMixColor(a,b,t){if(!/^#[0-9a-f]{6}$/i.test(a)||!/^#[0-9a-f]{6}$/i.test(b))return b;return '#'+[1,3,5].map(i=>Math.round(parseInt(a.slice(i,i+2),16)*(1-t)+parseInt(b.slice(i,i+2),16)*t).toString(16).padStart(2,'0')).join('');}
     function waDrawSwoosh(c,n,effect,layout){
