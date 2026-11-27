@@ -11,6 +11,7 @@
   <!-- Firebase SDK Compat (App + Realtime Database) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 
   <style>
     body {
@@ -330,6 +331,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       </div>
 
       <!-- Grid de Tarjetas de Administración -->
+      <section class="rounded-2xl bg-slate-50 p-4 space-y-3"><h2 class="font-extrabold text-lg">Pedidos y autorizaciones</h2><p class="text-sm">Solo los pedidos autorizados descuentan inventario.</p><div id="nancyOrders" class="space-y-3"></div></section>
       <div id="adminGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
 
@@ -339,47 +341,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
 
 
   <!-- ==================== MODAL 1: ACCESO PIN ADMINISTRADOR (2511) ==================== -->
-  <div id="pinModal" class="fixed inset-0 bg-slate-900/65 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-2xl border border-slate-100 text-center animate-fade">
-      <div class="w-12 h-12 rounded-2xl bg-pink-100 text-pink-600 flex items-center justify-center text-2xl mx-auto mb-3">
-        🔒
-      </div>
-      <h3 class="font-extrabold text-lg text-slate-900">Acceso Administrador</h3>
-      <p class="text-xs text-slate-500 mt-1 mb-4">Ingresa el PIN numérico de 4 dígitos</p>
-
-      <input
-        type="password"
-        id="pinInput"
-        inputmode="numeric"
-        maxlength="4"
-        placeholder="••••"
-        oninput="handlePinInputChange()"
-        onkeydown="if(event.key==='Enter') verifyPin()"
-        class="w-full text-center tracking-[0.6em] text-2xl font-extrabold bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 mb-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
-      />
-      <p id="pinErrorMsg" class="text-xs font-bold text-rose-600 min-h-[1rem] mb-3"></p>
-
-      <!-- Teclado numérico táctil -->
-      <div class="grid grid-cols-3 gap-2 mb-4">
-        <button type="button" onclick="appendPinDigit('1')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">1</button>
-        <button type="button" onclick="appendPinDigit('2')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">2</button>
-        <button type="button" onclick="appendPinDigit('3')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">3</button>
-        <button type="button" onclick="appendPinDigit('4')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">4</button>
-        <button type="button" onclick="appendPinDigit('5')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">5</button>
-        <button type="button" onclick="appendPinDigit('6')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">6</button>
-        <button type="button" onclick="appendPinDigit('7')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">7</button>
-        <button type="button" onclick="appendPinDigit('8')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">8</button>
-        <button type="button" onclick="appendPinDigit('9')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">9</button>
-        <button type="button" onclick="clearPin()" class="py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 font-bold text-xs text-rose-600 active:scale-95 transition">Borrar</button>
-        <button type="button" onclick="appendPinDigit('0')" class="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-base text-slate-800 active:scale-95 transition">0</button>
-        <button type="button" onclick="verifyPin()" class="py-2.5 rounded-xl bg-pink-600 hover:bg-pink-700 font-bold text-xs text-white active:scale-95 transition">Entrar</button>
-      </div>
-
-      <button type="button" onclick="closeModal('pinModal')" class="w-full py-2 text-xs font-semibold text-slate-400 hover:text-slate-600">
-        Cancelar
-      </button>
-    </div>
-  </div>
+  <div id="pinModal" class="fixed inset-0 bg-slate-900/65 backdrop-blur-sm hidden items-center justify-center p-4 z-50"><form onsubmit="nancyLogin(event)" class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-3"><h3 class="text-lg font-extrabold">Acceso administrador</h3><label class="block">Correo electrónico<input id="nancyEmail" type="email" autocomplete="username" required class="w-full border rounded-xl p-3"></label><label class="block">Contraseña<input id="nancyPassword" type="password" autocomplete="current-password" required class="w-full border rounded-xl p-3"></label><p id="nancyLoginError" class="text-rose-600 text-sm" role="alert"></p><button id="nancyLoginSubmit" type="submit" class="w-full bg-pink-600 text-white rounded-xl p-3">Iniciar sesión</button><button type="button" onclick="closeModal('pinModal')" class="w-full p-2">Cancelar</button></form></div>
 
   <div id="statusModal" class="hidden wa-modal wa-simple" role="dialog" aria-modal="true" aria-labelledby="wa-heading">
     <div class="wa-shell">
@@ -584,7 +546,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
 
     // ==================== CONFIGURACIÓN GLOBAL ====================
     const FIREBASE_DB_URL = 'https://catalogonancy-default-rtdb.firebaseio.com';
-    const ADMIN_PIN = '2511';
+    /* Acceso mediante Firebase Authentication */
     const LOCAL_CACHE_KEY = 'catalogo_nancy_realtime_v2';
 
     const CATEGORIES = [
@@ -756,11 +718,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     }
 
     // Guarda el estado completo en Firebase Realtime Database + localStorage
-    function saveToFirebase(){
-      saveLocalCache();const payload={...waRecoveryCatalogPayload(),updatedAt:Date.now()};
-      const save=async()=>{await waRecoveryProtectCatalog();if(!bazarRef){setSyncBadge('offline');waRecoveryObserveCatalog(payload);return false;}setSyncBadge('saving');try{await bazarRef.set(payload);setSyncBadge('live');waRecoveryObserveCatalog(payload);return true;}catch(err){console.error('Error guardando en Firebase:',err);setSyncBadge('offline');waRecoveryObserveCatalog(payload);showToast('Error al sincronizar con la nube. Guardado localmente.','error');return false;}};
-      waRecoveryCatalogSaveTail=waRecoveryCatalogSaveTail.then(save,save);return waRecoveryCatalogSaveTail;
-    }
+    function saveToFirebase(){return nancySaveCatalog();}
 
     function initFirebaseRealtime() {
       // Cargar caché local de inmediato para que no haya pantalla vacía si hay red lenta
@@ -778,14 +736,15 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
           throw new Error('Firebase SDK no disponible');
         }
         if (!firebase.apps.length) {
-          firebase.initializeApp({ databaseURL: FIREBASE_DB_URL });
+          firebase.initializeApp({apiKey:"AIzaSyDktI1z75aD1D9UTGRezmWQNoYqzKA8IsA",authDomain:"catalogonancy.firebaseapp.com",databaseURL:FIREBASE_DB_URL,projectId:"catalogonancy",storageBucket:"catalogonancy.firebasestorage.app",messagingSenderId:"175194408786",appId:"1:175194408786:web:52be0847536ee98a321c8b"});
         }
         db = firebase.database();
-        bazarRef = db.ref('bazar');
+        bazarRef = db.ref('bazar'); nancyAuthStart();
         if(isAdminMode){waSyncFontLibrary();waRecoveryStart();}
 
         // Monitorear estado de conexión en tiempo real
         db.ref('.info/connected').on('value', (snap) => {
+          nancyConnected = snap.val() === true;
           if (snap.val() === true) {
             setSyncBadge('live');
             waFontCloudConnectionChanged(true);waRecoveryStart();
@@ -798,7 +757,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
         // Escucha en tiempo real de cambios en el catálogo
         bazarRef.on('value', async (snapshot) => {
           hasReceivedCloudData = true;
-          const data = waRecoveryNormalizeCatalog(snapshot.val());
+          const data = waRecoveryNormalizeCatalog(snapshot.val()); nancySnapshot(data);
 
           if (data && Array.isArray(data.products)) {
             waRecoveryObserveCatalog(data);
@@ -1007,46 +966,9 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
 
     // ==================== ACCESO ADMINISTRADOR (PIN 2511) ====================
 
-    function openPinModal() {
-      document.getElementById('pinInput').value = '';
-      document.getElementById('pinErrorMsg').textContent = '';
-      openModal('pinModal');
-      setTimeout(() => document.getElementById('pinInput').focus(), 80);
-    }
-
-    function appendPinDigit(digit) {
-      const input = document.getElementById('pinInput');
-      if (input.value.length < 4) {
-        input.value += digit;
-        handlePinInputChange();
-      }
-    }
-
-    function clearPin() {
-      document.getElementById('pinInput').value = '';
-      document.getElementById('pinErrorMsg').textContent = '';
-    }
-
-    function handlePinInputChange() {
-      const input = document.getElementById('pinInput');
-      document.getElementById('pinErrorMsg').textContent = '';
-      if (input.value.length === 4) {
-        verifyPin();
-      }
-    }
-
-    function verifyPin() {
-      const val = document.getElementById('pinInput').value.trim();
-      if (val === ADMIN_PIN) {
-        closeModal('pinModal');
-        enterAdminMode();
-      } else {
-        document.getElementById('pinErrorMsg').textContent = 'PIN incorrecto. Intenta de nuevo.';
-        document.getElementById('pinInput').value = '';
-      }
-    }
-
+    function openPinModal(){document.getElementById('nancyLoginError').textContent='';openModal('pinModal');}
     function enterAdminMode() {
+      if(!nancyIsAdmin())return;
       isAdminMode = true;
       waSyncFontLibrary();waRecoveryStart();
       document.getElementById('viewClient').classList.add('hidden');
@@ -1061,6 +983,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     }
 
     function exitAdminMode() {
+      nancyStopOrders(); if(firebase.auth().currentUser)firebase.auth().signOut().catch(()=>showToast("No se pudo cerrar la sesión.","error"));
       isAdminMode = false;
       document.getElementById('viewAdmin').classList.add('hidden');
       document.getElementById('viewClient').classList.remove('hidden');
@@ -2078,7 +2001,7 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
     function catalogBuildWhatsAppOrder(items=catalogCartItems()){
       if(!items.length)throw Error('Agrega al menos un producto al pedido.');const phone=String(waNumber||'').replace(/\D/g,'');if(!/^\d{7,15}$/.test(phone))throw Error('El catálogo todavía no tiene un número de WhatsApp disponible.');const total=items.reduce((sum,i)=>sum+i.subtotal,0),lines=['¡Hola! Me gustaría hacer este pedido del catálogo:',''];for(const {product:p,qty,unitCents,subtotal}of items)lines.push('• '+(p.code?p.code+' · ':'')+p.name+'\n  '+qty+' × '+catalogMoney(unitCents)+' = '+catalogMoney(subtotal));lines.push('','Total de productos: '+catalogMoney(total),'¿Me confirmas disponibilidad y cómo sería la entrega?');return {url:'https://wa.me/'+phone+'?text='+encodeURIComponent(lines.join('\n')),text:lines.join('\n'),totalCents:total,units:items.reduce((sum,i)=>sum+i.qty,0)};
     }
-    function sendWhatsAppOrder(){if(!catalogOrderOpen){catalogOpenOrder();return;}try{const before=JSON.stringify(cart),items=catalogCartItems();catalogRenderOrder(items);if(before!==JSON.stringify(cart)){showToast('Cambió la disponibilidad. Revisa las cantidades antes de enviar.','info');return;}const order=catalogBuildWhatsAppOrder(items);window.open(order.url,'_blank','noopener,noreferrer');}catch(e){showToast(e.message,'info');}}
+    function sendWhatsAppOrder(){return nancySendOrder();}
 
     let waActivePanel='',waInlineId='',waInlineUndo=false,waCanvasZoom=1,waInlineHistoryGroup=false;
     const waMeasureCanvas=document.createElement('canvas'),waMeasureContext=waMeasureCanvas.getContext('2d');
@@ -2622,5 +2545,24 @@ body:has(#statusModal:not(.hidden)){overflow:hidden}
       }
     });
   </script>
+<script>
+/* Catálogo Nancy — pedidos y acceso seguro v1 */
+const nancyAdminUID='sD7W4t90zcf69glZl6KyB4y8iws1';
+let nancyRevision=null,nancyOrders={},nancyLedger={},nancyOrderRef=null,nancyOrderBusy=false,nancySendBusy=false,nancyConnected=false,nancyPendingKey=null;
+const nancyIsAdmin=()=>firebase.auth().currentUser?.uid===nancyAdminUID;
+function nancyAuthStart(){
+ firebase.auth().onAuthStateChanged(user=>{if(user?.uid===nancyAdminUID){if(!isAdminMode)enterAdminMode();nancyListenOrders();}else{nancyStopOrders();if(isAdminMode)exitAdminMode();}});
+}
+function nancyStopOrders(){if(nancyOrderRef)nancyOrderRef.off();nancyOrderRef=null;nancyOrders={};nancyRenderOrders();}
+function nancyListenOrders(){if(!db||!nancyIsAdmin()||nancyOrderRef)return;nancyOrderRef=db.ref('orderRequests');nancyOrderRef.on('value',snap=>{nancyOrders=snap.val()||{};nancyRenderOrders();},()=>showToast('No se pudieron leer los pedidos.','error'));}
+async function nancyLogin(e){e.preventDefault();const msg=document.getElementById('nancyLoginError'),btn=document.getElementById('nancyLoginSubmit');msg.textContent='';btn.disabled=true;try{const c=await firebase.auth().signInWithEmailAndPassword(document.getElementById('nancyEmail').value.trim(),document.getElementById('nancyPassword').value);if(c.user.uid!==nancyAdminUID){await firebase.auth().signOut();throw Error('Cuenta no autorizada');}document.getElementById('nancyPassword').value='';closeModal('pinModal');}catch(err){msg.textContent=err.message==='Cuenta no autorizada'?err.message:'No se pudo iniciar sesión. Revisa tus datos y conexión.';}finally{btn.disabled=false;}}
+function nancySnapshot(data){nancyRevision=Number(data?.orderRevision)||0;nancyLedger=data?.orderLedger||{};nancyRenderOrders();}
+function nancyRenderOrders(){const host=document.getElementById('nancyOrders');if(!host)return;host.replaceChildren();if(!isAdminMode||!nancyIsAdmin())return;const entries=Object.entries(nancyOrders).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));if(!entries.length){host.textContent='No hay pedidos registrados.';return;}for(const [id,o] of entries){const state=nancyLedger[id]?.status||'pending',card=document.createElement('article');card.className='border rounded-xl p-3 space-y-2 bg-white';const title=document.createElement('strong');title.textContent='Pedido '+id+' · '+({pending:'Pendiente',approved:'Autorizado',delivered:'Entregado',cancelled:'Cancelado'}[state]||state);card.append(title);const date=document.createElement('p');date.className='text-xs text-slate-500';date.textContent=new Date(o.createdAt||0).toLocaleString('es-MX');card.append(date);for(const item of Object.values(o.items||{})){const line=document.createElement('p'),p=products.find(p=>String(p.id)===String(item.id));line.textContent=(p?.name||'Producto '+item.id)+' × '+item.qty+' · '+catalogMoney((Number(item.unitCents)||0)*item.qty);card.append(line);}const total=document.createElement('p');total.textContent='Total: '+catalogMoney(nancyLedger[id]?.totalCents??o.totalCents??0);card.append(total);const buttons=document.createElement('div');buttons.className='flex flex-wrap gap-2';for(const [action,label] of (state==='pending'?[['approve','Autorizar pedido'],['cancel','Cancelar']]:state==='approved'?[['deliver','Marcar entregado'],['cancel','Cancelar y devolver']]:[])){const b=document.createElement('button');b.type='button';b.className='rounded-xl px-3 py-2 text-white '+(action==='cancel'?'bg-rose-600':'bg-emerald-700');b.textContent=label;b.disabled=nancyOrderBusy;b.onclick=()=>nancyChangeOrder(id,action);buttons.append(b);}card.append(buttons);host.append(card);}}
+function nancyOrderMutation(current,id,action,request,now){if(!current||!Array.isArray(current.products)||!request)return;const ledger={...(current.orderLedger||{})},prior=ledger[id],state=prior?.status||'pending';if(action==='approve'&&state!=='pending'||action==='cancel'&&!['pending','approved'].includes(state)||action==='deliver'&&state!=='approved')return;const next=JSON.parse(JSON.stringify(current)),items=Object.values(request.items||{});if(!items.length||items.length>100)return;const seen=new Set();let total=0;const movement=[];if(action==='approve'){for(const i of items){const key=String(i.id);if(seen.has(key)||!Number.isSafeInteger(i.qty)||i.qty<1||i.qty>999999)return;seen.add(key);const p=next.products.find(p=>String(p.id)===key);if(!p||!Number.isSafeInteger(Number(p.stock))||Number(p.stock)<i.qty||!Number.isFinite(Number(p.price))||Math.round(Number(p.price)*100)!==i.unitCents)return;p.stock=Number(p.stock)-i.qty;total+=i.qty*i.unitCents;movement.push({id:i.id,qty:i.qty});}if(!Number.isSafeInteger(total))return;ledger[id]={status:'approved',approvedAt:now,totalCents:total,items:movement};}else if(action==='cancel'){if(state==='approved'){for(const i of Object.values(prior.items||{})){const p=next.products.find(p=>String(p.id)===String(i.id));if(!p||!Number.isSafeInteger(Number(p.stock))||!Number.isSafeInteger(i.qty)||i.qty<1||Number(p.stock)+i.qty>999999)return;p.stock=Number(p.stock)+i.qty;}}ledger[id]={...(prior||{}),status:'cancelled',cancelledAt:now};}else if(action==='deliver'){ledger[id]={...prior,status:'delivered',deliveredAt:now};}else return;next.orderLedger=ledger;next.orderRevision=(Number(current.orderRevision)||0)+1;next.updatedAt=now;return next;}
+async function nancyChangeOrder(id,action){if(!nancyIsAdmin()||!isAdminMode||!nancyConnected||nancyOrderBusy)return showToast('Inicia sesión y verifica la conexión.','error');if(!confirm(({approve:'¿Autorizar y descontar existencias?',cancel:'¿Cancelar el pedido?',deliver:'¿Marcar como entregado?'})[action]))return;nancyOrderBusy=true;nancyRenderOrders();try{await waRecoveryCatalogSaveTail;const req=(await db.ref('orderRequests/'+id).once('value')).val(),now=Date.now();const result=await bazarRef.transaction(current=>nancyOrderMutation(current,id,action,req,now),undefined,false);if(!result.committed)throw Error('No se aplicó: cambió el estado, precio o inventario, o falta un producto.');nancySnapshot(result.snapshot.val());showToast('Pedido actualizado.','success');}catch(err){showToast(err.message||'No se pudo actualizar el pedido.','error');}finally{nancyOrderBusy=false;nancyRenderOrders();}}
+async function nancySendOrder(){if(!catalogOrderOpen){catalogOpenOrder();return;}if(nancySendBusy)return;if(!db||!nancyConnected)return showToast('Conéctate a Internet para registrar el pedido.','error');const before=JSON.stringify(cart),items=catalogCartItems();catalogRenderOrder(items);if(before!==JSON.stringify(cart))return showToast('Cambió la disponibilidad. Revisa el pedido.','info');let order;try{order=catalogBuildWhatsAppOrder(items);}catch(e){return showToast(e.message,'info');}nancySendBusy=true;const btn=document.getElementById('orderSend');btn.disabled=true;try{const itemMap={};items.forEach((i,j)=>{itemMap['i'+j]={id:String(i.product.id),qty:i.qty,unitCents:i.unitCents};});const signature=JSON.stringify(itemMap);if(!nancyPendingKey||nancyPendingKey.signature!==signature)nancyPendingKey={signature,id:db.ref('orderRequests').push().key,createdAt:Date.now()};const pending=nancyPendingKey;await db.ref('orderRequests/'+pending.id).set({status:'pending',createdAt:pending.createdAt,totalCents:order.totalCents,items:itemMap});const url=order.url+'%0A%0AFolio%3A%20'+encodeURIComponent(pending.id);cart={};nancyPendingKey=null;closeModal('orderModal');renderClient();showToast('Pedido registrado. Pendiente de autorización.','success');location.href=url;}catch(err){showToast('No se confirmó el registro. Revisa tu conexión antes de reintentar.','error');}finally{nancySendBusy=false;btn.disabled=false;}}
+function nancySaveCatalog(){if(!nancyIsAdmin()||!isAdminMode||!bazarRef||!nancyConnected||nancyRevision===null){showToast('Inicia sesión y conéctate para guardar cambios.','error');return Promise.resolve(false);}const expected=nancyRevision,payload={...waRecoveryCatalogPayload(),updatedAt:Date.now()};const save=async()=>{try{await waRecoveryProtectCatalog();setSyncBadge('saving');const result=await bazarRef.transaction(current=>{if(!current||(Number(current.orderRevision)||0)!==expected)return;return {...current,...payload,orderRevision:expected+1};},undefined,false);if(!result.committed){showToast('El catálogo cambió en otro equipo. Revisa los datos y repite tu edición.','error');const snap=await bazarRef.once('value');const d=waRecoveryNormalizeCatalog(snap.val());if(d&&Array.isArray(d.products)){nancySnapshot(d);products=d.products;storeName=d.storeName||'Catálogo Nancy';waNumber=d.waNumber||'';customCategories=cleanCategories(d.categories);refreshCategoryInputs();saveLocalCache();revealUI();}return false;}nancySnapshot(result.snapshot.val());setSyncBadge('live');saveLocalCache();return true;}catch(err){setSyncBadge('offline');showToast('No se confirmó el guardado. Revisa tu conexión.','error');return false;}};waRecoveryCatalogSaveTail=waRecoveryCatalogSaveTail.then(save,save);return waRecoveryCatalogSaveTail;}
+
+</script>
 </body>
 </html>
